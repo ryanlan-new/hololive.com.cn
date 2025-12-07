@@ -1,0 +1,55 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+@theme {
+  --color-brand-bg: #ffffff;
+  --color-brand-blue: #8ed1fc;
+  --color-brand-text: #1e293b;
+  --color-background: #ffffff;
+}
+
+body {
+  font-family: system-ui, sans-serif;
+  background: linear-gradient(to bottom right, #f8fafc, #eff6ff);
+  color: #1e293b;
+  min-height: 100vh;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Global Scrollbar Hiding (But Keep Scrolling)             */
+/* -------------------------------------------------------------------------- */
+
+@layer base {
+  /* 针对 Webkit 浏览器 (Chrome, Safari, Edge, Opera) */
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar,
+  #root::-webkit-scrollbar,
+  *::-webkit-scrollbar {
+    display: none !important; /* 隐藏滚动条占位 */
+    width: 0px !important;
+    height: 0px !important;
+    background: transparent !important;
+  }
+
+  /* 针对 Firefox 和 IE/Edge Legacy */
+  html,
+  body,
+  #root,
+  * {
+    scrollbar-width: none !important; /* Firefox */
+    -ms-overflow-style: none !important; /* IE 10+ */
+  }
+}
+
+/* Fallback if @layer is not supported or configured */
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+#root::-webkit-scrollbar {
+  display: none !important;
+}
+html,
+body,
+#root {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}

@@ -1,0 +1,477 @@
+import { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
+import { Plus, Trash2, Loader2, User, UserX, Mail, X, Save, AlertTriangle } from "lucide-react";
+import pb from "../../lib/pocketbase";
+
+/**
+ * 本地管理员账号管理页面
+ * 管理 users 集合中的管理员账号
+ */
+export default function AdminUsersPage() {
+  const { adminKey } = useParams();
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [deletingId, setDeletingId] = useState(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState(null);
+  const [showForm, setShowForm] = useState(false);
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+    passwordConfirm: "",
+  });
+  const [enableLocalLogin, setEnableLocalLogin] = useState(true);
+  const [updatingLoginSetting, setUpdatingLoginSetting] = useState(false);
+
+  // 获取用户列表
+  const fetchUsers = async () => {
+    try {
+      setLoading(true);
+      const result = await pb.collection("users").getList(1, 100, {
+        sort: "-created",
+      });
+      setUsers(result.items);
+    } catch (error) {
+      console.error("Failed to fetch users:", error);
+      const detail =
+        error?.response?.data ||
+        error?.data ||
+        error?.response ||
+        error?.message ||
+        error;
+      alert("Error fetching users: " + JSON.stringify(detail));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 获取本地登录开关状态
+  const fetchLoginSetting = async () => {
+    try {
+      const settings = await pb.collection("system_settings").getOne("1");
+      setEnableLocalLogin(settings?.enable_local_login ?? true);
+    } catch (error) {
+      console.error("Failed to fetch login setting:", error);
+      // 如果读取失败，默认开启（安全回退）
+      setEnableLocalLogin(true);
+    }
+  };
+
+  // 更新本地登录开关
+  const handleToggleLocalLogin = async (newValue) => {
+    try {
+      setUpdatingLoginSetting(true);
+      await pb.collection("system_settings").update("1", {
+        enable_local_login: newValue,
+      });
+      setEnableLocalLogin(newValue);
+    } catch (error) {
+      console.error("Failed to update login setting:", error);
+      const detail =
+        error?.response?.data ||
+        error?.data ||
+        error?.response ||
+        error?.message ||
+        error;
+      alert("Error updating login setting: " + JSON.stringify(detail));
+    } finally {
+      setUpdatingLoginSetting(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+    fetchLoginSetting();
+  }, []);
+
+  // 格式化日期
+  const formatDate = (dateString) => {
+    if (!dateString) return "-";
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat("zh-CN", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(date);
+  };
+
+  // 打开新建表单
+  const handleNew = () => {
+    setFormData({ email: "", password: "", passwordConfirm: "" });
+    setShowForm(true);
+  };
+
+  // 创建新管理员
+  const handleCreate = async (e) => {
+    e.preventDefault();
+
+    // 验证密码
+    if (formData.password !== formData.passwordConfirm) {
+      alert("两次输入的密码不一致");
+      return;
+    }
+
+    if (formData.password.length < 8) {
+      alert("密码长度至少为 8 位");
+      return;
+    }
+
+    try {
+      const payload = {
+        email: formData.email,
+        password: formData.password,
+        passwordConfirm: formData.passwordConfirm,
+        emailVisibility: true,
+      };
+      console.log("Creating admin user with payload:", payload);
+
+      await pb.collection("users").create(payload);
+      alert("管理员账号创建成功");
+      setShowForm(false);
+      setFormData({ email: "", password: "", passwordConfirm: "" });
+      await fetchUsers();
+    } catch (error) {
+      console.error("Failed to create user:", error);
+      const detail =
+        error?.response?.data ||
+        error?.data ||
+        error?.response ||
+        error?.message ||
+        error;
+      alert("Error creating user: " + JSON.stringify(detail));
+    }
+  };
+
+  // 禁用账号（将 verified 设为 false）
+  const handleDisable = async (userId) => {
+    try {
+      console.log("Disabling admin user:", { userId });
+      await pb.collection("users").update(userId, {
+        verified: false,
+      });
+      alert("账号已禁用");
+      await fetchUsers();
+    } catch (error) {
+      console.error("Failed to disable user:", error);
+      const detail =
+        error?.response?.data ||
+        error?.data ||
+        error?.response ||
+        error?.message ||
+        error;
+      alert("Error disabling user: " + JSON.stringify(detail));
+    }
+  };
+
+  // 删除账号
+  const handleDelete = async (id) => {
+    try {
+      console.log("Deleting admin user:", { id });
+      setDeletingId(id);
+      await pb.collection("users").delete(id);
+      await fetchUsers();
+      setDeleteConfirmId(null);
+    } catch (error) {
+      console.error("Failed to delete user:", error);
+      const detail =
+        error?.response?.data ||
+        error?.data ||
+        error?.response ||
+        error?.message ||
+        error;
+      alert("Error deleting user: " + JSON.stringify(detail));
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 p-8">
+      <div className="max-w-7xl mx-auto">
+        {/* 页面头部 */}
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              本地管理员管理
+            </h1>
+            <p className="text-gray-600">管理本地管理员账号</p>
+          </div>
+          <button
+            onClick={handleNew}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+          >
+            <Plus className="w-5 h-5" />
+            添加管理员
+          </button>
+        </div>
+
+        {/* 本地登录开关设置区域 */}
+        <div className="mb-6 rounded-2xl border-2 border-amber-200 bg-amber-50/50 p-5 shadow-sm">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-2">
+                <AlertTriangle className="w-5 h-5 text-amber-600" />
+                <h3 className="text-lg font-semibold text-amber-900">
+                  允许本地账号密码登录
+                </h3>
+              </div>
+              <p className="text-sm text-amber-800 mb-3">
+                关闭此功能后，后台登录页将仅显示 Microsoft SSO 登录按钮，完全隐藏账号密码输入框。
+                只有通过 Microsoft OAuth2 认证的用户才能登录系统。
+              </p>
+              <p className="text-xs text-amber-700">
+                Enable Local Password Login (Enable Local Password Login)
+              </p>
+            </div>
+            <label className="flex items-center gap-3 cursor-pointer flex-shrink-0">
+              <input
+                type="checkbox"
+                checked={enableLocalLogin}
+                onChange={(e) => handleToggleLocalLogin(e.target.checked)}
+                disabled={updatingLoginSetting}
+                className="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              />
+              <span className="text-sm font-medium text-amber-900">
+                {enableLocalLogin ? "已开启" : "已关闭"}
+              </span>
+              {updatingLoginSetting && (
+                <Loader2 className="w-4 h-4 animate-spin text-amber-600" />
+              )}
+            </label>
+          </div>
+        </div>
+
+        {/* 新建表单弹窗 */}
+        {showForm && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">
+                  添加管理员
+                </h3>
+                <button
+                  onClick={() => {
+                    setShowForm(false);
+                    setFormData({ email: "", password: "", passwordConfirm: "" });
+                  }}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <form onSubmit={handleCreate} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    邮箱地址 *
+                  </label>
+                  <input
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) =>
+                      setFormData({ ...formData, email: e.target.value })
+                    }
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="admin@example.com"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    密码 *
+                  </label>
+                  <input
+                    type="password"
+                    value={formData.password}
+                    onChange={(e) =>
+                      setFormData({ ...formData, password: e.target.value })
+                    }
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="至少 8 位"
+                    required
+                    minLength={8}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    确认密码 *
+                  </label>
+                  <input
+                    type="password"
+                    value={formData.passwordConfirm}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        passwordConfirm: e.target.value,
+                      })
+                    }
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="再次输入密码"
+                    required
+                    minLength={8}
+                  />
+                </div>
+                <div className="flex items-center justify-end gap-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowForm(false);
+                      setFormData({ email: "", password: "", passwordConfirm: "" });
+                    }}
+                    className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium transition-colors"
+                  >
+                    取消
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+                  >
+                    <Save className="w-4 h-4" />
+                    创建
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* 用户列表 */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+          {loading ? (
+            <div className="p-12 text-center">
+              <Loader2 className="w-8 h-8 animate-spin text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-500">加载中...</p>
+            </div>
+          ) : users.length === 0 ? (
+            <div className="p-12 text-center">
+              <User className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+              <p className="text-gray-500 text-lg mb-2">暂无管理员账号</p>
+              <p className="text-gray-400 text-sm mb-6">
+                添加管理员账号以允许本地登录
+              </p>
+              <button
+                onClick={handleNew}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+              >
+                <Plus className="w-5 h-5" />
+                添加管理员
+              </button>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      头像
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      邮箱地址
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      状态
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      创建时间
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      操作
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {users.map((user) => (
+                    <tr key={user.id} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center">
+                          <User className="w-5 h-5 text-white" />
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-gray-900">
+                          {user.email}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {user.verified ? (
+                          <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                            已激活
+                          </span>
+                        ) : (
+                          <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
+                            已禁用
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {formatDate(user.created)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <div className="flex items-center justify-end gap-2">
+                          {user.verified && (
+                            <button
+                              onClick={() => handleDisable(user.id)}
+                              className="text-orange-600 hover:text-orange-900 transition-colors"
+                              title="禁用"
+                            >
+                              <UserX className="w-4 h-4" />
+                            </button>
+                          )}
+                          <button
+                            onClick={() => setDeleteConfirmId(user.id)}
+                            className="text-red-600 hover:text-red-900 transition-colors"
+                            disabled={deletingId === user.id}
+                            title="删除"
+                          >
+                            {deletingId === user.id ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <Trash2 className="w-4 h-4" />
+                            )}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* 删除确认弹窗 */}
+      {deleteConfirmId && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              确认删除
+            </h3>
+            <p className="text-gray-600 mb-6">
+              您确定要删除这个管理员账号吗？删除后该账号将无法登录。此操作不可撤销。
+            </p>
+            <div className="flex items-center justify-end gap-3">
+              <button
+                onClick={() => setDeleteConfirmId(null)}
+                className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium transition-colors"
+              >
+                取消
+              </button>
+              <button
+                onClick={() => handleDelete(deleteConfirmId)}
+                disabled={deletingId === deleteConfirmId}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                {deletingId === deleteConfirmId && (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                )}
+                确认删除
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
