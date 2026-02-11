@@ -1,0 +1,60 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build frontend
+        run: npm run build
+        env:
+          VITE_POCKETBASE_URL: "https://hololive.com.cn"
+
+      - name: Deploy to Server via Rsync
+        uses: easingthemes/ssh-deploy@v5.1.0
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_KEY }}
+          REMOTE_HOST: ${{ secrets.HOST }}
+          REMOTE_USER: ${{ secrets.USERNAME }}
+          # Deploy compiled frontend
+          SOURCE: "dist/"
+          TARGET: "/var/www/hololive.com.cn/dist/"
+          ARGS: "-rltgoDzvO"
+      
+      - name: Deploy Migrations
+        uses: easingthemes/ssh-deploy@v5.1.0
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_KEY }}
+          REMOTE_HOST: ${{ secrets.HOST }}
+          REMOTE_USER: ${{ secrets.USERNAME }}
+          # Deploy migration files
+          SOURCE: "backend/pb_migrations/"
+          TARGET: "/var/www/hololive.com.cn/backend/pb_migrations/"
+          ARGS: "-rltgoDzvO"
+
+      - name: Restart PocketBase
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            systemctl restart pocketbase
+            echo "PocketBase restarted successfully."
