@@ -28,6 +28,7 @@ pb.autoCancellation(false); // Disable auto-cancellation for long running proces
 // State
 let currentSettings = null;
 let syncQueue = Promise.resolve({ configChanged: false, jarChanged: false, appliedHash: "" });
+let lastReportedProxyStatus = null;
 
 async function main() {
     console.log(`[Sync] Starting Velocity Sync Daemon...`);
@@ -180,6 +181,10 @@ async function updateProxyStatusOnce() {
         };
         await pb.collection('velocity_settings').update(currentSettings.id, payload);
         currentSettings = { ...currentSettings, ...payload };
+        if (status !== lastReportedProxyStatus) {
+            console.log(`[Monitor] Proxy status => ${status}`);
+            lastReportedProxyStatus = status;
+        }
     } catch (e) {
         console.error("[Monitor] Failed to update status:", e.message);
     }
