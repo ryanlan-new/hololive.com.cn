@@ -1,4 +1,4 @@
-/// <reference path="../pb_data/types.d.ts" />
+
 migrate((app) => {
     const schema = [
         {
@@ -931,6 +931,19 @@ migrate((app) => {
         } catch (err) {
             console.warn("Failed to create collection " + collectionData.name, err);
         }
+    }
+
+    // 更新 users 集合规则 (允许 Public Create 以支持 OAuth2)
+    try {
+        const users = app.findCollectionByNameOrId("users");
+        users.listRule = "@request.auth.id != \"\"";
+        users.viewRule = "@request.auth.id != \"\"";
+        users.createRule = ""; // 允许公开创建（OAuth2 需要）
+        users.updateRule = "@request.auth.id != \"\"";
+        users.deleteRule = "@request.auth.id != \"\"";
+        app.save(users);
+    } catch (err) {
+        console.warn("Failed to update users collection rules", err);
     }
 }, (app) => {
     const ids = [

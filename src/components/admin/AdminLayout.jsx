@@ -23,6 +23,7 @@ import {
   Map,
   Server,
   ClipboardList,
+  Network,
 } from "lucide-react";
 import pb from "../../lib/pocketbase";
 import GlobalBanner from "../announcement/GlobalBanner";
@@ -58,6 +59,12 @@ export default function AdminLayout() {
       key: "dashboard",
       icon: LayoutDashboard,
       path: `/${adminKey}/webadmin/dashboard`,
+    },
+    {
+      label: "Velocity 代理",
+      key: "velocity",
+      icon: Network,
+      path: `/${adminKey}/webadmin/velocity`,
     },
     {
       label: "文章管理",
@@ -194,11 +201,10 @@ export default function AdminLayout() {
                     <button
                       type="button"
                       onClick={() => toggleMenu(item.label)}
-                      className={`w-full flex items-center justify-between gap-3 px-3.5 py-2.5 rounded-xl text-sm transition-colors ${
-                        menuActive
-                          ? "bg-[var(--color-brand-blue)]/15 text-white border border-[var(--color-brand-blue)]/60"
-                          : "text-slate-300 hover:bg-slate-800/80 hover:text-white"
-                      }`}
+                      className={`w-full flex items-center justify-between gap-3 px-3.5 py-2.5 rounded-xl text-sm transition-colors ${menuActive
+                        ? "bg-[var(--color-brand-blue)]/15 text-white border border-[var(--color-brand-blue)]/60"
+                        : "text-slate-300 hover:bg-slate-800/80 hover:text-white"
+                        }`}
                     >
                       <div className="flex items-center gap-3">
                         <Icon className="w-4.5 h-4.5" />
@@ -219,11 +225,10 @@ export default function AdminLayout() {
                             <Link
                               key={child.key}
                               to={child.path}
-                              className={`flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                                childActive
-                                  ? "bg-[var(--color-brand-blue)]/20 text-white border border-[var(--color-brand-blue)]/60"
-                                  : "text-slate-300/80 hover:bg-slate-800 hover:text-white"
-                              }`}
+                              className={`flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${childActive
+                                ? "bg-[var(--color-brand-blue)]/20 text-white border border-[var(--color-brand-blue)]/60"
+                                : "text-slate-300/80 hover:bg-slate-800 hover:text-white"
+                                }`}
                             >
                               <ChildIcon className="w-4 h-4" />
                               <span>{child.label}</span>
@@ -241,18 +246,16 @@ export default function AdminLayout() {
                 <Link
                   key={item.key}
                   to={item.path}
-                  className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors border ${
-                    active
-                      ? "bg-[var(--color-brand-blue)]/20 text-white border-[var(--color-brand-blue)]/60 shadow-[0_0_20px_rgba(142,209,252,0.45)]"
-                      : "border-transparent text-slate-300 hover:bg-slate-800/80 hover:text-white"
-                  }`}
+                  className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors border ${active
+                    ? "bg-[var(--color-brand-blue)]/20 text-white border-[var(--color-brand-blue)]/60 shadow-[0_0_20px_rgba(142,209,252,0.45)]"
+                    : "border-transparent text-slate-300 hover:bg-slate-800/80 hover:text-white"
+                    }`}
                 >
                   <span
-                    className={`inline-block w-1 h-6 rounded-full ${
-                      active
-                        ? "bg-[var(--color-brand-blue)]"
-                        : "bg-transparent"
-                    }`}
+                    className={`inline-block w-1 h-6 rounded-full ${active
+                      ? "bg-[var(--color-brand-blue)]"
+                      : "bg-transparent"
+                      }`}
                   />
                   <Icon className="w-4.5 h-4.5" />
                   <span>{item.label}</span>

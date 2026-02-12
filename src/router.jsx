@@ -24,6 +24,7 @@ import ServerMapManager from "./pages/admin/ServerMapManager";
 import ServerInfoFields from "./pages/admin/ServerInfoFields";
 import AuditLogs from "./pages/admin/AuditLogs";
 import ArticleDetail from "./pages/ArticleDetail";
+import VelocityManager from "./pages/admin/VelocityManager";
 
 const router = createBrowserRouter([
   {
@@ -159,6 +160,10 @@ const router = createBrowserRouter([
               {
                 path: "logs",
                 element: <AuditLogs />,
+              },
+              {
+                path: "velocity",
+                element: <VelocityManager />,
               },
             ],
           },
