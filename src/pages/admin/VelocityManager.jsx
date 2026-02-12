@@ -14,7 +14,10 @@ import {
     HardDrive
 } from "lucide-react";
 
+import { useTranslation } from "react-i18next";
+
 export default function VelocityManager() {
+    const { t } = useTranslation();
     const [activeTab, setActiveTab] = useState("dashboard");
     const [settings, setSettings] = useState(null);
     const [servers, setServers] = useState([]);
