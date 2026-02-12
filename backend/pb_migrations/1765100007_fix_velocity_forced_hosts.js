@@ -13,7 +13,8 @@ migrate((app) => {
         }
     };
 
-    const servers = app.findCollectionByNameOrId("velocity_servers");
+    const servers = findCollection("velocity_servers");
+    const serverCollectionId = servers?.id || "pbc_velocity_servers";
     let forcedHosts = findCollection("velocity_forced_hosts");
 
     if (!forcedHosts) {
@@ -60,7 +61,7 @@ migrate((app) => {
         "presentable": false,
         "unique": false,
         "options": {
-            "collectionId": servers.id,
+            "collectionId": serverCollectionId,
             "cascadeDelete": false,
             "minSelect": null,
             "maxSelect": 1,

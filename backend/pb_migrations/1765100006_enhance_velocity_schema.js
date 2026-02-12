@@ -45,6 +45,7 @@ migrate((app) => {
     app.save(settings);
 
     const servers = app.findCollectionByNameOrId("velocity_servers");
+    const serverCollectionId = servers?.id || "pbc_velocity_servers";
     const serverFields = [
         { "name": "status", "type": "text", "system": false, "required": false, "presentable": false, "unique": false, "options": {} },
         { "name": "ping", "type": "number", "system": false, "required": false, "presentable": false, "unique": false, "options": {} },
@@ -87,7 +88,7 @@ migrate((app) => {
                     "presentable": false,
                     "unique": false,
                     "options": {
-                        "collectionId": servers.id,
+                        "collectionId": serverCollectionId,
                         "cascadeDelete": false,
                         "minSelect": null,
                         "maxSelect": 1,
@@ -119,7 +120,7 @@ migrate((app) => {
             "presentable": false,
             "unique": false,
             "options": {
-                "collectionId": servers.id,
+                "collectionId": serverCollectionId,
                 "cascadeDelete": false,
                 "minSelect": null,
                 "maxSelect": 1,
