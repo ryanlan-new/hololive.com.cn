@@ -307,9 +307,8 @@ ping-passthrough = "${settings.ping_passthrough || 'DISABLED'}"
 
 [servers]
 ${serversBlock}
-
-[servers.try]
 try = [${tryServers}]
+
 
 [advanced]
 compression-threshold = 256
