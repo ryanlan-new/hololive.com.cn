@@ -81,13 +81,19 @@ async function main() {
 }
 
 async function monitorProxyStatus() {
+    console.log("[Monitor] Starting proxy status monitoring...");
     // Check status every 15 seconds
     setInterval(async () => {
-        if (!currentSettings) return;
+        if (!currentSettings) {
+            console.log("[Monitor] Waiting for settings to be loaded...");
+            return;
+        }
 
         try {
             const { stdout } = await execAsync(`systemctl is-active ${VELOCITY_SERVICE}`);
             const status = stdout.trim(); // active, inactive, failed, etc.
+
+            // console.log(`[Monitor] Current status: ${status}`);
 
             await pb.collection('velocity_settings').update(currentSettings.id, {
                 proxy_status: status,
@@ -102,6 +108,7 @@ async function monitorProxyStatus() {
             } else {
                 status = "error";
             }
+            console.log(`[Monitor] Status check failed (or inactive): ${status}`);
 
             // Still update status
             try {
