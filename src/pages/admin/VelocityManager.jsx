@@ -55,10 +55,10 @@ export default function VelocityManager() {
         setSaving(true);
         try {
             await pb.collection("velocity_settings").update(settingsId, settings);
-            alert("Settings saved successfully!");
+            alert(t("admin.velocity.settings.success"));
         } catch (err) {
             console.error("Failed to save settings:", err);
-            alert("Error saving settings.");
+            alert(t("admin.velocity.settings.error"));
         } finally {
             setSaving(false);
         }
@@ -77,7 +77,7 @@ export default function VelocityManager() {
     };
 
     const handleDeleteServer = async (id) => {
-        if (!window.confirm("Are you sure you want to delete this server?")) return;
+        if (!window.confirm(t("admin.velocity.servers.table.confirmDelete"))) return;
         try {
             await pb.collection("velocity_servers").delete(id);
             fetchData();
@@ -101,11 +101,11 @@ export default function VelocityManager() {
             // Let's just update the file.
 
             await pb.collection("velocity_settings").update(settingsId, formData);
-            alert("Velocity JAR uploaded successfully! The server will auto-update on next sync.");
+            alert(t("admin.velocity.update.success"));
             fetchData();
         } catch (err) {
             console.error("Upload failed:", err);
-            alert("Failed to upload JAR file.");
+            alert(t("admin.velocity.update.error"));
         } finally {
             setUploading(false);
         }
@@ -154,8 +154,8 @@ export default function VelocityManager() {
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
                         className={`flex items-center gap-2 px-6 py-3 text-sm font-medium transition-colors border-b-2 ${activeTab === tab.id
-                                ? "border-indigo-500 text-indigo-600"
-                                : "border-transparent text-slate-500 hover:text-slate-700"
+                            ? "border-indigo-500 text-indigo-600"
+                            : "border-transparent text-slate-500 hover:text-slate-700"
                             }`}
                     >
                         <tab.icon className="w-4 h-4" />
@@ -215,7 +215,7 @@ export default function VelocityManager() {
                     <div className="space-y-6">
                         <div className="flex items-end gap-4 p-4 bg-slate-50 rounded-lg border border-slate-200">
                             <div className="flex-1">
-                                <label className="block text-xs font-medium text-slate-500 mb-1">Server Name</label>
+                                <label className="block text-xs font-medium text-slate-500 mb-1">{t("admin.velocity.servers.name")}</label>
                                 <input
                                     type="text"
                                     value={newServer.name}
@@ -225,7 +225,7 @@ export default function VelocityManager() {
                                 />
                             </div>
                             <div className="flex-1">
-                                <label className="block text-xs font-medium text-slate-500 mb-1">Address (IP:Port)</label>
+                                <label className="block text-xs font-medium text-slate-500 mb-1">{t("admin.velocity.servers.address")}</label>
                                 <input
                                     type="text"
                                     value={newServer.address}
@@ -235,7 +235,7 @@ export default function VelocityManager() {
                                 />
                             </div>
                             <div className="w-24">
-                                <label className="block text-xs font-medium text-slate-500 mb-1">Order</label>
+                                <label className="block text-xs font-medium text-slate-500 mb-1">{t("admin.velocity.servers.order")}</label>
                                 <input
                                     type="number"
                                     value={newServer.try_order}
@@ -251,14 +251,14 @@ export default function VelocityManager() {
                                     className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
                                     id="is_try"
                                 />
-                                <label htmlFor="is_try" className="ml-2 text-sm text-slate-600">Try First</label>
+                                <label htmlFor="is_try" className="ml-2 text-sm text-slate-600">{t("admin.velocity.servers.tryFirst")}</label>
                             </div>
                             <button
                                 onClick={handleAddServer}
                                 className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700"
                             >
                                 <Plus className="w-4 h-4" />
-                                Add
+                                {t("admin.velocity.servers.add")}
                             </button>
                         </div>
 
@@ -266,11 +266,11 @@ export default function VelocityManager() {
                             <table className="min-w-full divide-y divide-slate-200">
                                 <thead className="bg-slate-50">
                                     <tr>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Order</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Name</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Address</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Try First</th>
-                                        <th className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">{t("admin.velocity.servers.table.order")}</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">{t("admin.velocity.servers.table.name")}</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">{t("admin.velocity.servers.table.address")}</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">{t("admin.velocity.servers.table.tryFirst")}</th>
+                                        <th className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">{t("admin.velocity.servers.table.actions")}</th>
                                     </tr>
                                 </thead>
                                 <tbody className="bg-white divide-y divide-slate-200">
@@ -280,11 +280,13 @@ export default function VelocityManager() {
                                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">{server.name}</td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 font-mono">{server.address}</td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
-                                                {server.is_try_server ? <span className="text-green-600 font-bold">Yes</span> : "No"}
+                                                {server.is_try_server ? <span className="text-green-600 font-bold">{t("admin.velocity.servers.table.yes")}</span> : t("admin.velocity.servers.table.no")}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                                 <button
-                                                    onClick={() => handleDeleteServer(server.id)}
+                                                    onClick={() => {
+                                                        if (window.confirm(t("admin.velocity.servers.table.confirmDelete"))) handleDeleteServer(server.id);
+                                                    }}
                                                     className="text-red-500 hover:text-red-700"
                                                 >
                                                     <Trash2 className="w-4 h-4" />
@@ -295,7 +297,7 @@ export default function VelocityManager() {
                                     {servers.length === 0 && (
                                         <tr>
                                             <td colSpan="5" className="px-6 py-12 text-center text-slate-500">
-                                                No servers configured yet.
+                                                {t("admin.velocity.servers.table.empty")}
                                             </td>
                                         </tr>
                                     )}
@@ -310,17 +312,17 @@ export default function VelocityManager() {
                     <div className="space-y-6 max-w-2xl">
                         <div className="grid grid-cols-2 gap-6">
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">Bind Port</label>
+                                <label className="block text-sm font-medium text-slate-700 mb-1">{t("admin.velocity.settings.bindPort")}</label>
                                 <input
                                     type="text"
                                     value={settings.bind_port}
                                     onChange={(e) => setSettings({ ...settings, bind_port: e.target.value })}
                                     className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                                 />
-                                <p className="mt-1 text-xs text-slate-500">Default: 25577</p>
+                                <p className="mt-1 text-xs text-slate-500">{t("admin.velocity.settings.defaultPort")}</p>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">Max Players</label>
+                                <label className="block text-sm font-medium text-slate-700 mb-1">{t("admin.velocity.settings.maxPlayers")}</label>
                                 <input
                                     type="number"
                                     value={settings.max_players}
@@ -331,18 +333,18 @@ export default function VelocityManager() {
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">MOTD (Message of the Day)</label>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">{t("admin.velocity.settings.motd")}</label>
                             <textarea
                                 value={settings.motd}
                                 onChange={(e) => setSettings({ ...settings, motd: e.target.value })}
                                 className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                                 rows="3"
                             />
-                            <p className="mt-1 text-xs text-slate-500">Support Minecraft Color Codes (&a, &b...)</p>
+                            <p className="mt-1 text-xs text-slate-500">{t("admin.velocity.settings.motdHint")}</p>
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Forwarding Secret</label>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">{t("admin.velocity.settings.secret")}</label>
                             <div className="relative">
                                 <input
                                     type="text"
@@ -351,7 +353,7 @@ export default function VelocityManager() {
                                     className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 font-mono"
                                 />
                             </div>
-                            <p className="mt-1 text-xs text-red-500">Must match the secret in backend servers' paper.yml</p>
+                            <p className="mt-1 text-xs text-red-500">{t("admin.velocity.settings.secretHint")}</p>
                         </div>
 
                         <div className="pt-4 border-t border-slate-200">
@@ -361,7 +363,7 @@ export default function VelocityManager() {
                                 className="flex items-center gap-2 px-6 py-2.5 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 disabled:opacity-50"
                             >
                                 <Save className="w-4 h-4" />
-                                {saving ? "Saving..." : "Save Settings"}
+                                {saving ? t("admin.velocity.settings.saving") : t("admin.velocity.settings.save")}
                             </button>
                         </div>
                     </div>
@@ -373,34 +375,33 @@ export default function VelocityManager() {
                         <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-100 flex items-start gap-3">
                             <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5" />
                             <div>
-                                <h3 className="font-semibold text-yellow-900">Core Upgrade Warning</h3>
+                                <h3 className="font-semibold text-yellow-900">{t("admin.velocity.update.warningTitle")}</h3>
                                 <p className="text-sm text-yellow-800 mt-1">
-                                    Uploading a new JAR file will trigger a server restart on the next sync cycle.
-                                    Please ensure the JAR file is compatible with your configuration.
+                                    {t("admin.velocity.update.warningDesc")}
                                 </p>
                             </div>
                         </div>
 
                         <div>
-                            <h3 className="text-lg font-medium text-slate-900 mb-4">Current Version</h3>
+                            <h3 className="text-lg font-medium text-slate-900 mb-4">{t("admin.velocity.update.currentVersion")}</h3>
                             <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-lg border border-slate-200">
                                 <HardDrive className="w-8 h-8 text-slate-400" />
                                 <div>
-                                    <p className="font-medium text-slate-900">{settings.velocity_jar ? "Custom JAR Uploaded" : "Default / Not Set"}</p>
-                                    <p className="text-sm text-slate-500">Version Label: {settings.jar_version || "Unknown"}</p>
+                                    <p className="font-medium text-slate-900">{settings.velocity_jar ? t("admin.velocity.update.customJar") : t("admin.velocity.update.defaultJar")}</p>
+                                    <p className="text-sm text-slate-500">{t("admin.velocity.update.versionLabel")}: {settings.jar_version || "Unknown"}</p>
                                 </div>
                             </div>
                         </div>
 
                         <div>
-                            <h3 className="text-lg font-medium text-slate-900 mb-4">Upload New Core</h3>
+                            <h3 className="text-lg font-medium text-slate-900 mb-4">{t("admin.velocity.update.uploadTitle")}</h3>
                             <div className="border-2 border-dashed border-slate-300 rounded-xl p-8 text-center hover:bg-slate-50 transition-colors">
                                 <Upload className="w-10 h-10 text-slate-400 mx-auto mb-3" />
                                 <p className="text-sm font-medium text-slate-700 mb-1">
-                                    Click to upload velocity.jar
+                                    {t("admin.velocity.update.clickToUpload")}
                                 </p>
                                 <p className="text-xs text-slate-500 mb-4">
-                                    Max file size: 100MB
+                                    {t("admin.velocity.update.maxSize")}
                                 </p>
                                 <input
                                     type="file"
@@ -415,7 +416,7 @@ export default function VelocityManager() {
                     hover:file:bg-indigo-100
                     cursor-pointer mx-auto max-w-[200px]"
                                 />
-                                {uploading && <p className="text-sm text-indigo-600 mt-2 font-medium">Uploading...</p>}
+                                {uploading && <p className="text-sm text-indigo-600 mt-2 font-medium">{t("admin.velocity.update.uploading")}</p>}
                             </div>
                         </div>
                     </div>

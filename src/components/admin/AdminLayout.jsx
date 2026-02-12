@@ -25,14 +25,17 @@ import {
   ClipboardList,
   Network,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import pb from "../../lib/pocketbase";
 import GlobalBanner from "../announcement/GlobalBanner";
+import LanguageSwitcher from "./LanguageSwitcher";
 
 /**
  * 后台管理系统主布局组件
  * 采用 Sidebar + Topbar + Content 的现代化布局
  */
 export default function AdminLayout() {
+  const { t } = useTranslation();
   const { adminKey } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
@@ -55,48 +58,48 @@ export default function AdminLayout() {
   // 导航菜单项
   const navItems = [
     {
-      label: "总览",
+      label: t("admin.sidebar.dashboard"),
       key: "dashboard",
       icon: LayoutDashboard,
       path: `/${adminKey}/webadmin/dashboard`,
     },
     {
-      label: "Velocity 代理",
+      label: t("admin.sidebar.velocity"),
       key: "velocity",
       icon: Network,
       path: `/${adminKey}/webadmin/velocity`,
     },
     {
-      label: "文章管理",
+      label: t("admin.sidebar.posts"),
       key: "posts",
       icon: FileText,
       path: `/${adminKey}/webadmin/posts`,
     },
     {
-      label: "资源库",
+      label: t("admin.sidebar.media"),
       key: "media",
       icon: Image,
       path: `/${adminKey}/webadmin/media`,
     },
     {
-      label: "首页管理",
+      label: t("admin.sidebar.home"),
       key: "home",
       icon: Home,
       path: `/${adminKey}/webadmin/home`,
     },
     {
-      label: "账号管理",
+      label: t("admin.sidebar.accounts"),
       key: "accounts",
       icon: Users,
       children: [
         {
-          label: "白名单设置",
+          label: t("admin.sidebar.whitelist"),
           key: "whitelist",
           icon: Shield,
           path: `/${adminKey}/webadmin/accounts/whitelist`,
         },
         {
-          label: "本地账号",
+          label: t("admin.sidebar.localAccounts"),
           key: "local-accounts",
           icon: UserCircle,
           path: `/${adminKey}/webadmin/accounts/local`,
@@ -104,31 +107,31 @@ export default function AdminLayout() {
       ],
     },
     {
-      label: "操作日志",
+      label: t("admin.sidebar.logs"),
       key: "logs",
       icon: ClipboardList,
       path: `/${adminKey}/webadmin/logs`,
     },
     {
-      label: "系统设置",
+      label: t("admin.sidebar.settings"),
       key: "settings",
       icon: Settings,
       path: `/${adminKey}/webadmin/settings`,
     },
     {
-      label: "公告管理",
+      label: t("admin.sidebar.announcements"),
       key: "announcements",
       icon: Bell,
       path: `/${adminKey}/webadmin/announcements`,
     },
     {
-      label: "服务器地图",
+      label: t("admin.sidebar.serverMaps"),
       key: "server-maps",
       icon: Map,
       path: `/${adminKey}/webadmin/server-maps`,
     },
     {
-      label: "服务器信息字段",
+      label: t("admin.sidebar.serverInfoFields"),
       key: "server-info-fields",
       icon: Server,
       path: `/${adminKey}/webadmin/server-info-fields`,
@@ -182,7 +185,7 @@ export default function AdminLayout() {
               <span className="text-sm font-semibold tracking-wide text-slate-100 uppercase">
                 Admin Console
               </span>
-              <span className="text-xs text-slate-400">HololiveCN MC 后台</span>
+              <span className="text-xs text-slate-400">{t("admin.sidebar.subtitle")}</span>
             </div>
           </div>
 
@@ -274,7 +277,7 @@ export default function AdminLayout() {
                 <p className="text-xs font-semibold text-slate-100 truncate">
                   {user?.email || "Admin"}
                 </p>
-                <p className="text-[11px] text-slate-400 truncate">管理员</p>
+                <p className="text-[11px] text-slate-400 truncate">{t("admin.sidebar.role")}</p>
               </div>
             </div>
 
@@ -283,7 +286,7 @@ export default function AdminLayout() {
               className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-200 bg-slate-900/80 hover:bg-slate-800 transition-colors"
             >
               <Home className="w-4.5 h-4.5" />
-              <span>回到主页</span>
+              <span>{t("admin.sidebar.backHome")}</span>
             </Link>
 
             <button
@@ -293,7 +296,7 @@ export default function AdminLayout() {
               className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-200 bg-slate-900/80 hover:bg-slate-800 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
             >
               <LogOut className="w-4.5 h-4.5" />
-              <span>{loggingOut ? "正在登出..." : "安全退出"}</span>
+              <span>{loggingOut ? t("admin.sidebar.loggingOut") : t("admin.sidebar.logout")}</span>
             </button>
           </div>
         </aside>
@@ -311,9 +314,10 @@ export default function AdminLayout() {
               </h1>
             </div>
             <div className="flex items-center gap-3 text-xs text-slate-500">
-              <span className="hidden sm:inline">当前管理员：</span>
+              <LanguageSwitcher />
+              <span className="hidden sm:inline">{t("admin.header.currentAdmin")}:</span>
               <span className="px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 font-medium truncate max-w-[200px]">
-                {user?.email || "未登录"}
+                {user?.email || t("admin.header.notLoggedIn")}
               </span>
             </div>
           </header>
@@ -323,9 +327,12 @@ export default function AdminLayout() {
             <h1 className="text-base font-semibold text-slate-900">
               {currentTitle}
             </h1>
-            <span className="text-[11px] text-slate-500">
-              {user?.email || "Admin"}
-            </span>
+            <div className="flex items-center gap-2">
+              <LanguageSwitcher />
+              <span className="text-[11px] text-slate-500">
+                {user?.email || "Admin"}
+              </span>
+            </div>
           </header>
 
           {/* 内容容器 */}
