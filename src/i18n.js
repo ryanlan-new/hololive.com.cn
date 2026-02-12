@@ -2303,7 +2303,6 @@ const resources = {
       fetchError: "メディアリストの取得に失敗しました",
     },
   },
-},
 };
 
 i18n.use(initReactI18next).init({
