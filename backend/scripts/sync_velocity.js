@@ -185,15 +185,15 @@ async function updateJarVersion() {
         // Check if JAR exists
         await fs.access(jarPath);
 
-        // Run java -jar velocity.jar --version
-        // Note: verify if `java` is in path. Usually it is.
-        const { stdout } = await execAsync(`java -jar "${jarPath}" --version`);
+        // Velocity doesn't support --version CLI flag.
+        // We use unzip to read META-INF/MANIFEST.MF
+        // Implementation-Version: 3.3.0-SNAPSHOT
+        const { stdout } = await execAsync(`unzip -p "${jarPath}" META-INF/MANIFEST.MF | grep "Implementation-Version"`);
 
-        // Output example: "Velocity 3.3.0-SNAPSHOT (git-2e061848-b425)"
-        const versionLine = stdout.split('\n')[0].trim();
+        // Output example: "Implementation-Version: 3.3.0-SNAPSHOT"
+        const versionLine = stdout.split(':')[1]?.trim();
 
-        // Update if different
-        if (currentSettings && currentSettings.jar_version !== versionLine) {
+        if (versionLine && currentSettings && currentSettings.jar_version !== versionLine) {
             console.log(`[Version] Detected new version: ${versionLine}`);
             await pb.collection('velocity_settings').update(currentSettings.id, {
                 jar_version: versionLine
@@ -202,7 +202,8 @@ async function updateJarVersion() {
             currentSettings.jar_version = versionLine;
         }
     } catch (err) {
-        console.warn("[Version] Failed to detect version:", err.message);
+        // Suppress error if just unzip check fails, but log if needed
+        // console.warn("[Version] Failed to detect version:", err.message);
     }
 }
 
