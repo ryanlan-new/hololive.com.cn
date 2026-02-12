@@ -49,15 +49,12 @@ migrate((app) => {
     // player_info_forwarding_mode: modern, legacy, bungeeguard, none
     settings.fields.add(new Field({
         "name": "player_info_forwarding_mode",
-        "type": "select",
+        "type": "text",
         "system": false,
         "required": false,
         "presentable": false,
         "unique": false,
-        "options": {
-            "maxSelect": 1,
-            "values": ["modern", "legacy", "bungeeguard", "none"]
-        }
+        "options": {}
     }));
 
     // kick_existing_players
@@ -74,15 +71,12 @@ migrate((app) => {
     // ping_passthrough
     settings.fields.add(new Field({
         "name": "ping_passthrough",
-        "type": "select",
+        "type": "text",
         "system": false,
         "required": false,
         "presentable": false,
         "unique": false,
-        "options": {
-            "maxSelect": 1,
-            "values": ["DISABLED", "ENABLED", "DESCRIPTION"]
-        }
+        "options": {}
     }));
 
     app.save(settings);
@@ -93,15 +87,12 @@ migrate((app) => {
     // status: pending, online, offline, error
     servers.fields.add(new Field({
         "name": "status",
-        "type": "select",
+        "type": "text",
         "system": false,
         "required": false,
         "presentable": false,
         "unique": false,
-        "options": {
-            "maxSelect": 1,
-            "values": ["pending", "online", "offline", "error"]
-        }
+        "options": {}
     }));
 
     // ping (latency in ms)
