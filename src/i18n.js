@@ -505,6 +505,12 @@ const resources = {
           saving: "保存中...",
           success: "设置保存成功！",
           error: "保存设置失败。",
+          forwardingModeOptions: {
+            modern: "现代 (Modern) - 推荐 1.13+",
+            legacy: "传统 (Legacy) - 1.12 及以下",
+            bungeeguard: "BungeeGuard - 需安装插件",
+            none: "无 (None) - 不推荐",
+          },
         },
         update: {
           warningTitle: "核心升级警告",
@@ -1225,6 +1231,12 @@ const resources = {
             kickExistingHint: "Kick players if already logged in",
             pingPassthrough: "Ping Passthrough",
             pingPassthroughHint: "Forward ping requests to backend",
+            forwardingModeOptions: {
+              modern: "Modern (Recommended for 1.13+)",
+              legacy: "Legacy (BungeeCord 1.8-1.12)",
+              bungeeguard: "BungeeGuard",
+              none: "None",
+            },
           },
           update: {
             warningTitle: "Core Upgrade Warning",
@@ -1253,12 +1265,6 @@ const resources = {
             checking: "Checking...",
           },
           loading: "Loading Velocity Configuration...",
-          forwardingModeOptions: {
-            modern: "Modern (Recommended for 1.13+)",
-            legacy: "Legacy (BungeeCord 1.8-1.12)",
-            bungeeguard: "BungeeGuard",
-            none: "None",
-          },
           auditLogs: {
             title: "Audit Logs",
             subtitle: "View operation records of admins and SSO users",
@@ -1935,6 +1941,12 @@ const resources = {
           pingPassthroughHint: "Pingリクエストをバックエンドへ転送",
           success: "設定が正常に保存されました！",
           error: "設定の保存に失敗しました。",
+          forwardingModeOptions: {
+            modern: "Modern (1.13+ 推奨)",
+            legacy: "Legacy (BungeeCord 1.8-1.12)",
+            bungeeguard: "BungeeGuard",
+            none: "なし",
+          },
         },
         update: {
           warningTitle: "コアアップグレード警告",
@@ -1968,12 +1980,6 @@ const resources = {
           no: "いいえ",
         },
         loading: "Velocity設定を読み込み中...",
-        forwardingModeOptions: {
-          modern: "Modern (1.13+ 推奨)",
-          legacy: "Legacy (BungeeCord 1.8-1.12)",
-          bungeeguard: "BungeeGuard",
-          none: "なし",
-        },
       },
       auditLogs: {
         title: "操作ログ",
