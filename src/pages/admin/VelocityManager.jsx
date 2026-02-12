@@ -44,7 +44,7 @@ export default function VelocityManager() {
 
             // Fetch Servers
             const serversList = await pb.collection("velocity_servers").getFullList({ sort: "try_order" });
-            setServers(serversList);
+            setServers(serversList || []);
         } catch (err) {
             console.error("Failed to fetch Velocity data:", err);
             alert("Failed to load data. Please ensure the backend migration has run.");

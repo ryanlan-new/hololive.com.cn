@@ -8,6 +8,7 @@ import {
 } from "react-router-dom";
 import {
   LayoutDashboard,
+  Activity,
   FileText,
   LogOut,
   User,
@@ -23,7 +24,6 @@ import {
   Map,
   Server,
   ClipboardList,
-  Network,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import pb from "../../lib/pocketbase";
@@ -66,7 +66,7 @@ export default function AdminLayout() {
     {
       label: t("admin.sidebar.velocity"),
       key: "velocity",
-      icon: Network,
+      icon: Activity, // Using Activity (Network icon might be missing or problematic)
       path: `/${adminKey}/webadmin/velocity`,
     },
     {
