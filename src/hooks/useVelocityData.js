@@ -88,9 +88,7 @@ export default function useVelocityData() {
 
         const refreshRuntimeStatus = async () => {
             try {
-                const latest = await pb.collection("velocity_settings").getOne(settingsId, {
-                    fields: "id,proxy_status,last_heartbeat,last_sync_status,last_sync_error,last_sync_at,last_applied_hash",
-                });
+                const latest = await pb.collection("velocity_settings").getOne(settingsId);
 
                 setSettings((prev) => {
                     if (!prev || prev.id !== latest.id) return prev;
