@@ -83,6 +83,37 @@ export default function useVelocityData() {
         };
     }, [fetchData]);
 
+    useEffect(() => {
+        if (!settingsId) return;
+
+        const refreshRuntimeStatus = async () => {
+            try {
+                const latest = await pb.collection("velocity_settings").getOne(settingsId, {
+                    fields: "id,proxy_status,last_heartbeat,last_sync_status,last_sync_error,last_sync_at,last_applied_hash",
+                });
+
+                setSettings((prev) => {
+                    if (!prev || prev.id !== latest.id) return prev;
+                    return {
+                        ...prev,
+                        proxy_status: latest.proxy_status,
+                        last_heartbeat: latest.last_heartbeat,
+                        last_sync_status: latest.last_sync_status,
+                        last_sync_error: latest.last_sync_error,
+                        last_sync_at: latest.last_sync_at,
+                        last_applied_hash: latest.last_applied_hash,
+                    };
+                });
+            } catch (err) {
+                console.warn("Failed to refresh runtime status:", err?.message || err);
+            }
+        };
+
+        refreshRuntimeStatus();
+        const timer = setInterval(refreshRuntimeStatus, 10000);
+        return () => clearInterval(timer);
+    }, [settingsId]);
+
     const handleAddServer = () => {
         setEditingServer(null);
         setNewServer({ name: "", address: "", try_order: 0, is_try_server: false });

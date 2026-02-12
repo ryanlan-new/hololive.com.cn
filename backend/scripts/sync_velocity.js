@@ -150,45 +150,39 @@ async function queueSync({ reason = "manual", restartIfChanged = false, forceRes
 
 async function monitorProxyStatus() {
     console.log("[Monitor] Starting proxy status monitoring...");
+    await updateProxyStatusOnce();
+
     // Check status every 15 seconds
     setInterval(async () => {
-        if (!currentSettings) {
-            console.log("[Monitor] Waiting for settings to be loaded...");
-            return;
-        }
-
-        try {
-            const { stdout } = await execAsync(`systemctl is-active ${VELOCITY_SERVICE}`);
-            const status = stdout.trim(); // active, inactive, failed, etc.
-
-            // console.log(`[Monitor] Current status: ${status}`);
-
-            await pb.collection('velocity_settings').update(currentSettings.id, {
-                proxy_status: status,
-                last_heartbeat: new Date().toISOString()
-            });
-        } catch (err) {
-            // Command failed (e.g. return code 3 for inactive)
-            // systemctl is-active returns non-zero for inactive/failed
-            let status = "unknown";
-            if (err.stdout) {
-                status = err.stdout.trim();
-            } else {
-                status = "error";
-            }
-            console.log(`[Monitor] Status check failed (or inactive): ${status}`);
-
-            // Still update status
-            try {
-                await pb.collection('velocity_settings').update(currentSettings.id, {
-                    proxy_status: status,
-                    last_heartbeat: new Date().toISOString()
-                });
-            } catch (e) {
-                console.error("[Monitor] Failed to update status:", e.message);
-            }
-        }
+        await updateProxyStatusOnce();
     }, 15000);
+}
+
+async function updateProxyStatusOnce() {
+    if (!currentSettings) {
+        console.log("[Monitor] Waiting for settings to be loaded...");
+        return;
+    }
+
+    let status = "unknown";
+    try {
+        const { stdout } = await execAsync(`systemctl is-active ${VELOCITY_SERVICE}`);
+        status = stdout.trim();
+    } catch (err) {
+        if (err.stdout) status = err.stdout.trim();
+        else status = "error";
+    }
+
+    try {
+        const payload = {
+            proxy_status: status,
+            last_heartbeat: new Date().toISOString()
+        };
+        await pb.collection('velocity_settings').update(currentSettings.id, payload);
+        currentSettings = { ...currentSettings, ...payload };
+    } catch (e) {
+        console.error("[Monitor] Failed to update status:", e.message);
+    }
 }
 
 async function syncConfig() {
