@@ -1,0 +1,49 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build Frontend
+        run: npm run build
+        env:
+          VITE_POCKETBASE_URL: "https://hololive.com.cn"
+
+      - name: Deploy to Web Root
+        run: |
+          # The runner is already ON the server.
+          # We just need to copy the build artifacts to the web root.
+          
+          echo "Deploying to /var/www/hololive.com.cn..."
+          
+          # Copy Frontend Build
+          # Assuming /var/www/hololive.com.cn is the target web root
+          # Note: 'rsync' is safer than 'cp' for syncing directories
+          rsync -av --delete dist/ /var/www/hololive.com.cn/dist/
+          
+          # Copy Backend Migrations
+          rsync -av backend/pb_migrations/ /var/www/hololive.com.cn/backend/pb_migrations/
+          
+          # Restart PocketBase Service
+          # Note: The runner user must have permission to run this (e.g. root or sudo w/o password)
+          sudo systemctl restart pocketbase
+          
+          echo "Deployment successful."

@@ -137,20 +137,6 @@ export VITE_POCKETBASE_URL="https://$DOMAIN"
 npm run build
 
 # ==========================================
-# 5.1 Setup Webhook Server (PM2)
-# ==========================================
-log "Setting up Webhook Server..."
-if ! command -v pm2 &> /dev/null; then
-    npm install -g pm2
-fi
-# Start webhook server
-pm2 start backend/scripts/webhook_server.js --name "gitee-webhook" --watch || pm2 restart "gitee-webhook"
-pm2 save
-pm2 startup | bash || true
-
-
-
-# ==========================================
 # 6. Configure Nginx
 # ==========================================
 log "Configuring Nginx..."
