@@ -1,7 +1,11 @@
-const http = require('http');
-const crypto = require('crypto');
-const { spawn } = require('child_process');
-const path = require('path');
+import http from 'http';
+import { spawn } from 'child_process';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Utilities for ESM
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Configuration
 const PORT = 3000;
