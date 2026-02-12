@@ -49,12 +49,15 @@ migrate((app) => {
     // player_info_forwarding_mode: modern, legacy, bungeeguard, none
     settings.fields.add(new Field({
         "name": "player_info_forwarding_mode",
-        "type": "text",
+        "type": "select",
         "system": false,
         "required": false,
         "presentable": false,
         "unique": false,
-        "options": {}
+        "options": {
+            "maxSelect": 1,
+            "values": ["modern", "legacy", "bungeeguard", "none"]
+        }
     }));
 
     // kick_existing_players
@@ -71,7 +74,32 @@ migrate((app) => {
     // ping_passthrough
     settings.fields.add(new Field({
         "name": "ping_passthrough",
+        "type": "select",
+        "system": false,
+        "required": false,
+        "presentable": false,
+        "unique": false,
+        "options": {
+            "maxSelect": 1,
+            "values": ["DISABLED", "MODS", "DESCRIPTION", "ALL"]
+        }
+    }));
+
+    // proxy_status: active, inactive, failed
+    settings.fields.add(new Field({
+        "name": "proxy_status",
         "type": "text",
+        "system": false,
+        "required": false,
+        "presentable": false,
+        "unique": false,
+        "options": {}
+    }));
+
+    // last_heartbeat
+    settings.fields.add(new Field({
+        "name": "last_heartbeat",
+        "type": "date",
         "system": false,
         "required": false,
         "presentable": false,

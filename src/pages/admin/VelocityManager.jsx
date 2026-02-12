@@ -275,7 +275,7 @@ export default function VelocityManager() {
                 {/* DASHBOARD TAB */}
                 {activeTab === "dashboard" && (
                     <div className="space-y-8">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                             <div className="p-4 bg-slate-50 rounded-lg border border-slate-100">
                                 <h3 className="text-sm font-medium text-slate-500 mb-1">{t("admin.velocity.dashboard.status")}</h3>
                                 <div className="flex items-center gap-2 text-green-600">
@@ -284,6 +284,26 @@ export default function VelocityManager() {
                                 </div>
                                 <p className="text-xs text-slate-400 mt-2">{t("admin.velocity.dashboard.statusDesc")}</p>
                             </div>
+
+                            {/* Proxy Process Status */}
+                            <div className="p-4 bg-slate-50 rounded-lg border border-slate-100">
+                                <h3 className="text-sm font-medium text-slate-500 mb-1">{t("admin.velocity.dashboard.proxyStatus")}</h3>
+                                <div className={`flex items-center gap-2 ${settings.proxy_status === 'active' ? 'text-green-600' : 'text-red-500'}`}>
+                                    <Activity className="w-5 h-5" />
+                                    <span className="font-semibold text-lg capitalize">
+                                        {settings.proxy_status || "Unknown"}
+                                    </span>
+                                </div>
+                                <p className="text-xs text-slate-400 mt-2">
+                                    {t("admin.velocity.dashboard.proxyStatusDesc")}
+                                    {settings.last_heartbeat && (
+                                        <span className="block mt-1 opacity-70">
+                                            {new Date(settings.last_heartbeat).toLocaleTimeString()}
+                                        </span>
+                                    )}
+                                </p>
+                            </div>
+
                             <div className="p-4 bg-slate-50 rounded-lg border border-slate-100">
                                 <h3 className="text-sm font-medium text-slate-500 mb-1">{t("admin.velocity.dashboard.servers")}</h3>
                                 <div className="flex items-center gap-2 text-slate-700">

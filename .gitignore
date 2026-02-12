@@ -18,7 +18,11 @@ dist-ssr
 
 # PocketBase backend data
 backend/pb_data/
+backend/pb_data/
+backend/pocketbase
 backend/.env
+*.jar
+
 
 # Editor directories and files
 .vscode/*

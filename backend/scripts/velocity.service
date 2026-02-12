@@ -1,0 +1,14 @@
+[Unit]
+Description=Velocity Proxy Server
+After=network.target
+
+[Service]
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/opt/velocity
+ExecStart=/usr/bin/java -Xms512M -Xmx512M -jar velocity.jar
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
