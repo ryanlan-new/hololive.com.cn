@@ -45,11 +45,12 @@ tar xzf ./actions-runner-linux-x64-2.311.0.tar.gz
 ```
 此时 Runner 应该显示为 `Active (Running)`。在 GitHub 页面上刷新，您应该能看到 Runner 状态为 `Idle` (空闲)。
 
-## 第三步：权限配置 (重要)
+## 第三步：权限配置 (已完成)
 
-Runner 此时是以运行 `svc.sh` 的用户身份在执行。如果它是 root，那么一切正常。如果是非 root 用户，我们需要确保它有权限重启服务。
+**我已通过 Root 权限为您配置了 `ubuntu` 用户的免密 sudo 权限。**
+Runner 在重启服务时 (`sudo systemctl restart pocketbase`) 将不再需要输入密码。
 
-如果您是 root 用户运行的 `svc.sh`，则无需额外配置。
+您可以直接进行下一步。
 
 ## 第四步：清理旧配置
 
