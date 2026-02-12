@@ -21,18 +21,24 @@ export default function ForcedHostsTab({ forcedHosts, servers, newForcedHost, se
                     <label className="block text-sm font-medium text-slate-700 mb-1">{t("admin.velocity.forcedHosts.server")}</label>
                     <select
                         value={newForcedHost.server}
-                        onChange={(e) => setNewForcedHost({ ...newForcedHost, server: e.target.value })}
-                        className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm"
+                        onChange={(e) => {
+                            const selected = Array.from(e.target.selectedOptions).map((opt) => opt.value);
+                            setNewForcedHost({ ...newForcedHost, server: selected });
+                        }}
+                        className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm min-h-[80px]"
+                        multiple
                     >
-                        <option value="">{t("admin.velocity.forcedHosts.selectServer")}</option>
                         {servers.map(s => (
                             <option key={s.id} value={s.id}>{s.name} ({s.address})</option>
                         ))}
                     </select>
+                    <p className="mt-1 text-xs text-slate-400">
+                        {t("admin.velocity.forcedHosts.selectServer")} (Ctrl/Cmd + Click)
+                    </p>
                 </div>
                 <button
                     onClick={onAdd}
-                    disabled={!newForcedHost.hostname || !newForcedHost.server}
+                    disabled={!newForcedHost.hostname || !Array.isArray(newForcedHost.server) || newForcedHost.server.length === 0}
                     className="px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 whitespace-nowrap"
                 >
                     {t("admin.velocity.actions.add")}
@@ -50,17 +56,26 @@ export default function ForcedHostsTab({ forcedHosts, servers, newForcedHost, se
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                         {forcedHosts.map(host => {
-                            const targetServer = servers.find(s => s.id === host.server);
+                            const hostServers = Array.isArray(host.server)
+                                ? host.server
+                                : (host.server ? [host.server] : []);
+                            const targetServers = hostServers
+                                .map((id) => servers.find((s) => s.id === id))
+                                .filter(Boolean);
                             return (
                                 <tr key={host.id} className="hover:bg-slate-50/50">
                                     <td className="px-4 py-3 font-medium font-mono text-slate-700">{host.hostname}</td>
                                     <td className="px-4 py-3 text-slate-600">
-                                        {targetServer ? (
-                                            <span className="inline-flex items-center gap-2">
-                                                <span className={`w-2 h-2 rounded-full ${targetServer.status === 'online' ? 'bg-green-500' : 'bg-slate-300'}`}></span>
-                                                {targetServer.name}
+                                        {targetServers.length > 0 ? (
+                                            <span className="inline-flex flex-wrap items-center gap-2">
+                                                {targetServers.map((srv) => (
+                                                    <span key={srv.id} className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-slate-100 text-slate-700 text-xs">
+                                                        <span className={`w-2 h-2 rounded-full ${srv.status === "online" ? "bg-green-500" : "bg-slate-300"}`}></span>
+                                                        {srv.name}
+                                                    </span>
+                                                ))}
                                             </span>
-                                        ) : host.server}
+                                        ) : (Array.isArray(host.server) ? host.server.join(", ") : host.server)}
                                     </td>
                                     <td className="px-4 py-3 text-right">
                                         <button onClick={() => onDelete(host.id)} className="text-slate-400 hover:text-red-600 transition-colors">

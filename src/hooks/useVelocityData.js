@@ -16,8 +16,14 @@ export default function useVelocityData() {
     const [newServer, setNewServer] = useState({ name: "", address: "", try_order: 0, is_try_server: false });
     const [editingServer, setEditingServer] = useState(null);
     const [isServerModalOpen, setIsServerModalOpen] = useState(false);
-    const [newForcedHost, setNewForcedHost] = useState({ hostname: "", server: "" });
+    const [newForcedHost, setNewForcedHost] = useState({ hostname: "", server: [] });
     const [settingsId, setSettingsId] = useState(null);
+
+    const isMissingCollectionError = useCallback((err, collectionName) => {
+        const status = err?.status;
+        const message = `${err?.message || ""}`.toLowerCase();
+        return status === 404 && message.includes("missing collection context") && message.includes(collectionName);
+    }, []);
 
     const fetchData = useCallback(async () => {
         setLoading(true);
@@ -29,15 +35,24 @@ export default function useVelocityData() {
             }
             const serversList = await pb.collection("velocity_servers").getFullList({ sort: "try_order" });
             setServers(serversList || []);
-            const forcedHostsList = await pb.collection("velocity_forced_hosts").getFullList({ sort: "hostname" });
-            setForcedHosts(forcedHostsList || []);
+            try {
+                const forcedHostsList = await pb.collection("velocity_forced_hosts").getFullList({ sort: "hostname" });
+                setForcedHosts(forcedHostsList || []);
+            } catch (err) {
+                if (isMissingCollectionError(err, "velocity_forced_hosts")) {
+                    console.warn("Collection velocity_forced_hosts is missing. Falling back to empty list.");
+                    setForcedHosts([]);
+                } else {
+                    throw err;
+                }
+            }
         } catch (err) {
             console.error("Failed to fetch Velocity data:", err);
             alert(t("admin.dashboard.error.loadFailed"));
         } finally {
             setLoading(false);
         }
-    }, [t]);
+    }, [t, isMissingCollectionError]);
 
     useEffect(() => {
         fetchData();
@@ -155,10 +170,14 @@ export default function useVelocityData() {
     };
 
     const handleAddForcedHost = async () => {
-        if (!newForcedHost.hostname || !newForcedHost.server) return;
+        if (!newForcedHost.hostname || !Array.isArray(newForcedHost.server) || newForcedHost.server.length === 0) return;
         try {
-            await pb.collection("velocity_forced_hosts").create(newForcedHost);
-            setNewForcedHost({ hostname: "", server: "" });
+            const serverValue = newForcedHost.server.length === 1 ? newForcedHost.server[0] : newForcedHost.server;
+            await pb.collection("velocity_forced_hosts").create({
+                hostname: newForcedHost.hostname.trim(),
+                server: serverValue,
+            });
+            setNewForcedHost({ hostname: "", server: [] });
             const list = await pb.collection("velocity_forced_hosts").getFullList({ sort: "hostname" });
             setForcedHosts(list);
         } catch (err) {

@@ -156,16 +156,61 @@ export default function SettingsTab({ settings, setSettings, saving, onSave }) {
                         </select>
                     </div>
 
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">{t("admin.velocity.settings.pingPassthrough")}</label>
+                        <select
+                            value={settings.ping_passthrough || "DISABLED"}
+                            onChange={(e) => setSettings({ ...settings, ping_passthrough: e.target.value })}
+                            className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none text-sm"
+                        >
+                            <option value="DISABLED">DISABLED</option>
+                            <option value="MODS">MODS</option>
+                            <option value="DESCRIPTION">DESCRIPTION</option>
+                            <option value="ALL">ALL</option>
+                        </select>
+                    </div>
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <CheckboxField id="sample_players_in_ping" checked={settings.sample_players_in_ping !== undefined ? settings.sample_players_in_ping : true} onChange={(v) => setSettings({ ...settings, sample_players_in_ping: v })} label={t("admin.velocity.settings.samplePlayersInPing")} />
+                        <CheckboxField id="enable_player_address_logging" checked={settings.enable_player_address_logging !== undefined ? settings.enable_player_address_logging : true} onChange={(v) => setSettings({ ...settings, enable_player_address_logging: v })} label={t("admin.velocity.settings.enablePlayerAddressLogging")} />
                         <CheckboxField id="haproxy_protocol" checked={settings.haproxy_protocol || false} onChange={(v) => setSettings({ ...settings, haproxy_protocol: v })} label={t("admin.velocity.settings.haproxyProtocol")} hint={t("admin.velocity.settings.haproxyProtocolHint")} />
                         <CheckboxField id="accepts_transfers" checked={settings.accepts_transfers || false} onChange={(v) => setSettings({ ...settings, accepts_transfers: v })} label={t("admin.velocity.settings.acceptsTransfers")} hint={t("admin.velocity.settings.acceptsTransfersHint")} />
                         <CheckboxField id="announce_forge" checked={settings.announce_forge || false} onChange={(v) => setSettings({ ...settings, announce_forge: v })} label={t("admin.velocity.settings.announceForge")} hint={t("admin.velocity.settings.announceForgeHint")} />
                         <CheckboxField id="show_ping_requests" checked={settings.show_ping_requests || false} onChange={(v) => setSettings({ ...settings, show_ping_requests: v })} label={t("admin.velocity.settings.showPingRequests")} hint={t("admin.velocity.settings.showPingRequestsHint")} />
+                        <CheckboxField id="failover_on_unexpected_server_disconnect" checked={settings.failover_on_unexpected_server_disconnect !== undefined ? settings.failover_on_unexpected_server_disconnect : true} onChange={(v) => setSettings({ ...settings, failover_on_unexpected_server_disconnect: v })} label={t("admin.velocity.settings.failoverOnUnexpectedDisconnect")} />
+                        <CheckboxField id="log_command_executions" checked={settings.log_command_executions || false} onChange={(v) => setSettings({ ...settings, log_command_executions: v })} label={t("admin.velocity.settings.logCommandExecutions")} />
+                        <CheckboxField id="log_player_connections" checked={settings.log_player_connections !== undefined ? settings.log_player_connections : true} onChange={(v) => setSettings({ ...settings, log_player_connections: v })} label={t("admin.velocity.settings.logPlayerConnections")} />
+                        <CheckboxField id="enable_reuse_port" checked={settings.enable_reuse_port || false} onChange={(v) => setSettings({ ...settings, enable_reuse_port: v })} label={t("admin.velocity.settings.enableReusePort")} />
                     </div>
                 </div>
             </div>
 
             <AdvancedSettings settings={settings} setSettings={setSettings} t={t} />
+
+            <div className="pt-4 border-t border-slate-200">
+                <h3 className="font-medium text-slate-800 mb-4">{t("admin.velocity.settings.rateLimit")}</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">{t("admin.velocity.settings.commandRateLimit")}</label>
+                        <input type="number" value={settings.command_rate_limit || 0} onChange={(e) => setSettings({ ...settings, command_rate_limit: parseInt(e.target.value, 10) || 0 })} className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none text-sm" />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">{t("admin.velocity.settings.kickAfterRateLimitedCommands")}</label>
+                        <input type="number" value={settings.kick_after_rate_limited_commands || 5} onChange={(e) => setSettings({ ...settings, kick_after_rate_limited_commands: parseInt(e.target.value, 10) || 0 })} className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none text-sm" />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">{t("admin.velocity.settings.tabCompleteRateLimit")}</label>
+                        <input type="number" value={settings.tab_complete_rate_limit || 0} onChange={(e) => setSettings({ ...settings, tab_complete_rate_limit: parseInt(e.target.value, 10) || 0 })} className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none text-sm" />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">{t("admin.velocity.settings.kickAfterRateLimitedTabCompletes")}</label>
+                        <input type="number" value={settings.kick_after_rate_limited_tab_completes || 5} onChange={(e) => setSettings({ ...settings, kick_after_rate_limited_tab_completes: parseInt(e.target.value, 10) || 0 })} className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none text-sm" />
+                    </div>
+                    <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <CheckboxField id="forward_commands_if_rate_limited" checked={settings.forward_commands_if_rate_limited !== undefined ? settings.forward_commands_if_rate_limited : true} onChange={(v) => setSettings({ ...settings, forward_commands_if_rate_limited: v })} label={t("admin.velocity.settings.forwardCommandsIfRateLimited")} />
+                    </div>
+                </div>
+            </div>
 
             <div className="pt-4 flex justify-end">
                 <button

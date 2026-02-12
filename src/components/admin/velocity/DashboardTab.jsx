@@ -3,10 +3,11 @@ import { useTranslation } from "react-i18next";
 
 export default function DashboardTab({ settings, servers }) {
     const { t } = useTranslation();
+    const syncOk = settings.last_sync_status === "ok";
 
     return (
         <div className="space-y-8">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
                 <div className="p-4 bg-slate-50 rounded-lg border border-slate-100">
                     <h3 className="text-sm font-medium text-slate-500 mb-1">{t("admin.velocity.dashboard.status")}</h3>
                     <div className="flex items-center gap-2 text-green-600">
@@ -31,6 +32,18 @@ export default function DashboardTab({ settings, servers }) {
                                 {new Date(settings.last_heartbeat).toLocaleTimeString()}
                             </span>
                         )}
+                    </p>
+                </div>
+                <div className="p-4 bg-slate-50 rounded-lg border border-slate-100">
+                    <h3 className="text-sm font-medium text-slate-500 mb-1">{t("admin.velocity.dashboard.syncStatus", { defaultValue: "Sync" })}</h3>
+                    <div className={`flex items-center gap-2 ${syncOk ? "text-green-600" : "text-amber-600"}`}>
+                        <Activity className="w-5 h-5" />
+                        <span className="font-semibold text-lg capitalize">
+                            {settings.last_sync_status || "unknown"}
+                        </span>
+                    </div>
+                    <p className="text-xs text-slate-400 mt-2">
+                        {settings.last_sync_at ? new Date(settings.last_sync_at).toLocaleTimeString() : "-"}
                     </p>
                 </div>
 
