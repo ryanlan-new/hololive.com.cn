@@ -47,19 +47,18 @@ migrate((app) => {
     }));
 
     // player_info_forwarding_mode: modern, legacy, bungeeguard, none
-    const forwardingMode = new Field({
+    settings.fields.add(new Field({
         "name": "player_info_forwarding_mode",
         "type": "select",
         "system": false,
         "required": false,
         "presentable": false,
-        "unique": false
-    });
-    forwardingMode.options = {
-        "maxSelect": 1,
-        "values": ["modern", "legacy", "bungeeguard", "none"]
-    };
-    settings.fields.add(forwardingMode);
+        "unique": false,
+        "options": {
+            "maxSelect": 1,
+            "values": ["modern", "legacy", "bungeeguard", "none"]
+        }
+    }));
 
     // kick_existing_players
     settings.fields.add(new Field({
@@ -73,19 +72,18 @@ migrate((app) => {
     }));
 
     // ping_passthrough
-    const pingPassthrough = new Field({
+    settings.fields.add(new Field({
         "name": "ping_passthrough",
         "type": "select",
         "system": false,
         "required": false,
         "presentable": false,
-        "unique": false
-    });
-    pingPassthrough.options = {
-        "maxSelect": 1,
-        "values": ["DISABLED", "ENABLED", "DESCRIPTION"]
-    };
-    settings.fields.add(pingPassthrough);
+        "unique": false,
+        "options": {
+            "maxSelect": 1,
+            "values": ["DISABLED", "ENABLED", "DESCRIPTION"]
+        }
+    }));
 
     app.save(settings);
 
@@ -93,19 +91,18 @@ migrate((app) => {
     const servers = app.findCollectionByNameOrId("velocity_servers");
 
     // status: pending, online, offline, error
-    const statusField = new Field({
+    servers.fields.add(new Field({
         "name": "status",
         "type": "select",
         "system": false,
         "required": false,
         "presentable": false,
-        "unique": false
-    });
-    statusField.options = {
-        "maxSelect": 1,
-        "values": ["pending", "online", "offline", "error"]
-    };
-    servers.fields.add(statusField);
+        "unique": false,
+        "options": {
+            "maxSelect": 1,
+            "values": ["pending", "online", "offline", "error"]
+        }
+    }));
 
     // ping (latency in ms)
     servers.fields.add(new Field({
