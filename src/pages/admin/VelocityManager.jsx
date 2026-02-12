@@ -80,7 +80,7 @@ export default function VelocityManager() {
             setServers(serversList || []);
         } catch (err) {
             console.error("Failed to fetch Velocity data:", err);
-            alert("Failed to load data. Please ensure the backend migration has run.");
+            alert(t("admin.dashboard.error.loadFailed"));
         } finally {
             setLoading(false);
         }
@@ -102,7 +102,7 @@ export default function VelocityManager() {
 
     const handleRestartProxy = async () => {
         if (!settingsId) return;
-        if (!window.confirm(t("admin.velocity.servers.table.confirmRestart") || "Restart Velocity Proxy?")) return;
+        if (!window.confirm(t("admin.velocity.actions.confirmRestart"))) return;
 
         setRestarting(true);
         try {
@@ -115,7 +115,7 @@ export default function VelocityManager() {
         } catch (err) {
             console.error("Failed to restart:", err);
             setRestarting(false);
-            alert("Failed to trigger restart.");
+            alert(t("admin.velocity.actions.restartError"));
         }
     };
 
@@ -138,18 +138,18 @@ export default function VelocityManager() {
             fetchData(); // Refresh list
         } catch (err) {
             console.error("Failed to add server:", err);
-            alert("Error adding server.");
+            alert(t("admin.velocity.actions.addServerError"));
         }
     };
 
     const handleDeleteServer = async (id) => {
-        if (!window.confirm(t("admin.velocity.servers.table.confirmDelete"))) return;
+        if (!window.confirm(t("admin.velocity.actions.confirmDelete"))) return;
         try {
             await pb.collection("velocity_servers").delete(id);
             fetchData();
         } catch (err) {
             console.error("Failed to delete server:", err);
-            alert("Error deleting server.");
+            alert(t("admin.velocity.actions.deleteServerError"));
         }
     };
 
@@ -183,7 +183,7 @@ export default function VelocityManager() {
             return (
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
                     <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
-                    Online ({ping}ms)
+                    {t("admin.velocity.status.online")} ({ping}ms)
                 </span>
             );
         }
@@ -191,7 +191,7 @@ export default function VelocityManager() {
             return (
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 border border-red-200">
                     <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
-                    Offline
+                    {t("admin.velocity.status.offline")}
                 </span>
             );
         }
@@ -199,7 +199,7 @@ export default function VelocityManager() {
             return (
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 border border-amber-200">
                     <Loader2 className="w-3 h-3 animate-spin" />
-                    Checking...
+                    {t("admin.velocity.status.checking")}
                 </span>
             );
         }
@@ -210,7 +210,7 @@ export default function VelocityManager() {
         return (
             <div className="p-8 text-center text-slate-500">
                 <Activity className="w-8 h-8 mx-auto mb-4 animate-spin" />
-                <p>Loading Velocity Configuration...</p>
+                <p>{t("admin.velocity.loading")}</p>
             </div>
         );
     }
@@ -468,10 +468,10 @@ export default function VelocityManager() {
                                         onChange={(e) => setSettings({ ...settings, player_info_forwarding_mode: e.target.value })}
                                         className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none text-sm"
                                     >
-                                        <option value="modern">Modern (Recommended for 1.13+)</option>
-                                        <option value="legacy">Legacy (BungeeCord 1.8-1.12)</option>
-                                        <option value="bungeeguard">BungeeGuard</option>
-                                        <option value="none">None</option>
+                                        <option value="modern">{t("admin.velocity.settings.forwardingModeOptions.modern")}</option>
+                                        <option value="legacy">{t("admin.velocity.settings.forwardingModeOptions.legacy")}</option>
+                                        <option value="bungeeguard">{t("admin.velocity.settings.forwardingModeOptions.bungeeguard")}</option>
+                                        <option value="none">{t("admin.velocity.settings.forwardingModeOptions.none")}</option>
                                     </select>
                                 </div>
 

@@ -38,6 +38,7 @@ async function main() {
 
     // Initial Fetch & config generation
     await syncConfig();
+    await updateJarVersion();
 
     // Subscribe to Settings Changes (Restart Trigger & Config Updates)
     pb.collection('velocity_settings').subscribe('*', async (e) => {
@@ -49,6 +50,7 @@ async function main() {
 
             // Sync JAR and Config
             await syncConfig();
+            await updateJarVersion();
 
             // Check if restart was requested
             if (newRestartTrigger && newRestartTrigger !== oldRestartTrigger) {
@@ -142,6 +144,33 @@ async function syncConfig() {
         console.log("[Sync] Configuration changed. Updating velocity.toml...");
         await fs.writeFile(tomlPath, tomlContent);
         // await execAsync(`chown velocity:velocity ${tomlPath}`); // Ensure permission
+    }
+}
+
+async function updateJarVersion() {
+    const jarPath = path.join(VELOCITY_DIR, 'velocity.jar');
+    try {
+        // Check if JAR exists
+        await fs.access(jarPath);
+
+        // Run java -jar velocity.jar --version
+        // Note: verify if `java` is in path. Usually it is.
+        const { stdout } = await execAsync(`java -jar "${jarPath}" --version`);
+
+        // Output example: "Velocity 3.3.0-SNAPSHOT (git-2e061848-b425)"
+        const versionLine = stdout.split('\n')[0].trim();
+
+        // Update if different
+        if (currentSettings && currentSettings.jar_version !== versionLine) {
+            console.log(`[Version] Detected new version: ${versionLine}`);
+            await pb.collection('velocity_settings').update(currentSettings.id, {
+                jar_version: versionLine
+            });
+            // Update local state
+            currentSettings.jar_version = versionLine;
+        }
+    } catch (err) {
+        console.warn("[Version] Failed to detect version:", err.message);
     }
 }
 
