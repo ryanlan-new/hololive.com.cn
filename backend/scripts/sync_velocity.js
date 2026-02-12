@@ -54,7 +54,9 @@ async function main() {
                 'bind_port', 'motd', 'max_players', 'online_mode',
                 'force_key_authentication', 'prevent_client_proxy_connections',
                 'player_info_forwarding_mode', 'forwarding_secret',
-                'kick_existing_players', 'ping_passthrough', 'velocity_jar'
+                'kick_existing_players', 'ping_passthrough', 'velocity_jar',
+                'announce_forge', 'accepts_transfers', 'haproxy_protocol',
+                'show_ping_requests', 'connection_timeout', 'read_timeout'
             ];
 
             const hasConfigChanged = configFields.some(field => oldSettings[field] !== newSettings[field]);
@@ -192,6 +194,7 @@ async function syncConfig() {
 
     if (configChanged) {
         console.log("[Sync] Configuration changed. Updating velocity.toml...");
+        console.log("[DEBUG] Written content preview:\n" + tomlContent.substring(0, 500) + "\n...\n" + tomlContent.substring(tomlContent.length - 200));
         await fs.writeFile(tomlPath, tomlContent);
         try {
             await execAsync(`chown ubuntu:ubuntu ${tomlPath}`); // Ensure permission
@@ -313,14 +316,11 @@ function generateToml(settings, servers) {
         else tryServers = "";
     }
 
+    // Modern Velocity 3.x TOML Structure (Flat)
     return `
 # Velocity Configuration - Managed by PocketBase
 # DO NOT EDIT MANUALLY
-
-[config]
-version = "2.5"
-
-[server]
+config-version = "2.7"
 bind = "0.0.0.0:${settings.bind_port}"
 motd = "${settings.motd ? settings.motd.replace(/"/g, '\\"') : ''}"
 show-max-players = ${settings.max_players}
@@ -328,26 +328,29 @@ online-mode = ${settings.online_mode || false}
 force-key-authentication = ${settings.force_key_authentication || false}
 prevent-client-proxy-connections = ${settings.prevent_client_proxy_connections || false}
 player-info-forwarding-mode = "${settings.player_info_forwarding_mode || 'modern'}"
+forwarding-secret-file = ""
 forwarding-secret = "${settings.forwarding_secret}"
-announce-forge = false
+announce-forge = ${settings.announce_forge || false}
 kick-existing-players = ${settings.kick_existing_players || false}
 ping-passthrough = "${settings.ping_passthrough || 'DISABLED'}"
+accepts-transfers = ${settings.accepts_transfers || false}
 
 [servers]
 ${serversBlock}
 try = [${tryServers}]
 
+[forced-hosts]
 
 [advanced]
 compression-threshold = 256
 compression-level = -1
 login-ratelimit = 3000
-connection-timeout = 5000
-read-timeout = 30000
-haproxy-protocol = false
+connection-timeout = ${settings.connection_timeout || 5000}
+read-timeout = ${settings.read_timeout || 30000}
+haproxy-protocol = ${settings.haproxy_protocol || false}
 tcp-fast-open = false
 bungee-plugin-message-channel = true
-show-ping-requests = false
+show-ping-requests = ${settings.show_ping_requests || false}
 
 [query]
 enabled = false
@@ -357,4 +360,6 @@ show-plugins = false
 `;
 }
 
+
 main().catch(console.error);
+

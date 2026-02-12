@@ -495,6 +495,92 @@ export default function VelocityManager() {
                                     </select>
                                 </div>
 
+                                {/* Advanced Network Settings */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="flex items-start gap-3">
+                                        <input
+                                            type="checkbox"
+                                            id="haproxy_protocol"
+                                            checked={settings.haproxy_protocol || false}
+                                            onChange={(e) => setSettings({ ...settings, haproxy_protocol: e.target.checked })}
+                                            className="mt-1"
+                                        />
+                                        <div>
+                                            <label htmlFor="haproxy_protocol" className="block text-sm font-medium text-slate-700">{t("admin.velocity.settings.haproxyProtocol")}</label>
+                                            <p className="text-xs text-slate-400">{t("admin.velocity.settings.haproxyProtocolHint")}</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-start gap-3">
+                                        <input
+                                            type="checkbox"
+                                            id="accepts_transfers"
+                                            checked={settings.accepts_transfers || false}
+                                            onChange={(e) => setSettings({ ...settings, accepts_transfers: e.target.checked })}
+                                            className="mt-1"
+                                        />
+                                        <div>
+                                            <label htmlFor="accepts_transfers" className="block text-sm font-medium text-slate-700">{t("admin.velocity.settings.acceptsTransfers")}</label>
+                                            <p className="text-xs text-slate-400">{t("admin.velocity.settings.acceptsTransfersHint")}</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-start gap-3">
+                                        <input
+                                            type="checkbox"
+                                            id="announce_forge"
+                                            checked={settings.announce_forge || false}
+                                            onChange={(e) => setSettings({ ...settings, announce_forge: e.target.checked })}
+                                            className="mt-1"
+                                        />
+                                        <div>
+                                            <label htmlFor="announce_forge" className="block text-sm font-medium text-slate-700">{t("admin.velocity.settings.announceForge")}</label>
+                                            <p className="text-xs text-slate-400">{t("admin.velocity.settings.announceForgeHint")}</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-start gap-3">
+                                        <input
+                                            type="checkbox"
+                                            id="show_ping_requests"
+                                            checked={settings.show_ping_requests || false}
+                                            onChange={(e) => setSettings({ ...settings, show_ping_requests: e.target.checked })}
+                                            className="mt-1"
+                                        />
+                                        <div>
+                                            <label htmlFor="show_ping_requests" className="block text-sm font-medium text-slate-700">{t("admin.velocity.settings.showPingRequests")}</label>
+                                            <p className="text-xs text-slate-400">{t("admin.velocity.settings.showPingRequestsHint")}</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                                            {t("admin.velocity.settings.connectionTimeout")}
+                                        </label>
+                                        <input
+                                            type="number"
+                                            value={settings.connection_timeout || 5000}
+                                            onChange={(e) => setSettings({ ...settings, connection_timeout: parseInt(e.target.value) || 5000 })}
+                                            className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none text-sm"
+                                        />
+                                        <p className="mt-1 text-xs text-slate-400">{t("admin.velocity.settings.connectionTimeoutHint")}</p>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                                            {t("admin.velocity.settings.readTimeout")}
+                                        </label>
+                                        <input
+                                            type="number"
+                                            value={settings.read_timeout || 30000}
+                                            onChange={(e) => setSettings({ ...settings, read_timeout: parseInt(e.target.value) || 30000 })}
+                                            className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none text-sm"
+                                        />
+                                        <p className="mt-1 text-xs text-slate-400">{t("admin.velocity.settings.readTimeoutHint")}</p>
+                                    </div>
+                                </div>
+
                                 {/* Force Key Auth */}
                                 <div className="flex items-start gap-3">
                                     <input
