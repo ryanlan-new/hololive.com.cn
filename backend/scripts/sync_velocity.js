@@ -56,7 +56,10 @@ async function main() {
                 'player_info_forwarding_mode', 'forwarding_secret',
                 'kick_existing_players', 'ping_passthrough', 'velocity_jar',
                 'announce_forge', 'accepts_transfers', 'haproxy_protocol',
-                'show_ping_requests', 'connection_timeout', 'read_timeout'
+                'show_ping_requests', 'connection_timeout', 'read_timeout',
+                'compression_threshold', 'compression_level', 'login_ratelimit',
+                'bungee_plugin_message_channel', 'tcp_fast_open', 'expose_proxy_commands',
+                'query_enabled', 'query_port', 'query_map', 'query_show_plugins'
             ];
 
             const hasConfigChanged = configFields.some(field => oldSettings[field] !== newSettings[field]);
@@ -91,6 +94,14 @@ async function main() {
                 console.log(`[Ping] Check requested for ${server.name} (${server.address})...`);
                 await checkServerStatus(server);
             }
+        }
+    });
+
+    // Subscribe to Forced Hosts Changes
+    pb.collection('velocity_forced_hosts').subscribe('*', async (e) => {
+        if (e.action === 'create' || e.action === 'update' || e.action === 'delete') {
+            console.log(`[Realtime] Forced Host change detected (${e.action}). Syncing...`);
+            await syncConfig();
         }
     });
 
@@ -167,6 +178,15 @@ async function syncConfig() {
     } catch (err) {
         console.error("Error fetching servers:", err.message);
         return;
+        return;
+    }
+
+    // Fetch Forced Hosts
+    let forcedHosts = [];
+    try {
+        forcedHosts = await pb.collection('velocity_forced_hosts').getFullList();
+    } catch (err) {
+        // Is okay, maybe collection not ready
     }
 
     // 1. Check and Update JAR
@@ -177,7 +197,7 @@ async function syncConfig() {
     }
 
     // 2. Generate velocity.toml
-    const tomlContent = generateToml(currentSettings, servers);
+    const tomlContent = generateToml(currentSettings, servers, forcedHosts);
     const tomlPath = path.join(VELOCITY_DIR, 'velocity.toml');
 
     let configChanged = false;
@@ -299,7 +319,7 @@ function tcpPing(host, port) {
     });
 }
 
-function generateToml(settings, servers) {
+function generateToml(settings, servers, forcedHosts = []) {
     let serversBlock = "";
     servers.forEach(srv => {
         serversBlock += `"${srv.name}" = "${srv.address}"\n`;
@@ -315,6 +335,14 @@ function generateToml(settings, servers) {
         if (servers.length > 0) tryServers = `"${servers[0].name}"`;
         else tryServers = "";
     }
+
+    let forcedHostsBlock = "";
+    forcedHosts.forEach(host => {
+        const targetServer = servers.find(s => s.id === host.server);
+        if (targetServer) {
+            forcedHostsBlock += `"${host.hostname}" = ["${targetServer.name}"]\n`;
+        }
+    });
 
     // Modern Velocity 3.x TOML Structure (Flat)
     return `
@@ -340,23 +368,25 @@ ${serversBlock}
 try = [${tryServers}]
 
 [forced-hosts]
+${forcedHostsBlock}
 
 [advanced]
-compression-threshold = 256
-compression-level = -1
-login-ratelimit = 3000
+compression-threshold = ${settings.compression_threshold !== undefined ? settings.compression_threshold : 256}
+compression-level = ${settings.compression_level !== undefined ? settings.compression_level : -1}
+login-ratelimit = ${settings.login_ratelimit || 3000}
 connection-timeout = ${settings.connection_timeout || 5000}
 read-timeout = ${settings.read_timeout || 30000}
 haproxy-protocol = ${settings.haproxy_protocol || false}
-tcp-fast-open = false
-bungee-plugin-message-channel = true
+tcp-fast-open = ${settings.tcp_fast_open || false}
+bungee-plugin-message-channel = ${settings.bungee_plugin_message_channel !== undefined ? settings.bungee_plugin_message_channel : true}
 show-ping-requests = ${settings.show_ping_requests || false}
+expose-proxy-commands = ${settings.expose_proxy_commands || false}
 
 [query]
-enabled = false
-port = ${settings.bind_port}
-map = "Velocity"
-show-plugins = false
+enabled = ${settings.query_enabled || false}
+port = ${settings.query_port || 25577}
+map = "${settings.query_map || 'Velocity'}"
+show-plugins = ${settings.query_show_plugins || false}
 `;
 }
 

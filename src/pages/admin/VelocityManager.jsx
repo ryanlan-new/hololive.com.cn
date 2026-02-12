@@ -15,7 +15,10 @@ import {
     LayoutDashboard,
     Play,
     AlertTriangle,
-    Loader2
+    Loader2,
+    Pencil,
+    X,
+    Globe
 } from "lucide-react";
 
 import { useTranslation } from "react-i18next";
@@ -32,6 +35,57 @@ export default function VelocityManager() {
     const [testingMap, setTestingMap] = useState({});
     const [newServer, setNewServer] = useState({ name: "", address: "", try_order: 0, is_try_server: false });
     const [settingsId, setSettingsId] = useState(null);
+    const [isServerModalOpen, setIsServerModalOpen] = useState(false);
+    const [editingServer, setEditingServer] = useState(null);
+    const [forcedHosts, setForcedHosts] = useState([]);
+    const [newForcedHost, setNewForcedHost] = useState({ hostname: "", server: "" });
+
+    const handleAddServer = () => {
+        setEditingServer(null);
+        setNewServer({ name: "", address: "", try_order: 0, is_try_server: false });
+        setIsServerModalOpen(true);
+    };
+
+    const handleEditServer = (server) => {
+        setEditingServer(server);
+        setNewServer({
+            name: server.name,
+            address: server.address,
+            try_order: server.try_order,
+            is_try_server: server.is_try_server
+        });
+        setIsServerModalOpen(true);
+    };
+
+    const handleDeleteServer = async (id) => {
+        if (!window.confirm(t("admin.velocity.modal.deleteConfirm"))) return;
+        try {
+            await pb.collection('velocity_servers').delete(id);
+        } catch (err) {
+            console.error(err);
+            alert(t("admin.velocity.actions.deleteServerError"));
+        }
+    };
+
+    const handleSaveServer = async () => {
+        if (!newServer.name || !newServer.address) return;
+        setSaving(true);
+        try {
+            if (editingServer) {
+                await pb.collection('velocity_servers').update(editingServer.id, newServer);
+            } else {
+                await pb.collection('velocity_servers').create(newServer);
+            }
+            setIsServerModalOpen(false);
+            setEditingServer(null);
+            setNewServer({ name: "", address: "", try_order: 0, is_try_server: false });
+        } catch (err) {
+            console.error(err);
+            alert(t("admin.velocity.actions.addServerError"));
+        } finally {
+            setSaving(false);
+        }
+    };
 
     // Fetch initial data
     useEffect(() => {
@@ -78,6 +132,10 @@ export default function VelocityManager() {
             // Fetch Servers
             const serversList = await pb.collection("velocity_servers").getFullList({ sort: "try_order" });
             setServers(serversList || []);
+
+            // Fetch Forced Hosts
+            const forcedHostsList = await pb.collection("velocity_forced_hosts").getFullList({ sort: "hostname" });
+            setForcedHosts(forcedHostsList || []);
         } catch (err) {
             console.error("Failed to fetch Velocity data:", err);
             alert(t("admin.dashboard.error.loadFailed"));
@@ -130,28 +188,31 @@ export default function VelocityManager() {
         }
     };
 
-    const handleAddServer = async () => {
-        if (!newServer.name || !newServer.address) return;
+    const handleAddForcedHost = async () => {
+        if (!newForcedHost.hostname || !newForcedHost.server) return;
         try {
-            await pb.collection("velocity_servers").create(newServer);
-            setNewServer({ name: "", address: "", try_order: 0, is_try_server: false });
-            fetchData(); // Refresh list
+            await pb.collection("velocity_forced_hosts").create(newForcedHost);
+            setNewForcedHost({ hostname: "", server: "" });
+            const list = await pb.collection("velocity_forced_hosts").getFullList({ sort: "hostname" });
+            setForcedHosts(list);
         } catch (err) {
-            console.error("Failed to add server:", err);
-            alert(t("admin.velocity.actions.addServerError"));
+            console.error(err);
+            alert(t("admin.velocity.actions.addError"));
         }
     };
 
-    const handleDeleteServer = async (id) => {
+    const handleDeleteForcedHost = async (id) => {
         if (!window.confirm(t("admin.velocity.actions.confirmDelete"))) return;
         try {
-            await pb.collection("velocity_servers").delete(id);
-            fetchData();
+            await pb.collection("velocity_forced_hosts").delete(id);
+            setForcedHosts(prev => prev.filter(h => h.id !== id));
         } catch (err) {
-            console.error("Failed to delete server:", err);
-            alert(t("admin.velocity.actions.deleteServerError"));
+            console.error(err);
+            alert(t("admin.velocity.actions.deleteError"));
         }
     };
+
+
 
     const handleFileUpload = async (e) => {
         const file = e.target.files[0];
@@ -248,6 +309,7 @@ export default function VelocityManager() {
                     {[
                         { id: "dashboard", label: t("admin.velocity.tabs.dashboard"), icon: LayoutDashboard },
                         { id: "servers", label: t("admin.velocity.tabs.servers"), icon: Server },
+                        { id: "forced-hosts", label: t("admin.velocity.tabs.forcedHosts"), icon: Globe },
                         { id: "settings", label: t("admin.velocity.tabs.settings"), icon: Settings },
                         { id: "update", label: t("admin.velocity.tabs.update"), icon: Upload },
                     ].map((tab) => {
@@ -336,8 +398,15 @@ export default function VelocityManager() {
                 {/* SERVERS TAB */}
                 {activeTab === "servers" && (
                     <div className="space-y-6">
-                        <div className="flex justify-between items-center">
-                            <h3 className="text-lg font-semibold text-slate-800">{t("admin.velocity.servers.table.empty")}</h3>
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-lg font-semibold text-slate-800">{t("admin.velocity.tabs.servers")}</h3>
+                            <button
+                                onClick={handleAddServer}
+                                className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                            >
+                                <Plus className="w-4 h-4" />
+                                {t("admin.velocity.modal.addTitle")}
+                            </button>
                         </div>
 
                         <div className="overflow-x-auto rounded-lg border border-slate-200">
@@ -387,7 +456,20 @@ export default function VelocityManager() {
                                                         >
                                                             <Play className={`w-4 h-4 ${testingMap[srv.id] ? "animate-spin" : ""}`} />
                                                         </button>
-                                                        {/* Edit/Delete buttons would go here - omitted for brevity as goal is enhancement */}
+                                                        <button
+                                                            onClick={() => handleEditServer(srv)}
+                                                            className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded transition-colors"
+                                                            title={t("admin.velocity.modal.editTitle")}
+                                                        >
+                                                            <Pencil className="w-4 h-4" />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDeleteServer(srv.id)}
+                                                            className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                                                            title={t("admin.velocity.modal.deleteTitle")}
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -402,6 +484,82 @@ export default function VelocityManager() {
                      The previous file had basic CRUD hooks? No, it was placeholder.
                      If user needs CRUD, they can ask. The current request is enhancements.
                  */}
+                    </div>
+                )}
+
+                {/* FORCED HOSTS TAB */}
+                {activeTab === "forced-hosts" && (
+                    <div className="space-y-6">
+                        <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg flex flex-col md:flex-row items-end gap-3">
+                            <div className="flex-1 w-full">
+                                <label className="block text-sm font-medium text-slate-700 mb-1">{t("admin.velocity.forcedHosts.hostname")}</label>
+                                <input
+                                    type="text"
+                                    value={newForcedHost.hostname}
+                                    onChange={(e) => setNewForcedHost({ ...newForcedHost, hostname: e.target.value })}
+                                    className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono"
+                                    placeholder="lobby.example.com"
+                                />
+                            </div>
+                            <div className="flex-1 w-full">
+                                <label className="block text-sm font-medium text-slate-700 mb-1">{t("admin.velocity.forcedHosts.server")}</label>
+                                <select
+                                    value={newForcedHost.server}
+                                    onChange={(e) => setNewForcedHost({ ...newForcedHost, server: e.target.value })}
+                                    className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm"
+                                >
+                                    <option value="">{t("admin.velocity.forcedHosts.selectServer")}</option>
+                                    {servers.map(s => (
+                                        <option key={s.id} value={s.id}>{s.name} ({s.address})</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <button
+                                onClick={handleAddForcedHost}
+                                disabled={!newForcedHost.hostname || !newForcedHost.server}
+                                className="px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 whitespace-nowrap"
+                            >
+                                {t("admin.velocity.actions.add")}
+                            </button>
+                        </div>
+
+                        <div className="overflow-x-auto rounded-lg border border-slate-200">
+                            <table className="w-full text-left text-sm">
+                                <thead className="bg-slate-50 border-b border-slate-200 text-slate-500">
+                                    <tr>
+                                        <th className="px-4 py-3 font-medium">{t("admin.velocity.forcedHosts.hostname")}</th>
+                                        <th className="px-4 py-3 font-medium">{t("admin.velocity.forcedHosts.server")}</th>
+                                        <th className="px-4 py-3 w-20"></th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-100">
+                                    {forcedHosts.map(host => {
+                                        const targetServer = servers.find(s => s.id === host.server);
+                                        return (
+                                            <tr key={host.id} className="hover:bg-slate-50/50">
+                                                <td className="px-4 py-3 font-medium font-mono text-slate-700">{host.hostname}</td>
+                                                <td className="px-4 py-3 text-slate-600">
+                                                    {targetServer ? (
+                                                        <span className="inline-flex items-center gap-2">
+                                                            <span className={`w-2 h-2 rounded-full ${targetServer.status === 'online' ? 'bg-green-500' : 'bg-slate-300'}`}></span>
+                                                            {targetServer.name}
+                                                        </span>
+                                                    ) : host.server}
+                                                </td>
+                                                <td className="px-4 py-3 text-right">
+                                                    <button onClick={() => handleDeleteForcedHost(host.id)} className="text-slate-400 hover:text-red-600 transition-colors">
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                    {forcedHosts.length === 0 && (
+                                        <tr><td colSpan="3" className="px-4 py-8 text-center text-slate-400">{t("admin.velocity.forcedHosts.empty")}</td></tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 )}
 
@@ -581,6 +739,75 @@ export default function VelocityManager() {
                                     </div>
                                 </div>
 
+                                <h4 className="font-medium text-slate-800 mt-6 mb-3">{t("admin.velocity.settings.performanceSecurity")}</h4>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                                            {t("admin.velocity.settings.compressionThreshold")}
+                                        </label>
+                                        <input
+                                            type="number"
+                                            value={settings.compression_threshold !== undefined ? settings.compression_threshold : 256}
+                                            onChange={(e) => setSettings({ ...settings, compression_threshold: parseInt(e.target.value) })}
+                                            className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none text-sm"
+                                        />
+                                        <p className="mt-1 text-xs text-slate-400">{t("admin.velocity.settings.compressionThresholdHint")}</p>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                                            {t("admin.velocity.settings.compressionLevel")}
+                                        </label>
+                                        <input
+                                            type="number"
+                                            value={settings.compression_level !== undefined ? settings.compression_level : -1}
+                                            onChange={(e) => setSettings({ ...settings, compression_level: parseInt(e.target.value) })}
+                                            className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none text-sm"
+                                        />
+                                        <p className="mt-1 text-xs text-slate-400">{t("admin.velocity.settings.compressionLevelHint")}</p>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                                            {t("admin.velocity.settings.loginRatelimit")}
+                                        </label>
+                                        <input
+                                            type="number"
+                                            value={settings.login_ratelimit || 3000}
+                                            onChange={(e) => setSettings({ ...settings, login_ratelimit: parseInt(e.target.value) || 3000 })}
+                                            className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none text-sm"
+                                        />
+                                        <p className="mt-1 text-xs text-slate-400">{t("admin.velocity.settings.loginRatelimitHint")}</p>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                                    <div className="flex items-start gap-3">
+                                        <input
+                                            type="checkbox"
+                                            id="tcp_fast_open"
+                                            checked={settings.tcp_fast_open || false}
+                                            onChange={(e) => setSettings({ ...settings, tcp_fast_open: e.target.checked })}
+                                            className="mt-1"
+                                        />
+                                        <div>
+                                            <label htmlFor="tcp_fast_open" className="block text-sm font-medium text-slate-700">{t("admin.velocity.settings.tcpFastOpen")}</label>
+                                            <p className="text-xs text-slate-400">{t("admin.velocity.settings.tcpFastOpenHint")}</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-start gap-3">
+                                        <input
+                                            type="checkbox"
+                                            id="bungee_plugin"
+                                            checked={settings.bungee_plugin_message_channel !== undefined ? settings.bungee_plugin_message_channel : true}
+                                            onChange={(e) => setSettings({ ...settings, bungee_plugin_message_channel: e.target.checked })}
+                                            className="mt-1"
+                                        />
+                                        <div>
+                                            <label htmlFor="bungee_plugin" className="block text-sm font-medium text-slate-700">{t("admin.velocity.settings.bungeePluginChannel")}</label>
+                                            <p className="text-xs text-slate-400">{t("admin.velocity.settings.bungeePluginChannelHint")}</p>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 {/* Force Key Auth */}
                                 <div className="flex items-start gap-3">
                                     <input
@@ -623,6 +850,74 @@ export default function VelocityManager() {
                                     <div>
                                         <label htmlFor="kick_existing" className="block text-sm font-medium text-slate-700">{t("admin.velocity.settings.kickExisting")}</label>
                                         <p className="text-xs text-slate-400">{t("admin.velocity.settings.kickExistingHint")}</p>
+                                    </div>
+                                </div>
+
+                                {/* Expose Proxy Commands */}
+                                <div className="flex items-start gap-3">
+                                    <input
+                                        type="checkbox"
+                                        id="expose_proxy_commands"
+                                        checked={settings.expose_proxy_commands || false}
+                                        onChange={(e) => setSettings({ ...settings, expose_proxy_commands: e.target.checked })}
+                                        className="mt-1"
+                                    />
+                                    <div>
+                                        <label htmlFor="expose_proxy_commands" className="block text-sm font-medium text-slate-700">{t("admin.velocity.settings.exposeProxyCommands")}</label>
+                                        <p className="text-xs text-slate-400">{t("admin.velocity.settings.exposeProxyCommandsHint")}</p>
+                                    </div>
+                                </div>
+
+                                {/* QUERY SETTINGS */}
+                                <h4 className="font-medium text-slate-800 mt-6 mb-3">{t("admin.velocity.settings.query")}</h4>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="flex items-start gap-3 md:col-span-2">
+                                        <input
+                                            type="checkbox"
+                                            id="query_enabled"
+                                            checked={settings.query_enabled || false}
+                                            onChange={(e) => setSettings({ ...settings, query_enabled: e.target.checked })}
+                                            className="mt-1"
+                                        />
+                                        <div>
+                                            <label htmlFor="query_enabled" className="block text-sm font-medium text-slate-700">{t("admin.velocity.settings.queryEnabled")}</label>
+                                            <p className="text-xs text-slate-400">{t("admin.velocity.settings.queryEnabledHint")}</p>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                                            {t("admin.velocity.settings.queryPort")}
+                                        </label>
+                                        <input
+                                            type="number"
+                                            value={settings.query_port || 25577}
+                                            onChange={(e) => setSettings({ ...settings, query_port: parseInt(e.target.value) || 25577 })}
+                                            className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none text-sm"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                                            {t("admin.velocity.settings.queryMap")}
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={settings.query_map || "Velocity"}
+                                            onChange={(e) => setSettings({ ...settings, query_map: e.target.value })}
+                                            className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none text-sm"
+                                        />
+                                    </div>
+                                    <div className="flex items-start gap-3 md:col-span-2">
+                                        <input
+                                            type="checkbox"
+                                            id="query_show_plugins"
+                                            checked={settings.query_show_plugins || false}
+                                            onChange={(e) => setSettings({ ...settings, query_show_plugins: e.target.checked })}
+                                            className="mt-1"
+                                        />
+                                        <div>
+                                            <label htmlFor="query_show_plugins" className="block text-sm font-medium text-slate-700">{t("admin.velocity.settings.queryShowPlugins")}</label>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -697,6 +992,94 @@ export default function VelocityManager() {
                 )}
 
             </div>
-        </div>
+            {/* Add/Edit Server Modal */}
+            {
+                isServerModalOpen && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                        <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden">
+                            <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center">
+                                <h3 className="font-semibold text-slate-800">
+                                    {editingServer ? t("admin.velocity.modal.editTitle") : t("admin.velocity.modal.addTitle")}
+                                </h3>
+                                <button
+                                    onClick={() => setIsServerModalOpen(false)}
+                                    className="text-slate-400 hover:text-slate-600 transition-colors"
+                                >
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+                            <div className="p-6 space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                                        {t("admin.velocity.modal.name")}
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={newServer.name}
+                                        onChange={(e) => setNewServer({ ...newServer, name: e.target.value })}
+                                        className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                                        placeholder={t("admin.velocity.modal.namePlaceholder")}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                                        {t("admin.velocity.modal.address")}
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={newServer.address}
+                                        onChange={(e) => setNewServer({ ...newServer, address: e.target.value })}
+                                        className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-mono text-sm"
+                                        placeholder={t("admin.velocity.modal.addressPlaceholder")}
+                                    />
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                                            {t("admin.velocity.modal.tryOrder")}
+                                        </label>
+                                        <input
+                                            type="number"
+                                            value={newServer.try_order}
+                                            onChange={(e) => setNewServer({ ...newServer, try_order: parseInt(e.target.value) || 0 })}
+                                            className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                                        />
+                                    </div>
+                                    <div className="flex items-center pt-6">
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                checked={newServer.is_try_server}
+                                                onChange={(e) => setNewServer({ ...newServer, is_try_server: e.target.checked })}
+                                                className="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500"
+                                            />
+                                            <span className="text-sm font-medium text-slate-700">
+                                                {t("admin.velocity.modal.isTry")}
+                                            </span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
+                                <button
+                                    onClick={() => setIsServerModalOpen(false)}
+                                    className="px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
+                                >
+                                    {t("admin.velocity.modal.cancel")}
+                                </button>
+                                <button
+                                    onClick={handleSaveServer}
+                                    disabled={saving}
+                                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm transition-all disabled:opacity-70 flex items-center gap-2"
+                                >
+                                    {saving && <Loader2 className="w-3 h-3 animate-spin" />}
+                                    {t("admin.velocity.modal.save")}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )
+            }
+        </div >
     );
 }
