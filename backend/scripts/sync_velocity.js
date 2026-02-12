@@ -41,21 +41,42 @@ async function main() {
     await updateJarVersion();
 
     // Subscribe to Settings Changes (Restart Trigger & Config Updates)
+    // Subscribe to Settings Changes (Restart Trigger & Config Updates)
     pb.collection('velocity_settings').subscribe('*', async (e) => {
-        console.log(`[Realtime] Settings update detected (${e.action})`);
+        // console.log(`[Realtime] Settings update detected (${e.action})`);
 
         if (e.action === 'update') {
-            const oldRestartTrigger = currentSettings?.restart_trigger;
-            const newRestartTrigger = e.record.restart_trigger;
+            const oldSettings = currentSettings || {};
+            const newSettings = e.record;
 
-            // Sync JAR and Config
-            await syncConfig();
-            await updateJarVersion();
+            // Fields that affect configuration or require action
+            const configFields = [
+                'bind_port', 'motd', 'max_players', 'online_mode',
+                'force_key_authentication', 'prevent_client_proxy_connections',
+                'player_info_forwarding_mode', 'forwarding_secret',
+                'kick_existing_players', 'ping_passthrough', 'velocity_jar'
+            ];
 
-            // Check if restart was requested
-            if (newRestartTrigger && newRestartTrigger !== oldRestartTrigger) {
-                console.log("[Trigger] Restart triggered by user.");
-                await restartService();
+            const hasConfigChanged = configFields.some(field => oldSettings[field] !== newSettings[field]);
+            const restartTriggered = newSettings.restart_trigger && newSettings.restart_trigger !== oldSettings.restart_trigger;
+
+            // Only sync if config actually changed or restart requested
+            // This prevents infinite loop caused by monitorProxyStatus updating 'proxy_status'
+            if (hasConfigChanged || restartTriggered) {
+                console.log(`[Realtime] Config change detected. Syncing...`);
+
+                // Sync JAR and Config
+                await syncConfig();
+                await updateJarVersion();
+
+                // Check if restart was requested
+                if (restartTriggered) {
+                    console.log("[Trigger] Restart triggered by user.");
+                    await restartService();
+                }
+            } else {
+                // Just update local state silently if it was just a status update
+                currentSettings = newSettings;
             }
         }
     });
