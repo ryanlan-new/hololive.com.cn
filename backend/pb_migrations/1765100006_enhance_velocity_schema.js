@@ -87,6 +87,11 @@ migrate((app) => {
                     "required": true,
                     "presentable": false,
                     "unique": false,
+                    "collectionId": serverCollectionId,
+                    "cascadeDelete": false,
+                    "minSelect": null,
+                    "maxSelect": 1,
+                    "displayFields": [],
                     "options": {
                         "collectionId": serverCollectionId,
                         "cascadeDelete": false,
@@ -119,6 +124,11 @@ migrate((app) => {
             "required": true,
             "presentable": false,
             "unique": false,
+            "collectionId": serverCollectionId,
+            "cascadeDelete": false,
+            "minSelect": null,
+            "maxSelect": 1,
+            "displayFields": [],
             "options": {
                 "collectionId": serverCollectionId,
                 "cascadeDelete": false,
