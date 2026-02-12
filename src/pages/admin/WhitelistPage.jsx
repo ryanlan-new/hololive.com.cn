@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { Plus, Edit, Trash2, Loader2, Mail, X, Save } from "lucide-react";
 import pb from "../../lib/pocketbase";
 import { logCreate, logUpdate, logDelete } from "../../lib/logger";
+import { useTranslation } from "react-i18next";
 
 /**
  * SSO 白名单管理页面
@@ -10,6 +11,7 @@ import { logCreate, logUpdate, logDelete } from "../../lib/logger";
  */
 export default function WhitelistPage() {
   const { adminKey } = useParams();
+  const { t } = useTranslation("admin");
   const [whitelists, setWhitelists] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -27,10 +29,10 @@ export default function WhitelistPage() {
   const fetchWhitelists = async () => {
     try {
       setLoading(true);
-      
+
       // 检查用户是否已登录
       if (!pb.authStore.isValid) {
-        throw new Error("用户未登录，请先登录");
+        throw new Error(t("whitelist.error.login"));
       }
 
       const result = await pb.collection("whitelists").getList(1, 100, {
@@ -46,25 +48,25 @@ export default function WhitelistPage() {
         data: error?.data,
         message: error?.message,
       });
-      
+
       // 提供更详细的错误信息 - 支持 PocketBase 错误格式
-      let errorMessage = "获取白名单列表失败";
-      
-      // PocketBase 错误通常通过 status 或 response.data 提供信息
+      let errorMessage = t("whitelist.toast.fetchError");
+
+      // PocketBase 错误 usually via status or response.data
       if (error?.status === 401 || error?.status === 403) {
-        errorMessage = "权限不足。请检查：1) 您是否已登录 2) PocketBase 的 API Rules 是否正确配置";
+        errorMessage = t("whitelist.error.permission");
       } else if (error?.status === 404) {
-        errorMessage = "Collection 'whitelists' 不存在。请检查 PocketBase 中是否已创建该 Collection";
+        errorMessage = t("whitelist.error.notFound");
       } else if (error?.response?.data?.message) {
-        errorMessage = `获取失败：${error.response.data.message}`;
+        errorMessage = `Error: ${error.response.data.message}`;
       } else if (error?.response?.message) {
-        errorMessage = `获取失败：${error.response.message}`;
+        errorMessage = `Error: ${error.response.message}`;
       } else if (error?.data?.message) {
-        errorMessage = `获取失败：${error.data.message}`;
+        errorMessage = `Error: ${error.data.message}`;
       } else if (error?.message) {
-        errorMessage = `获取失败：${error.message}`;
+        errorMessage = `Error: ${error.message}`;
       }
-      
+
       setError(errorMessage);
     } finally {
       setLoading(false);
@@ -113,12 +115,12 @@ export default function WhitelistPage() {
         // 更新
         await pb.collection("whitelists").update(editingId, formData);
         await logUpdate("白名单", `更新了白名单：${formData.email}`);
-        setToast({ type: "success", message: "白名单已更新。" });
+        setToast({ type: "success", message: t("whitelist.toast.updated") });
       } else {
         // 创建
         await pb.collection("whitelists").create(formData);
         await logCreate("白名单", `添加了白名单：${formData.email}`);
-        setToast({ type: "success", message: "白名单已添加。" });
+        setToast({ type: "success", message: t("whitelist.toast.added") });
       }
       setShowForm(false);
       setEditingId(null);
@@ -127,7 +129,7 @@ export default function WhitelistPage() {
     } catch (error) {
       console.error("Failed to save whitelist:", error);
       const errorMsg =
-        error?.response?.message || error?.message || "保存失败，请重试";
+        error?.response?.message || error?.message || t("whitelist.toast.saveError");
       setToast({ type: "error", message: errorMsg });
     }
   };
@@ -136,26 +138,27 @@ export default function WhitelistPage() {
   const handleDelete = async (id) => {
     try {
       setDeletingId(id);
-      
+
       // 先获取白名单信息用于日志记录
-      let email = "未知邮箱";
+      let email = "Unknown";
       try {
         const item = await pb.collection("whitelists").getOne(id);
-        email = item.email || "未知邮箱";
+        email = item.email || "Unknown";
       } catch (err) {
-        console.warn("获取白名单信息失败，将使用默认邮箱记录日志");
+        console.warn("Failed to fetch whitelist info for log");
       }
-      
+
       await pb.collection("whitelists").delete(id);
-      
+
       // 记录删除日志
-      await logDelete("白名单", `移除了白名单：${email}`);
-      
+      await logDelete("Whitelist", `Removed whitelist: ${email}`);
+
       await fetchWhitelists();
       setDeleteConfirmId(null);
+      setToast({ type: "success", message: t("whitelist.toast.deleted", { email }) });
     } catch (error) {
       console.error("Failed to delete whitelist:", error);
-      setToast({ type: "error", message: "删除失败，请重试。" });
+      setToast({ type: "error", message: t("whitelist.toast.deleteError") });
     } finally {
       setDeletingId(null);
     }
@@ -166,11 +169,10 @@ export default function WhitelistPage() {
       {/* Toast */}
       {toast && (
         <div
-          className={`rounded-2xl px-4 py-2.5 text-xs md:text-sm flex items-center justify-between gap-3 shadow-sm ${
-            toast.type === "success"
+          className={`rounded-2xl px-4 py-2.5 text-xs md:text-sm flex items-center justify-between gap-3 shadow-sm ${toast.type === "success"
               ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
               : "bg-red-50 text-red-800 border border-red-200"
-          }`}
+            }`}
         >
           <span>{toast.message}</span>
           <button
@@ -178,7 +180,7 @@ export default function WhitelistPage() {
             onClick={() => setToast(null)}
             className="text-[11px] font-medium opacity-80 hover:opacity-100"
           >
-            关闭
+            {t("whitelist.buttons.close")}
           </button>
         </div>
       )}
@@ -188,10 +190,10 @@ export default function WhitelistPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-xl md:text-2xl font-bold text-slate-900 mb-1">
-              SSO 白名单管理
+              {t("whitelist.title")}
             </h1>
             <p className="text-xs md:text-sm text-slate-500">
-              管理允许通过 SSO 登录的邮箱地址。
+              {t("whitelist.subtitle")}
             </p>
           </div>
           <button
@@ -199,20 +201,20 @@ export default function WhitelistPage() {
             className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-[var(--color-brand-blue)] text-xs md:text-sm font-semibold text-slate-950 shadow-[0_0_18px_rgba(142,209,252,0.8)] hover:scale-[1.02] active:scale-[0.98] transition-transform"
           >
             <Plus className="w-5 h-5" />
-            添加白名单
+            {t("whitelist.buttons.add")}
           </button>
         </div>
 
         {/* 错误提示 */}
         {error && (
           <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-2xl text-red-700 text-xs md:text-sm">
-            <p className="font-semibold mb-1">错误</p>
+            <p className="font-semibold mb-1">Error</p>
             <p>{error}</p>
             <button
               onClick={fetchWhitelists}
               className="mt-2 text-sm underline hover:no-underline"
             >
-              重试
+              {t("whitelist.buttons.retry")}
             </button>
           </div>
         )}
@@ -223,7 +225,7 @@ export default function WhitelistPage() {
             <div className="bg-white rounded-2xl shadow-xl border border-slate-200 p-6 max-w-md w-full mx-4">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-slate-900">
-                  {editingId ? "编辑白名单" : "添加白名单"}
+                  {editingId ? t("whitelist.buttons.edit") : t("whitelist.buttons.add")}
                 </h3>
                 <button
                   onClick={() => {
@@ -239,7 +241,7 @@ export default function WhitelistPage() {
               <form onSubmit={handleSave} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">
-                    邮箱地址 *
+                    {t("whitelist.form.email")} *
                   </label>
                   <input
                     type="email"
@@ -254,13 +256,13 @@ export default function WhitelistPage() {
                   />
                   {editingId && (
                     <p className="mt-1 text-xs text-slate-500">
-                      邮箱地址不可修改
+                      {t("whitelist.form.emailDisabled")}
                     </p>
                   )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">
-                    备注
+                    {t("whitelist.form.desc")}
                   </label>
                   <input
                     type="text"
@@ -269,7 +271,7 @@ export default function WhitelistPage() {
                       setFormData({ ...formData, description: e.target.value })
                     }
                     className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-blue)]/40 focus:border-transparent"
-                    placeholder="可选备注信息"
+                    placeholder={t("whitelist.form.descPlaceholder")}
                   />
                 </div>
                 <div className="flex items-center justify-end gap-3 pt-4">
@@ -282,14 +284,14 @@ export default function WhitelistPage() {
                     }}
                     className="px-4 py-2 text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg font-medium transition-colors"
                   >
-                    取消
+                    {t("whitelist.buttons.cancel")}
                   </button>
                   <button
                     type="submit"
                     className="flex items-center gap-2 px-4 py-2 bg-[var(--color-brand-blue)] hover:bg-sky-400 text-slate-950 rounded-lg font-medium transition-colors"
                   >
                     <Save className="w-4 h-4" />
-                    {editingId ? "更新" : "添加"}
+                    {editingId ? t("auditLogs.actions.update") : t("auditLogs.actions.create")}
                   </button>
                 </div>
               </form>
@@ -302,21 +304,21 @@ export default function WhitelistPage() {
           {loading ? (
             <div className="p-12 text-center">
               <Loader2 className="w-8 h-8 animate-spin text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500">加载中...</p>
+              <p className="text-gray-500">{t("auditLogs.loading", "Loading...")}</p>
             </div>
           ) : whitelists.length === 0 ? (
             <div className="p-12 text-center">
               <Mail className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500 text-lg mb-2">暂无白名单记录</p>
+              <p className="text-gray-500 text-lg mb-2">{t("whitelist.empty.title")}</p>
               <p className="text-gray-400 text-sm mb-6">
-                添加邮箱地址以允许通过 SSO 登录
+                {t("whitelist.empty.desc")}
               </p>
               <button
                 onClick={handleNew}
                 className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
               >
                 <Plus className="w-5 h-5" />
-                添加白名单
+                {t("whitelist.buttons.add")}
               </button>
             </div>
           ) : (
@@ -325,16 +327,16 @@ export default function WhitelistPage() {
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      邮箱地址
+                      {t("whitelist.table.email")}
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      备注
+                      {t("whitelist.table.desc")}
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      添加时间
+                      {t("whitelist.table.time")}
                     </th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      操作
+                      {t("whitelist.table.actions")}
                     </th>
                   </tr>
                 </thead>
@@ -359,7 +361,7 @@ export default function WhitelistPage() {
                           <button
                             onClick={() => handleEdit(item)}
                             className="text-blue-600 hover:text-blue-900 transition-colors"
-                            title="编辑"
+                            title={t("whitelist.buttons.edit")}
                           >
                             <Edit className="w-4 h-4" />
                           </button>
@@ -367,7 +369,7 @@ export default function WhitelistPage() {
                             onClick={() => setDeleteConfirmId(item.id)}
                             className="text-red-600 hover:text-red-900 transition-colors"
                             disabled={deletingId === item.id}
-                            title="删除"
+                            title={t("whitelist.buttons.delete")}
                           >
                             {deletingId === item.id ? (
                               <Loader2 className="w-4 h-4 animate-spin" />
@@ -391,17 +393,17 @@ export default function WhitelistPage() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              确认删除
+              {t("whitelist.delete.title")}
             </h3>
             <p className="text-gray-600 mb-6">
-              您确定要删除这个白名单记录吗？删除后该邮箱将无法通过 SSO 登录。
+              {t("whitelist.delete.desc")}
             </p>
             <div className="flex items-center justify-end gap-3">
               <button
                 onClick={() => setDeleteConfirmId(null)}
                 className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium transition-colors"
               >
-                取消
+                {t("whitelist.buttons.cancel")}
               </button>
               <button
                 onClick={() => handleDelete(deleteConfirmId)}
@@ -411,7 +413,7 @@ export default function WhitelistPage() {
                 {deletingId === deleteConfirmId && (
                   <Loader2 className="w-4 h-4 animate-spin" />
                 )}
-                确认删除
+                {t("whitelist.buttons.confirmDelete")}
               </button>
             </div>
           </div>
@@ -420,4 +422,3 @@ export default function WhitelistPage() {
     </div>
   );
 }
-

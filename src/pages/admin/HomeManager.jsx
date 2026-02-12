@@ -2,12 +2,14 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { Plus, Edit, Trash2, Loader2, ArrowUp, ArrowDown } from "lucide-react";
 import pb from "../../lib/pocketbase";
+import { useTranslation } from "react-i18next";
 
 /**
  * 首页分段管理页面
  * 列表展示当前的 Sections，支持新建、编辑、删除和排序
  */
 export default function HomeManager() {
+  const { t, i18n } = useTranslation();
   const { adminKey } = useParams();
   const navigate = useNavigate();
   const [sections, setSections] = useState([]);
@@ -29,7 +31,7 @@ export default function HomeManager() {
       console.error("Failed to fetch sections:", error);
       setToast({
         type: "error",
-        message: "获取分段列表失败，请稍后重试。",
+        message: t("admin.homeManager.toast.fetchError"),
       });
     } finally {
       setLoading(false);
@@ -47,12 +49,12 @@ export default function HomeManager() {
       await pb.collection("cms_sections").delete(sectionId);
       await fetchSections();
       setDeleteConfirmId(null);
-      setToast({ type: "success", message: "分段已删除。" });
+      setToast({ type: "success", message: t("admin.homeManager.toast.deleteSuccess") });
     } catch (error) {
       console.error("Failed to delete section:", error);
       setToast({
         type: "error",
-        message: "删除分段失败，请稍后重试。",
+        message: t("admin.homeManager.toast.deleteError"),
       });
     } finally {
       setDeletingId(null);
@@ -83,12 +85,12 @@ export default function HomeManager() {
         sort_order: newOrder,
       });
       await fetchSections();
-      setToast({ type: "success", message: "排序已更新。" });
+      setToast({ type: "success", message: t("admin.homeManager.toast.orderSuccess") });
     } catch (error) {
       console.error("Failed to update order:", error);
       setToast({
         type: "error",
-        message: "更新排序失败，请稍后重试。",
+        message: t("admin.homeManager.toast.orderError"),
       });
     } finally {
       setUpdatingOrder({});
@@ -99,7 +101,7 @@ export default function HomeManager() {
   const formatDate = (dateString) => {
     if (!dateString) return "-";
     const date = new Date(dateString);
-    return new Intl.DateTimeFormat("zh-CN", {
+    return new Intl.DateTimeFormat(i18n.language === 'zh' ? "zh-CN" : (i18n.language === 'ja' ? "ja-JP" : "en-US"), {
       year: "numeric",
       month: "2-digit",
       day: "2-digit",
@@ -110,9 +112,16 @@ export default function HomeManager() {
 
   // 获取多语言标题（用于显示）
   const getDisplayTitle = (section) => {
-    if (!section.title) return "未命名";
+    if (!section.title) return t("admin.homeManager.card.unnamed");
     if (typeof section.title === "string") return section.title;
-    return section.title.zh || section.title.en || section.title.ja || "未命名";
+    return section.title[i18n.language] || section.title.zh || section.title.en || section.title.ja || t("admin.homeManager.card.unnamed");
+  };
+
+  // 获取多语言副标题
+  const getDisplaySubtitle = (section) => {
+    if (!section.subtitle) return "";
+    if (typeof section.subtitle === "string") return section.subtitle;
+    return section.subtitle[i18n.language] || section.subtitle.zh || section.subtitle.en || section.subtitle.ja || "";
   };
 
   if (loading) {
@@ -128,11 +137,10 @@ export default function HomeManager() {
       {/* Toast 提示 */}
       {toast && (
         <div
-          className={`rounded-2xl px-4 py-2.5 text-xs md:text-sm flex items-center justify-between gap-3 shadow-sm ${
-            toast.type === "success"
+          className={`rounded-2xl px-4 py-2.5 text-xs md:text-sm flex items-center justify-between gap-3 shadow-sm ${toast.type === "success"
               ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
               : "bg-red-50 text-red-800 border border-red-200"
-          }`}
+            }`}
         >
           <span>{toast.message}</span>
           <button
@@ -147,20 +155,20 @@ export default function HomeManager() {
 
       {/* 页面标题和新建按钮 */}
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-slate-900">首页分段管理</h1>
+        <h1 className="text-2xl font-bold text-slate-900">{t("admin.homeManager.title")}</h1>
         <Link
           to={`/${adminKey}/webadmin/home/new`}
           className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
           <Plus className="w-4 h-4" />
-          新建分段
+          {t("admin.homeManager.new")}
         </Link>
       </div>
 
       {/* 分段列表 */}
       {sections.length === 0 ? (
         <div className="text-center py-12 text-slate-500">
-          <p>暂无分段，点击"新建分段"开始创建。</p>
+          <p>{t("admin.homeManager.empty")}</p>
         </div>
       ) : (
         <div className="grid gap-4">
@@ -173,7 +181,7 @@ export default function HomeManager() {
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
                     <span className="text-sm font-medium text-slate-500">
-                      排序: {section.sort_order}
+                      {t("admin.homeManager.card.sort")}: {section.sort_order}
                     </span>
                     <h3 className="text-lg font-semibold text-slate-900">
                       {getDisplayTitle(section)}
@@ -181,16 +189,14 @@ export default function HomeManager() {
                   </div>
                   {section.subtitle && (
                     <p className="text-sm text-slate-600 mb-3">
-                      {typeof section.subtitle === "string"
-                        ? section.subtitle
-                        : section.subtitle.zh || section.subtitle.en || section.subtitle.ja || ""}
+                      {getDisplaySubtitle(section)}
                     </p>
                   )}
                   <div className="flex items-center gap-4 text-xs text-slate-500">
-                    <span>按钮数: {section.buttons?.length || 0}</span>
-                    <span>更新时间: {formatDate(section.updated)}</span>
+                    <span>{t("admin.homeManager.card.buttons")}: {section.buttons?.length || 0}</span>
+                    <span>{t("admin.homeManager.card.updated")}: {formatDate(section.updated)}</span>
                     {section.background && (
-                      <span className="text-emerald-600">✓ 已设置背景图</span>
+                      <span className="text-emerald-600">{t("admin.homeManager.card.bgSet")}</span>
                     )}
                   </div>
                 </div>
@@ -200,7 +206,7 @@ export default function HomeManager() {
                     onClick={() => handleMoveOrder(section.id, "up")}
                     disabled={index === 0 || updatingOrder[section.id]}
                     className="p-2 text-slate-400 hover:text-slate-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                    title="上移"
+                    title={t("admin.homeManager.actions.up")}
                   >
                     <ArrowUp className="w-4 h-4" />
                   </button>
@@ -208,7 +214,7 @@ export default function HomeManager() {
                     onClick={() => handleMoveOrder(section.id, "down")}
                     disabled={index === sections.length - 1 || updatingOrder[section.id]}
                     className="p-2 text-slate-400 hover:text-slate-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                    title="下移"
+                    title={t("admin.homeManager.actions.down")}
                   >
                     <ArrowDown className="w-4 h-4" />
                   </button>
@@ -216,7 +222,7 @@ export default function HomeManager() {
                   <Link
                     to={`/${adminKey}/webadmin/home/${section.id}`}
                     className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
-                    title="编辑"
+                    title={t("admin.homeManager.actions.edit")}
                   >
                     <Edit className="w-4 h-4" />
                   </Link>
@@ -231,21 +237,21 @@ export default function HomeManager() {
                         {deletingId === section.id ? (
                           <Loader2 className="w-3 h-3 animate-spin inline" />
                         ) : (
-                          "确认"
+                          t("admin.homeManager.actions.confirm")
                         )}
                       </button>
                       <button
                         onClick={() => setDeleteConfirmId(null)}
                         className="px-3 py-1 text-xs bg-slate-200 text-slate-700 rounded hover:bg-slate-300"
                       >
-                        取消
+                        {t("admin.homeManager.actions.cancel")}
                       </button>
                     </div>
                   ) : (
                     <button
                       onClick={() => setDeleteConfirmId(section.id)}
                       className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
-                      title="删除"
+                      title={t("admin.homeManager.actions.delete")}
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>

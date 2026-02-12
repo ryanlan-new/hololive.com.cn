@@ -6,6 +6,7 @@ import RichTextEditor from "../../components/admin/editor/RichTextEditor";
 import ImagePicker from "../../components/admin/ImagePicker";
 import { detectSourceLanguage, translateFields } from "../../lib/translation";
 import { logCreate, logUpdate } from "../../lib/logger";
+import { useTranslation } from "react-i18next";
 
 /**
  * 文章编辑器组件（支持三语言）
@@ -14,13 +15,14 @@ import { logCreate, logUpdate } from "../../lib/logger";
 export default function PostEditor() {
   const { adminKey, id } = useParams();
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
   const isEditMode = !!id;
 
   // 语言选项
   const languages = [
-    { code: "zh", label: "中文" },
-    { code: "en", label: "English" },
-    { code: "ja", label: "日本語" },
+    { code: "zh", label: t("common.languageNames.zh") },
+    { code: "en", label: t("common.languageNames.en") },
+    { code: "ja", label: t("common.languageNames.ja") },
   ];
   const [activeLang, setActiveLang] = useState("zh");
 
@@ -113,7 +115,7 @@ export default function PostEditor() {
         setError(null);
       } catch (err) {
         console.error("Failed to fetch post:", err);
-        setError("加载文章失败，请重试");
+        setError(t("admin.postEditor.toast.loadError"));
       } finally {
         setLoading(false);
       }
@@ -126,7 +128,7 @@ export default function PostEditor() {
   const handleAutoTranslate = async () => {
     try {
       setTranslating(true);
-      setToast({ type: "info", message: "正在连接免费翻译接口..." });
+      setToast({ type: "info", message: t("admin.postEditor.toast.connectTranslate") });
 
       const fieldsToTranslate = ["title", "summary", "content"];
       const updatedFormData = { ...formData };
@@ -166,17 +168,17 @@ export default function PostEditor() {
       if (translatedCount === 0) {
         setToast({
           type: "warning",
-          message: "未检测到需要翻译的内容，请先填写至少一个语言的字段。",
+          message: t("admin.postEditor.toast.noContent"),
         });
       } else {
         setFormData(updatedFormData);
-        setToast({ type: "success", message: "翻译完成！" });
+        setToast({ type: "success", message: t("admin.postEditor.toast.translateSuccess") });
       }
     } catch (err) {
       console.error("Translation error:", err);
       setToast({
         type: "error",
-        message: "翻译失败，请稍后重试。",
+        message: t("admin.postEditor.toast.translateError"),
       });
     } finally {
       setTranslating(false);
@@ -206,22 +208,22 @@ export default function PostEditor() {
       if (isEditMode) {
         saved = await pb.collection("posts").update(id, saveData);
         // 记录更新日志
-        const title = typeof formData.title === "object" 
-          ? (formData.title.zh || formData.title.en || formData.title.ja || "无标题")
-          : formData.title || "无标题";
-        await logUpdate("文章管理", `更新了文章《${title}》`);
+        const title = typeof formData.title === "object"
+          ? (formData.title.zh || formData.title.en || formData.title.ja || "Unknown Title")
+          : formData.title || "Unknown Title";
+        await logUpdate("Post Editor", `Updated post: ${title}`);
       } else {
         saved = await pb.collection("posts").create(saveData);
         // 记录创建日志
-        const title = typeof formData.title === "object" 
-          ? (formData.title.zh || formData.title.en || formData.title.ja || "无标题")
-          : formData.title || "无标题";
-        await logCreate("文章管理", `创建了文章《${title}》`);
+        const title = typeof formData.title === "object"
+          ? (formData.title.zh || formData.title.en || formData.title.ja || "Unknown Title")
+          : formData.title || "Unknown Title";
+        await logCreate("Post Editor", `Created post: ${title}`);
       }
 
       setToast({
         type: "success",
-        message: isEditMode ? "文章已更新" : "文章已创建",
+        message: isEditMode ? t("admin.postEditor.toast.updateSuccess") : t("admin.postEditor.toast.createSuccess"),
       });
       setTimeout(() => {
         setToast(null);
@@ -229,11 +231,11 @@ export default function PostEditor() {
       }, 900);
     } catch (err) {
       console.error("Failed to save post:", err);
-      const errorMsg = err?.response?.message || err?.message || "保存失败，请重试";
+      const errorMsg = err?.response?.message || err?.message || t("admin.postEditor.toast.saveError");
       setError(errorMsg);
       setToast({
         type: "error",
-        message: "保存失败，请检查表单或稍后再试。",
+        message: t("admin.postEditor.toast.saveError"),
       });
     } finally {
       setSaving(false);
@@ -245,15 +247,14 @@ export default function PostEditor() {
       {/* Toast 提示 */}
       {toast && (
         <div
-          className={`rounded-2xl px-4 py-2.5 text-xs md:text-sm flex items-center justify-between gap-3 shadow-sm ${
-            toast.type === "success"
+          className={`rounded-2xl px-4 py-2.5 text-xs md:text-sm flex items-center justify-between gap-3 shadow-sm ${toast.type === "success"
               ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
               : toast.type === "info"
-              ? "bg-blue-50 text-blue-800 border border-blue-200"
-              : toast.type === "warning"
-              ? "bg-yellow-50 text-yellow-800 border border-yellow-200"
-              : "bg-red-50 text-red-800 border border-red-200"
-          }`}
+                ? "bg-blue-50 text-blue-800 border border-blue-200"
+                : toast.type === "warning"
+                  ? "bg-yellow-50 text-yellow-800 border border-yellow-200"
+                  : "bg-red-50 text-red-800 border border-red-200"
+            }`}
         >
           <span>{toast.message}</span>
           <button
@@ -261,7 +262,7 @@ export default function PostEditor() {
             onClick={() => setToast(null)}
             className="text-[11px] font-medium opacity-80 hover:opacity-100"
           >
-            关闭
+            ×
           </button>
         </div>
       )}
@@ -269,7 +270,7 @@ export default function PostEditor() {
       {loading ? (
         <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center shadow-sm">
           <Loader2 className="w-7 h-7 animate-spin text-slate-400 mx-auto mb-3" />
-          <p className="text-sm text-slate-500">加载文章数据中...</p>
+          <p className="text-sm text-slate-500">Loading...</p>
         </div>
       ) : (
         <div className="space-y-5">
@@ -285,7 +286,7 @@ export default function PostEditor() {
                 </Link>
                 <div>
                   <h1 className="text-xl md:text-2xl font-bold text-slate-900">
-                    {isEditMode ? "编辑文章" : "新建文章"}
+                    {isEditMode ? t("admin.postEditor.editTitle") : t("admin.postEditor.createTitle")}
                   </h1>
                 </div>
               </div>
@@ -298,7 +299,7 @@ export default function PostEditor() {
                   className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-4 py-1.5 text-xs md:text-sm font-semibold text-slate-900 hover:bg-slate-200 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   <Languages className="w-3.5 h-3.5" />
-                  {translating ? "翻译中..." : "一键翻译"}
+                  {translating ? t("admin.postEditor.translating") : t("admin.postEditor.translate")}
                 </button>
                 {/* 保存按钮 */}
                 <button
@@ -309,12 +310,12 @@ export default function PostEditor() {
                   {saving ? (
                     <>
                       <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      保存中...
+                      {t("admin.postEditor.saving")}
                     </>
                   ) : (
                     <>
                       <Save className="w-3.5 h-3.5" />
-                      保存
+                      {t("admin.postEditor.save")}
                     </>
                   )}
                 </button>
@@ -329,11 +330,10 @@ export default function PostEditor() {
                     key={lang.code}
                     type="button"
                     onClick={() => setActiveLang(lang.code)}
-                    className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                      activeLang === lang.code
+                    className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeLang === lang.code
                         ? "bg-[var(--color-brand-blue)] text-slate-950 shadow-sm"
                         : "bg-slate-50 text-slate-600 hover:bg-slate-100"
-                    }`}
+                      }`}
                   >
                     {lang.label}
                   </button>
@@ -347,20 +347,20 @@ export default function PostEditor() {
                 {/* 基本信息：标题、摘要、封面图 */}
                 <div className="rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm space-y-4">
                   <h2 className="text-sm font-semibold text-slate-900 border-b border-slate-200 pb-2">
-                    基本信息
+                    {t("admin.postEditor.basicInfo")}
                   </h2>
-                  
+
                   {/* 标题（多语言） */}
                   <div className="space-y-2">
                     <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide">
-                      标题 * ({languages.find((l) => l.code === activeLang)?.label})
+                      {t("admin.postEditor.titleLabel")} ({languages.find((l) => l.code === activeLang)?.label})
                     </label>
                     <input
                       type="text"
                       value={formData.title[activeLang] || ""}
                       onChange={(e) => handleTitleChange(e.target.value)}
                       className="w-full rounded-xl border border-slate-200 bg-slate-50/60 px-3.5 py-2.5 text-base md:text-lg font-semibold text-slate-900 focus:border-[var(--color-brand-blue)] focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-blue)]/30"
-                      placeholder={`输入文章标题（${languages.find((l) => l.code === activeLang)?.label}）...`}
+                      placeholder={t("admin.postEditor.titlePlaceholder")}
                       required
                     />
                   </div>
@@ -368,7 +368,7 @@ export default function PostEditor() {
                   {/* 摘要（多语言） */}
                   <div className="space-y-2">
                     <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide">
-                      摘要 ({languages.find((l) => l.code === activeLang)?.label})
+                      {t("admin.postEditor.summaryLabel")} ({languages.find((l) => l.code === activeLang)?.label})
                     </label>
                     <textarea
                       value={formData.summary[activeLang] || ""}
@@ -384,10 +384,10 @@ export default function PostEditor() {
                       rows={3}
                       maxLength={500}
                       className="w-full rounded-xl border border-slate-200 bg-slate-50/60 px-3.5 py-2.5 text-sm text-slate-900 focus:border-[var(--color-brand-blue)] focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-blue)]/30 resize-none"
-                      placeholder={`输入文章摘要（${languages.find((l) => l.code === activeLang)?.label}，可选）...`}
+                      placeholder={t("admin.postEditor.summaryPlaceholder")}
                     />
                     <p className="text-[11px] text-slate-500">
-                      {(formData.summary[activeLang] || "").length}/500 字符
+                      {(formData.summary[activeLang] || "").length}/500
                     </p>
                   </div>
 
@@ -401,7 +401,7 @@ export default function PostEditor() {
                           cover_ref: mediaId,
                         }))
                       }
-                      label="封面图片"
+                      label={t("admin.postEditor.coverLabel")}
                     />
                   </div>
 
@@ -423,12 +423,12 @@ export default function PostEditor() {
                         <Pin className="w-4 h-4 text-slate-600" />
                         <div className="flex flex-col">
                           <span className="text-xs font-medium text-slate-800">
-                            置顶文章
+                            {t("admin.postEditor.pinned")}
                           </span>
                           <span className="text-[11px] text-slate-500">
                             {formData.is_pinned
-                              ? "文章将显示在列表顶部"
-                              : "文章按时间顺序显示"}
+                              ? t("admin.postEditor.pinnedDesc")
+                              : t("admin.postEditor.unpinnedDesc")}
                           </span>
                         </div>
                       </div>
@@ -438,7 +438,7 @@ export default function PostEditor() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-200">
                     <div className="space-y-1.5">
                       <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide">
-                        分类
+                        {t("admin.postEditor.categoryLabel")}
                       </label>
                       <select
                         value={formData.category}
@@ -452,14 +452,14 @@ export default function PostEditor() {
                       >
                         {categories.map((cat) => (
                           <option key={cat} value={cat}>
-                            {cat}
+                            {t(`admin.posts.categories.${cat === "公告" ? "announcement" : (cat === "文档" ? "docs" : "changelog")}`)}
                           </option>
                         ))}
                       </select>
                     </div>
                     <div className="space-y-1.5">
                       <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide">
-                        发布状态
+                        {t("admin.postEditor.publicStatus")}
                       </label>
                       <label className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50/60 px-3 py-2 cursor-pointer">
                         <input
@@ -475,12 +475,12 @@ export default function PostEditor() {
                         />
                         <div className="flex flex-col">
                           <span className="text-xs font-medium text-slate-800">
-                            {formData.is_public ? "已发布" : "草稿"}
+                            {formData.is_public ? t("admin.postEditor.public") : t("admin.postEditor.draft")}
                           </span>
                           <span className="text-[11px] text-slate-500">
                             {formData.is_public
-                              ? "文章将对所有访客可见"
-                              : "仅在后台可见，不对外公开"}
+                              ? t("admin.postEditor.publicHint")
+                              : t("admin.postEditor.draftHint")}
                           </span>
                         </div>
                       </label>
@@ -491,7 +491,7 @@ export default function PostEditor() {
                 {/* 富文本编辑区（多语言） */}
                 <div className="space-y-2">
                   <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide">
-                    内容（富文本）* ({languages.find((l) => l.code === activeLang)?.label})
+                    {t("admin.postEditor.contentLabel")} ({languages.find((l) => l.code === activeLang)?.label})
                   </label>
                   <RichTextEditor
                     key={activeLang} // 使用 key 强制重新渲染编辑器
@@ -505,7 +505,7 @@ export default function PostEditor() {
                         },
                       }))
                     }
-                    placeholder={`在此输入文章内容（${languages.find((l) => l.code === activeLang)?.label}），支持标题、加粗、列表、引用、链接、图片等格式...`}
+                    placeholder={`...`}
                   />
                 </div>
               </div>
@@ -514,7 +514,7 @@ export default function PostEditor() {
               <div className="space-y-4">
                 <div className="rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm space-y-2.5">
                   <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide">
-                    URL 标识 (Slug)
+                    {t("admin.postEditor.slugLabel")}
                   </label>
                   <input
                     type="text"
@@ -529,7 +529,7 @@ export default function PostEditor() {
                     placeholder="article-slug"
                   />
                   <p className="text-[11px] text-slate-500">
-                    用于生成文章 URL，留空将自动根据中文标题生成。
+                    {t("admin.postEditor.slugHint")}
                   </p>
                 </div>
               </div>

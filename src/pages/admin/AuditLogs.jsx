@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { Loader2, Filter, ClipboardList } from "lucide-react";
 import pb from "../../lib/pocketbase";
+import { useTranslation } from "react-i18next";
 
 /**
  * 操作日志审计页面
@@ -9,6 +10,7 @@ import pb from "../../lib/pocketbase";
  */
 export default function AuditLogs() {
   const { adminKey } = useParams();
+  const { t } = useTranslation("admin");
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -21,13 +23,13 @@ export default function AuditLogs() {
 
   // 操作类型选项
   const actionTypes = [
-    { value: "", label: "全部类型" },
-    { value: "登录", label: "登录" },
-    { value: "创建", label: "创建" },
-    { value: "更新", label: "更新" },
-    { value: "删除", label: "删除" },
-    { value: "系统设置", label: "系统设置" },
-    { value: "其他", label: "其他" },
+    { value: "", label: t("auditLogs.actions.all") },
+    { value: "登录", label: t("auditLogs.actions.login") },
+    { value: "创建", label: t("auditLogs.actions.create") },
+    { value: "更新", label: t("auditLogs.actions.update") },
+    { value: "删除", label: t("auditLogs.actions.delete") },
+    { value: "系统设置", label: t("auditLogs.actions.system") },
+    { value: "其他", label: t("auditLogs.actions.other") },
   ];
 
   // 获取日志列表
@@ -53,7 +55,7 @@ export default function AuditLogs() {
       setTotalPages(result.totalPages);
     } catch (err) {
       console.error("Failed to fetch audit logs:", err);
-      setError("获取日志列表失败，请稍后重试");
+      setError(t("auditLogs.error.fetch"));
     } finally {
       setLoading(false);
     }
@@ -95,7 +97,7 @@ export default function AuditLogs() {
     if (log.expand?.user?.email) {
       return log.expand.user.email;
     }
-    return log.user || "未知用户";
+    return log.user || t("auditLogs.unknownUser");
   };
 
   return (
@@ -104,10 +106,10 @@ export default function AuditLogs() {
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div className="space-y-1">
           <h1 className="text-xl md:text-2xl font-bold text-slate-900">
-            操作日志
+            {t("auditLogs.title")}
           </h1>
           <p className="text-xs md:text-sm text-slate-500">
-            查看管理员和 SSO 用户的操作记录
+            {t("auditLogs.subtitle")}
           </p>
         </div>
 
@@ -142,18 +144,18 @@ export default function AuditLogs() {
       {loading ? (
         <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center shadow-sm">
           <Loader2 className="w-7 h-7 animate-spin text-slate-400 mx-auto mb-3" />
-          <p className="text-sm text-slate-500">正在加载日志...</p>
+          <p className="text-sm text-slate-500">{t("auditLogs.loading", "Loading...")}</p>
         </div>
       ) : logs.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-slate-300 bg-white/80 px-6 py-10 text-center shadow-sm flex flex-col items-center gap-3">
           <ClipboardList className="w-12 h-12 text-slate-300" />
           <p className="text-sm font-medium text-slate-700">
-            {filterActionType ? "没有符合筛选条件的日志" : "当前还没有操作日志"}
+            {filterActionType ? t("auditLogs.empty.filteredTitle") : t("auditLogs.empty.title")}
           </p>
           <p className="text-xs text-slate-500">
             {filterActionType
-              ? "尝试调整筛选条件或清空筛选。"
-              : "操作日志将在管理员执行操作时自动记录。"}
+              ? t("auditLogs.empty.filteredDesc")
+              : t("auditLogs.empty.desc")}
           </p>
         </div>
       ) : (
@@ -165,19 +167,19 @@ export default function AuditLogs() {
                 <thead className="bg-slate-50 border-b border-slate-200">
                   <tr>
                     <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                      操作时间
+                      {t("auditLogs.table.time")}
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                      操作人
+                      {t("auditLogs.table.user")}
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                      操作类型
+                      {t("auditLogs.table.type")}
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                      目标模块
+                      {t("auditLogs.table.module")}
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                      详情
+                      {t("auditLogs.table.details")}
                     </th>
                   </tr>
                 </thead>
@@ -227,10 +229,10 @@ export default function AuditLogs() {
                 disabled={page === 1}
                 className="px-3 py-1.5 rounded-full border border-slate-200 bg-white text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                上一页
+                {t("auditLogs.pagination.prev")}
               </button>
               <span className="px-3 py-1.5 text-xs text-slate-600">
-                第 {page} / {totalPages} 页
+                {t("auditLogs.pagination.info", { page, total: totalPages })}
               </span>
               <button
                 type="button"
@@ -238,7 +240,7 @@ export default function AuditLogs() {
                 disabled={page === totalPages}
                 className="px-3 py-1.5 rounded-full border border-slate-200 bg-white text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                下一页
+                {t("auditLogs.pagination.next")}
               </button>
             </div>
           )}
@@ -247,4 +249,3 @@ export default function AuditLogs() {
     </div>
   );
 }
-

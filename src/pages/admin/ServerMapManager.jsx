@@ -2,13 +2,15 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Plus, Edit, Trash2, Loader2, Map, GripVertical, X, Save } from "lucide-react";
 import pb from "../../lib/pocketbase";
+import { useTranslation } from "react-i18next";
 
 /**
- * 服务器地图管理页面
- * 支持 CRUD 操作和拖拽排序
+ * Server Map Manager Page
+ * Manage external links for server maps
  */
 export default function ServerMapManager() {
   const { adminKey } = useParams();
+  const { t } = useTranslation();
   const [maps, setMaps] = useState([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState(null);
@@ -35,7 +37,7 @@ export default function ServerMapManager() {
       setMaps(result.items);
     } catch (error) {
       console.error("Failed to fetch maps:", error);
-      showToast("error", "获取地图列表失败，请稍后重试。");
+      showToast("error", t("admin.serverMaps.toast.saveError")); // Fallback/reuse
     } finally {
       setLoading(false);
     }
@@ -63,7 +65,7 @@ export default function ServerMapManager() {
     try {
       if (editingId) {
         await pb.collection("server_maps").update(editingId, formData);
-        showToast("success", "地图已更新");
+        showToast("success", t("admin.serverMaps.toast.updateSuccess"));
       } else {
         // Set sort_order to max + 1 if not provided
         const maxSort = maps.length > 0 ? Math.max(...maps.map((m) => m.sort_order || 0)) : 0;
@@ -71,13 +73,13 @@ export default function ServerMapManager() {
           ...formData,
           sort_order: formData.sort_order || maxSort + 1,
         });
-        showToast("success", "地图已创建");
+        showToast("success", t("admin.serverMaps.toast.createSuccess"));
       }
       resetForm();
       await fetchMaps();
     } catch (error) {
       console.error("Failed to save map:", error);
-      showToast("error", "保存失败，请稍后重试。");
+      showToast("error", t("admin.serverMaps.toast.saveError"));
     }
   };
 
@@ -87,11 +89,11 @@ export default function ServerMapManager() {
       setDeletingId(mapId);
       await pb.collection("server_maps").delete(mapId);
       setDeleteConfirmId(null);
-      showToast("success", "地图已删除");
+      showToast("success", t("admin.serverMaps.toast.deleteSuccess"));
       await fetchMaps();
     } catch (error) {
       console.error("Failed to delete map:", error);
-      showToast("error", "删除失败，请稍后重试。");
+      showToast("error", t("admin.serverMaps.toast.saveError")); // Reuse error
     } finally {
       setDeletingId(null);
     }
@@ -144,11 +146,11 @@ export default function ServerMapManager() {
         )
       );
 
-      showToast("success", "排序已更新");
+      showToast("success", t("admin.homeManager.toast.orderSuccess")); // Reuse homeManager key which says "Order updated."
       await fetchMaps();
     } catch (error) {
       console.error("Failed to update sort order:", error);
-      showToast("error", "更新排序失败，请稍后重试。");
+      showToast("error", t("admin.homeManager.toast.orderError")); // Reuse
       await fetchMaps(); // Revert to server state
     } finally {
       setDraggedIndex(null);
@@ -160,8 +162,8 @@ export default function ServerMapManager() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">服务器地图管理</h1>
-          <p className="text-sm text-slate-500 mt-1">管理服务器地图的外部链接</p>
+          <h1 className="text-2xl font-bold text-slate-900">{t("admin.serverMaps.title")}</h1>
+          <p className="text-sm text-slate-500 mt-1">{t("admin.serverMaps.subtitle")}</p>
         </div>
         <button
           onClick={() => {
@@ -171,18 +173,17 @@ export default function ServerMapManager() {
           className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--color-brand-blue)] text-slate-950 rounded-lg font-medium hover:bg-[var(--color-brand-blue)]/90 transition-colors"
         >
           <Plus size={18} />
-          新建地图
+          {t("admin.serverMaps.new")}
         </button>
       </div>
 
       {/* Toast */}
       {toast && (
         <div
-          className={`fixed top-4 right-4 px-4 py-3 rounded-lg shadow-lg z-50 ${
-            toast.type === "success"
+          className={`fixed top-4 right-4 px-4 py-3 rounded-lg shadow-lg z-50 ${toast.type === "success"
               ? "bg-emerald-500 text-white"
               : "bg-red-500 text-white"
-          }`}
+            }`}
         >
           {toast.message}
         </div>
@@ -193,7 +194,7 @@ export default function ServerMapManager() {
         <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-slate-900">
-              {editingId ? "编辑地图" : "新建地图"}
+              {editingId ? t("admin.serverMaps.form.editTitle") : t("admin.serverMaps.form.createTitle")}
             </h2>
             <button
               onClick={resetForm}
@@ -205,7 +206,7 @@ export default function ServerMapManager() {
           <form onSubmit={handleSave} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">
-                地图名称 *
+                {t("admin.serverMaps.form.name")}
               </label>
               <input
                 type="text"
@@ -218,7 +219,7 @@ export default function ServerMapManager() {
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">
-                地图 URL *
+                {t("admin.serverMaps.form.url")}
               </label>
               <input
                 type="url"
@@ -231,7 +232,7 @@ export default function ServerMapManager() {
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">
-                排序顺序
+                {t("admin.serverMaps.form.sort")}
               </label>
               <input
                 type="number"
@@ -249,14 +250,14 @@ export default function ServerMapManager() {
                 className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--color-brand-blue)] text-slate-950 rounded-lg font-medium hover:bg-[var(--color-brand-blue)]/90 transition-colors"
               >
                 <Save size={18} />
-                保存
+                {t("admin.serverMaps.form.save")}
               </button>
               <button
                 type="button"
                 onClick={resetForm}
                 className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg font-medium hover:bg-slate-200 transition-colors"
               >
-                取消
+                {t("admin.serverMaps.form.cancel")}
               </button>
             </div>
           </form>
@@ -267,13 +268,13 @@ export default function ServerMapManager() {
       {loading ? (
         <div className="flex flex-col items-center justify-center py-20 bg-white rounded-xl border border-slate-200">
           <Loader2 className="w-8 h-8 animate-spin text-slate-400 mb-4" />
-          <p className="text-sm text-slate-500">加载中...</p>
+          <p className="text-sm text-slate-500">Loading...</p>
         </div>
       ) : maps.length === 0 ? (
         <div className="bg-white rounded-xl border border-dashed border-slate-300 p-10 text-center">
           <Map className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-          <p className="text-sm font-medium text-slate-700">当前还没有地图</p>
-          <p className="text-xs text-slate-500 mt-1">点击上面的按钮开始创建</p>
+          <p className="text-sm font-medium text-slate-700">{t("admin.serverMaps.empty")}</p>
+          <p className="text-xs text-slate-500 mt-1">{t("admin.serverMaps.emptyDesc")}</p>
         </div>
       ) : (
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
@@ -285,22 +286,21 @@ export default function ServerMapManager() {
                 onDragStart={() => handleDragStart(index)}
                 onDragOver={(e) => handleDragOver(e, index)}
                 onDragEnd={handleDragEnd}
-                className={`p-4 hover:bg-slate-50 transition-colors ${
-                  draggedIndex === index ? "opacity-50" : ""
-                }`}
+                className={`p-4 hover:bg-slate-50 transition-colors ${draggedIndex === index ? "opacity-50" : ""
+                  }`}
               >
                 <div className="flex items-center gap-4">
                   <GripVertical className="w-5 h-5 text-slate-400 cursor-move" />
                   <div className="flex-1 min-w-0">
                     <h3 className="text-base font-semibold text-slate-900">{map.name}</h3>
                     <p className="text-sm text-slate-500 truncate">{map.url}</p>
-                    <p className="text-xs text-slate-400 mt-1">排序: {map.sort_order || 0}</p>
+                    <p className="text-xs text-slate-400 mt-1">{t("admin.serverMaps.sort")}: {map.sort_order || 0}</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => startEdit(map)}
                       className="p-2 hover:bg-blue-50 rounded-lg transition-colors"
-                      title="编辑"
+                      title={t("admin.serverMaps.form.editTitle")}
                     >
                       <Edit size={18} className="text-blue-600" />
                     </button>
@@ -311,20 +311,20 @@ export default function ServerMapManager() {
                           disabled={deletingId === map.id}
                           className="px-3 py-1 text-xs bg-red-500 text-white rounded hover:bg-red-600 transition-colors disabled:opacity-50"
                         >
-                          {deletingId === map.id ? "删除中..." : "确认"}
+                          {deletingId === map.id ? t("admin.serverInfoFields.delete.deleting") : t("admin.serverMaps.delete.confirm")}
                         </button>
                         <button
                           onClick={() => setDeleteConfirmId(null)}
                           className="px-3 py-1 text-xs bg-slate-100 text-slate-700 rounded hover:bg-slate-200 transition-colors"
                         >
-                          取消
+                          {t("admin.serverMaps.delete.cancel")}
                         </button>
                       </div>
                     ) : (
                       <button
                         onClick={() => setDeleteConfirmId(map.id)}
                         className="p-2 hover:bg-red-50 rounded-lg transition-colors"
-                        title="删除"
+                        title={t("admin.serverMaps.delete.title")}
                       >
                         <Trash2 size={18} className="text-red-600" />
                       </button>
@@ -339,4 +339,3 @@ export default function ServerMapManager() {
     </div>
   );
 }
-

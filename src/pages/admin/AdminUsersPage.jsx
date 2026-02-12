@@ -2,12 +2,14 @@ import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { Plus, Trash2, Loader2, User, UserX, Mail, X, Save, AlertTriangle } from "lucide-react";
 import pb from "../../lib/pocketbase";
+import { useTranslation } from "react-i18next";
 
 /**
  * 本地管理员账号管理页面
  * 管理 users 集合中的管理员账号
  */
 export default function AdminUsersPage() {
+  const { t } = useTranslation();
   const { adminKey } = useParams();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -108,12 +110,12 @@ export default function AdminUsersPage() {
 
     // 验证密码
     if (formData.password !== formData.passwordConfirm) {
-      alert("两次输入的密码不一致");
+      alert(t("admin.users.modal.passwordMismatch"));
       return;
     }
 
     if (formData.password.length < 8) {
-      alert("密码长度至少为 8 位");
+      alert(t("admin.users.modal.passwordTooShort"));
       return;
     }
 
@@ -127,7 +129,7 @@ export default function AdminUsersPage() {
       console.log("Creating admin user with payload:", payload);
 
       await pb.collection("users").create(payload);
-      alert("管理员账号创建成功");
+      alert(t("admin.users.modal.success"));
       setShowForm(false);
       setFormData({ email: "", password: "", passwordConfirm: "" });
       await fetchUsers();
@@ -150,7 +152,7 @@ export default function AdminUsersPage() {
       await pb.collection("users").update(userId, {
         verified: false,
       });
-      alert("账号已禁用");
+      alert(t("admin.users.actions.deleted"));
       await fetchUsers();
     } catch (error) {
       console.error("Failed to disable user:", error);
@@ -193,16 +195,16 @@ export default function AdminUsersPage() {
         <div className="mb-8 flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              本地管理员管理
+              {t("admin.users.title")}
             </h1>
-            <p className="text-gray-600">管理本地管理员账号</p>
+            <p className="text-gray-600">{t("admin.users.subtitle")}</p>
           </div>
           <button
             onClick={handleNew}
             className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
           >
             <Plus className="w-5 h-5" />
-            添加管理员
+            {t("admin.users.add")}
           </button>
         </div>
 
@@ -213,15 +215,14 @@ export default function AdminUsersPage() {
               <div className="flex items-center gap-2 mb-2">
                 <AlertTriangle className="w-5 h-5 text-amber-600" />
                 <h3 className="text-lg font-semibold text-amber-900">
-                  允许本地账号密码登录
+                  {t("admin.users.toggle.title")}
                 </h3>
               </div>
               <p className="text-sm text-amber-800 mb-3">
-                关闭此功能后，后台登录页将仅显示 Microsoft SSO 登录按钮，完全隐藏账号密码输入框。
-                只有通过 Microsoft OAuth2 认证的用户才能登录系统。
+                {t("admin.users.toggle.desc")}
               </p>
               <p className="text-xs text-amber-700">
-                Enable Local Password Login (Enable Local Password Login)
+                {t("admin.users.toggle.sub")}
               </p>
             </div>
             <label className="flex items-center gap-3 cursor-pointer flex-shrink-0">
@@ -233,7 +234,7 @@ export default function AdminUsersPage() {
                 className="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
               />
               <span className="text-sm font-medium text-amber-900">
-                {enableLocalLogin ? "已开启" : "已关闭"}
+                {enableLocalLogin ? t("admin.users.toggle.on") : t("admin.users.toggle.off")}
               </span>
               {updatingLoginSetting && (
                 <Loader2 className="w-4 h-4 animate-spin text-amber-600" />
@@ -248,7 +249,7 @@ export default function AdminUsersPage() {
             <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-gray-900">
-                  添加管理员
+                  {t("admin.users.modal.addTitle")}
                 </h3>
                 <button
                   onClick={() => {
@@ -263,7 +264,7 @@ export default function AdminUsersPage() {
               <form onSubmit={handleCreate} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    邮箱地址 *
+                    {t("admin.users.modal.email")}
                   </label>
                   <input
                     type="email"
@@ -278,7 +279,7 @@ export default function AdminUsersPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    密码 *
+                    {t("admin.users.modal.password")}
                   </label>
                   <input
                     type="password"
@@ -287,14 +288,14 @@ export default function AdminUsersPage() {
                       setFormData({ ...formData, password: e.target.value })
                     }
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="至少 8 位"
+                    placeholder={t("admin.users.modal.passwordHint")}
                     required
                     minLength={8}
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    确认密码 *
+                    {t("admin.users.modal.confirmPassword")}
                   </label>
                   <input
                     type="password"
@@ -306,7 +307,7 @@ export default function AdminUsersPage() {
                       })
                     }
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="再次输入密码"
+                    placeholder={t("admin.users.modal.confirmPasswordHint")}
                     required
                     minLength={8}
                   />
@@ -320,14 +321,14 @@ export default function AdminUsersPage() {
                     }}
                     className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium transition-colors"
                   >
-                    取消
+                    {t("admin.users.modal.cancel")}
                   </button>
                   <button
                     type="submit"
                     className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
                   >
                     <Save className="w-4 h-4" />
-                    创建
+                    {t("admin.users.modal.create")}
                   </button>
                 </div>
               </form>
@@ -345,16 +346,16 @@ export default function AdminUsersPage() {
           ) : users.length === 0 ? (
             <div className="p-12 text-center">
               <User className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500 text-lg mb-2">暂无管理员账号</p>
+              <p className="text-gray-500 text-lg mb-2">{t("admin.users.table.empty")}</p>
               <p className="text-gray-400 text-sm mb-6">
-                添加管理员账号以允许本地登录
+                {t("admin.users.table.emptyDesc")}
               </p>
               <button
                 onClick={handleNew}
                 className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
               >
                 <Plus className="w-5 h-5" />
-                添加管理员
+                {t("admin.users.add")}
               </button>
             </div>
           ) : (
@@ -363,19 +364,19 @@ export default function AdminUsersPage() {
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      头像
+                      {t("admin.users.table.avatar")}
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      邮箱地址
+                      {t("admin.users.table.email")}
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      状态
+                      {t("admin.users.table.status")}
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      创建时间
+                      {t("admin.users.table.created")}
                     </th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      操作
+                      {t("admin.users.table.actions")}
                     </th>
                   </tr>
                 </thead>
@@ -395,11 +396,11 @@ export default function AdminUsersPage() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         {user.verified ? (
                           <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-                            已激活
+                            {t("admin.users.table.active")}
                           </span>
                         ) : (
                           <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
-                            已禁用
+                            {t("admin.users.table.disabled")}
                           </span>
                         )}
                       </td>
@@ -412,7 +413,7 @@ export default function AdminUsersPage() {
                             <button
                               onClick={() => handleDisable(user.id)}
                               className="text-orange-600 hover:text-orange-900 transition-colors"
-                              title="禁用"
+                              title={t("admin.users.actions.disable")}
                             >
                               <UserX className="w-4 h-4" />
                             </button>
@@ -445,17 +446,17 @@ export default function AdminUsersPage() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              确认删除
+              {t("admin.users.delete.title")}
             </h3>
             <p className="text-gray-600 mb-6">
-              您确定要删除这个管理员账号吗？删除后该账号将无法登录。此操作不可撤销。
+              {t("admin.users.delete.desc")}
             </p>
             <div className="flex items-center justify-end gap-3">
               <button
                 onClick={() => setDeleteConfirmId(null)}
                 className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium transition-colors"
               >
-                取消
+                {t("admin.users.delete.cancel")}
               </button>
               <button
                 onClick={() => handleDelete(deleteConfirmId)}
@@ -465,7 +466,7 @@ export default function AdminUsersPage() {
                 {deletingId === deleteConfirmId && (
                   <Loader2 className="w-4 h-4 animate-spin" />
                 )}
-                确认删除
+                {t("admin.users.delete.confirm")}
               </button>
             </div>
           </div>

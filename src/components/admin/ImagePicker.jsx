@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Upload, Image as ImageIcon, X, Loader2 } from "lucide-react";
 import pb from "../../lib/pocketbase";
 import MediaLibraryModal from "./MediaLibraryModal";
+import { useTranslation } from "react-i18next";
 
 /**
  * ImagePicker Component
@@ -12,12 +13,15 @@ import MediaLibraryModal from "./MediaLibraryModal";
  * @param {string} previewUrl - 可选的旧版 URL（用于向后兼容）
  * @param {string} label - 标签文本
  */
-export default function ImagePicker({ value, onChange, previewUrl, label = "图片" }) {
+export default function ImagePicker({ value, onChange, previewUrl, label }) {
+  const { t } = useTranslation();
   const [uploading, setUploading] = useState(false);
   const [showMediaLibrary, setShowMediaLibrary] = useState(false);
   const [preview, setPreview] = useState(null);
   const fileInputRef = useRef(null);
   const baseUrl = import.meta.env.VITE_POCKETBASE_URL?.replace(/\/$/, "") || "";
+
+  const displayLabel = label || t("admin.imagePicker.defaultLabel");
 
   // Load preview from media collection
   useEffect(() => {
@@ -67,7 +71,7 @@ export default function ImagePicker({ value, onChange, previewUrl, label = "图�
       }
     } catch (error) {
       console.error("上传失败:", error);
-      alert("上传失败，请重试");
+      alert(t("admin.imagePicker.uploadError") + ", " + t("admin.imagePicker.retry"));
     } finally {
       setUploading(false);
       if (fileInputRef.current) {
@@ -102,14 +106,14 @@ export default function ImagePicker({ value, onChange, previewUrl, label = "图�
   return (
     <div>
       <label className="block text-sm font-medium text-slate-700 mb-2">
-        {label}
+        {displayLabel}
       </label>
 
       {preview ? (
         <div className="relative inline-block">
           <img
             src={preview.url}
-            alt="预览"
+            alt={t("admin.imagePicker.preview")}
             className="max-w-xs rounded-lg border border-slate-200"
             onError={(e) => {
               // Fallback handling
@@ -129,7 +133,7 @@ export default function ImagePicker({ value, onChange, previewUrl, label = "图�
       ) : (
         <div className="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center space-y-3">
           <Upload className="w-8 h-8 text-slate-400 mx-auto" />
-          <p className="text-sm text-slate-600">上传新图片或从媒体库选择</p>
+          <p className="text-sm text-slate-600">{t("admin.imagePicker.uploadOrSelect")}</p>
           <div className="flex gap-3 justify-center">
             <button
               type="button"
@@ -140,10 +144,10 @@ export default function ImagePicker({ value, onChange, previewUrl, label = "图�
               {uploading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin inline mr-2" />
-                  上传中...
+                  {t("admin.imagePicker.uploading")}
                 </>
               ) : (
-                "上传图片"
+                t("admin.imagePicker.upload")
               )}
             </button>
             <button
@@ -153,7 +157,7 @@ export default function ImagePicker({ value, onChange, previewUrl, label = "图�
               className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 transition-colors inline-flex items-center gap-2"
             >
               <ImageIcon className="w-4 h-4" />
-              从媒体库选择
+              {t("admin.imagePicker.selectFromLib")}
             </button>
           </div>
         </div>
@@ -176,4 +180,3 @@ export default function ImagePicker({ value, onChange, previewUrl, label = "图�
     </div>
   );
 }
-

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Search, X, Loader2, Image as ImageIcon } from "lucide-react";
 import pb from "../../lib/pocketbase";
+import { useTranslation } from "react-i18next";
 
 /**
  * Media Library Modal Component
@@ -11,6 +12,7 @@ import pb from "../../lib/pocketbase";
  * @param {Function} onSelect - 选择回调 (mediaId) => void
  */
 export default function MediaLibraryModal({ isOpen, onClose, onSelect }) {
+  const { t } = useTranslation();
   const [mediaList, setMediaList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -59,7 +61,7 @@ export default function MediaLibraryModal({ isOpen, onClose, onSelect }) {
   const filteredMedia = mediaList.filter((item) => {
     // Only show images
     if (!isImage(item.file)) return false;
-    
+
     // Search filter
     if (searchQuery.trim()) {
       const fileName = item.file || "";
@@ -67,7 +69,7 @@ export default function MediaLibraryModal({ isOpen, onClose, onSelect }) {
         return false;
       }
     }
-    
+
     return true;
   });
 
@@ -88,7 +90,7 @@ export default function MediaLibraryModal({ isOpen, onClose, onSelect }) {
       <div className="relative w-full max-w-6xl bg-white rounded-2xl shadow-xl overflow-hidden max-h-[90vh] flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
-          <h2 className="text-lg font-semibold text-slate-900">从媒体库选择图片</h2>
+          <h2 className="text-lg font-semibold text-slate-900">{t("admin.mediaLibraryModal.title")}</h2>
           <button
             type="button"
             onClick={onClose}
@@ -106,7 +108,7 @@ export default function MediaLibraryModal({ isOpen, onClose, onSelect }) {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="搜索图片..."
+              placeholder={t("admin.mediaLibraryModal.search")}
               className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
@@ -122,7 +124,7 @@ export default function MediaLibraryModal({ isOpen, onClose, onSelect }) {
             <div className="text-center py-20 text-slate-500">
               <ImageIcon className="w-12 h-12 mx-auto mb-3 opacity-50" />
               <p className="text-sm">
-                {searchQuery ? "没有找到符合条件的图片" : "媒体库中还没有图片"}
+                {searchQuery ? t("admin.mediaLibraryModal.noResults") : t("admin.mediaLibraryModal.empty")}
               </p>
             </div>
           ) : (
@@ -139,7 +141,7 @@ export default function MediaLibraryModal({ isOpen, onClose, onSelect }) {
                   >
                     <img
                       src={thumbUrl}
-                      alt={item.file || "图片"}
+                      alt={item.file || t("admin.mediaLibraryModal.image")}
                       className="w-full h-full object-cover"
                       onError={(e) => {
                         e.target.src = fileUrl;
@@ -148,12 +150,12 @@ export default function MediaLibraryModal({ isOpen, onClose, onSelect }) {
                     {/* Hover overlay */}
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
                       <div className="opacity-0 group-hover:opacity-100 transition-opacity text-white text-xs px-2 py-1 bg-black/60 rounded">
-                        点击选择
+                        {t("admin.mediaLibraryModal.clickToSelect")}
                       </div>
                     </div>
                     {/* Filename */}
                     <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2">
-                      <p className="text-xs text-white truncate">{item.file || "未知"}</p>
+                      <p className="text-xs text-white truncate">{item.file || t("admin.mediaLibraryModal.unknown")}</p>
                     </div>
                   </div>
                 );
@@ -165,4 +167,3 @@ export default function MediaLibraryModal({ isOpen, onClose, onSelect }) {
     </div>
   );
 }
-

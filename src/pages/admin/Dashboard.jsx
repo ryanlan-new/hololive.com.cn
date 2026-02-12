@@ -1,12 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { Calendar, Clock, FileText, Bell, Activity } from "lucide-react";
 import pb from "../../lib/pocketbase";
+import { useTranslation } from "react-i18next";
 
 /**
  * 后台仪表板页面
  * 展示关键统计数据与系统状态
  */
 export default function Dashboard() {
+  const { t, i18n } = useTranslation();
   const [now, setNow] = useState(() => new Date());
   const [stats, setStats] = useState({
     postsCount: null,
@@ -24,23 +26,23 @@ export default function Dashboard() {
 
   const formattedDate = useMemo(
     () =>
-      now.toLocaleDateString("zh-CN", {
+      now.toLocaleDateString(i18n.language === 'zh' ? "zh-CN" : (i18n.language === 'ja' ? "ja-JP" : "en-US"), {
         year: "numeric",
         month: "long",
         day: "numeric",
         weekday: "long",
       }),
-    [now],
+    [now, i18n.language],
   );
 
   const formattedTime = useMemo(
     () =>
-      now.toLocaleTimeString("zh-CN", {
+      now.toLocaleTimeString(i18n.language === 'zh' ? "zh-CN" : (i18n.language === 'ja' ? "ja-JP" : "en-US"), {
         hour: "2-digit",
         minute: "2-digit",
         second: "2-digit",
       }),
-    [now],
+    [now, i18n.language],
   );
 
   // 拉取统计数据
@@ -81,7 +83,7 @@ export default function Dashboard() {
     } catch (err) {
       console.error("Failed to load dashboard stats:", err);
       setError(
-        err?.response?.message || err?.message || "加载仪表盘数据失败，请稍后重试。",
+        err?.response?.message || err?.message || t("admin.dashboard.error.loadFailed"),
       );
     } finally {
       setLoading(false);
@@ -101,7 +103,7 @@ export default function Dashboard() {
       {error && (
         <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 flex items-start justify-between gap-3">
           <div>
-            <p className="font-semibold mb-0.5">加载仪表盘数据失败</p>
+            <p className="font-semibold mb-0.5">{t("admin.dashboard.error.loadFailed")}</p>
             <p className="text-xs opacity-90">{error}</p>
           </div>
           <button
@@ -109,7 +111,7 @@ export default function Dashboard() {
             onClick={fetchStats}
             className="shrink-0 rounded-full border border-red-300 bg-white/60 px-3 py-1 text-xs font-medium text-red-700 hover:bg-red-100 transition-colors"
           >
-            重试
+            {t("admin.dashboard.retry")}
           </button>
         </div>
       )}
@@ -120,14 +122,14 @@ export default function Dashboard() {
           <div className="flex flex-col gap-3">
             <div>
               <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                欢迎来到后台
+                {t("admin.dashboard.welcome")}
               </p>
               <h2 className="mt-1 text-xl md:text-2xl font-bold text-slate-900">
-                服务器控制中心总览
+                {t("admin.dashboard.title")}
               </h2>
             </div>
             <p className="text-sm text-slate-600 leading-relaxed">
-              在这里你可以管理文章、公告、账号与系统设置。右侧卡片会实时反映当前日期与时间，帮助你规划运维与公告发布时间。
+              {t("admin.dashboard.description")}
             </p>
           </div>
         </section>
@@ -139,7 +141,7 @@ export default function Dashboard() {
             </div>
             <div>
               <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">
-                当前时间
+                {t("admin.dashboard.currentTime")}
               </p>
               <p className="text-sm font-semibold text-slate-900">
                 {formattedDate}
@@ -166,7 +168,7 @@ export default function Dashboard() {
               </div>
               <div>
                 <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">
-                  文章总数
+                  {t("admin.dashboard.stats.posts")}
                 </p>
                 <p className="text-sm text-slate-600">Posts Collection</p>
               </div>
@@ -181,7 +183,7 @@ export default function Dashboard() {
               </p>
             )}
             <p className="mt-1 text-xs text-slate-500">
-              已记录的公告、文档和更新日志条目总数。
+              {t("admin.dashboard.stats.postsDesc")}
             </p>
           </div>
         </div>
@@ -195,7 +197,7 @@ export default function Dashboard() {
               </div>
               <div>
                 <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">
-                  当前生效公告
+                  {t("admin.dashboard.stats.announcements")}
                 </p>
                 <p className="text-sm text-slate-600">Announcements</p>
               </div>
@@ -210,7 +212,7 @@ export default function Dashboard() {
               </p>
             )}
             <p className="mt-1 text-xs text-slate-500">
-              仅统计设置为启用且时间范围内的横幅公告。
+              {t("admin.dashboard.stats.announcementsDesc")}
             </p>
           </div>
         </div>
@@ -224,7 +226,7 @@ export default function Dashboard() {
               </div>
               <div>
                 <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">
-                  系统设置
+                  {t("admin.dashboard.stats.system")}
                 </p>
                 <p className="text-sm text-slate-600">Analytics & Key</p>
               </div>
@@ -236,12 +238,12 @@ export default function Dashboard() {
             ) : (
               <p className="text-sm font-medium">
                 {stats.analyticsConfigured
-                  ? "统计已配置（至少启用了一种 Analytics）"
-                  : "尚未配置统计代码"}
+                  ? t("admin.dashboard.stats.analyticsConfigured")
+                  : t("admin.dashboard.stats.analyticsNotConfigured")}
               </p>
             )}
             <p className="text-xs text-slate-500">
-              可在「系统设置」中配置 Google Analytics 与百度统计，以及后台入口 Key。
+              {t("admin.dashboard.stats.systemDesc")}
             </p>
           </div>
         </div>

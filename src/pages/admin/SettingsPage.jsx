@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Save, Loader2, Settings, AlertTriangle } from "lucide-react";
 import pb from "../../lib/pocketbase";
 import { logSystemSettings } from "../../lib/logger";
+import { useTranslation } from "react-i18next";
 
 const SETTINGS_ID = "1"; // 单例模式，固定 ID
 
@@ -11,6 +12,7 @@ const SETTINGS_ID = "1"; // 单例模式，固定 ID
  * 管理全局系统配置
  */
 export default function SettingsPage() {
+  const { t } = useTranslation();
   const { adminKey } = useParams();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -52,7 +54,7 @@ export default function SettingsPage() {
           admin_entrance_key: "secret-admin-entrance",
         });
       } else {
-        setError("加载设置失败，请重试");
+        setError(t("admin.settingsPage.error"));
         alert("Error loading settings: " + (error?.message || "unknown error"));
       }
     } finally {
@@ -74,7 +76,7 @@ export default function SettingsPage() {
         const newUrl = currentUrl.replace(`/${adminKey}/`, `/${dbKey}/`);
         if (
           confirm(
-            `检测到后台入口 Key 已更改！\n\n当前 URL 中的 Key 与数据库中的 Key 不一致。\n\n数据库 Key: ${dbKey}\n当前 URL Key: ${adminKey}\n\n是否跳转到新 URL？\n新 URL: ${newUrl}`
+            `${t("admin.settingsPage.modal.title")}\n\n${t("admin.settingsPage.modal.desc")}\n\n${t("admin.settingsPage.modal.dbKey")} ${dbKey}\n${t("admin.settingsPage.modal.currentKey")} ${adminKey}\n\n${t("admin.settingsPage.modal.newUrl")} ${newUrl}`
           )
         ) {
           window.location.href = newUrl;
@@ -108,9 +110,9 @@ export default function SettingsPage() {
       }
 
       // 记录系统设置更新日志
-      const logDetails = keyChanged 
-        ? `更新了后台入口 Key：${settings?.admin_entrance_key || "未知"} → ${updateData.admin_entrance_key}`
-        : "更新了系统设置（统计配置等）";
+      const logDetails = keyChanged
+        ? `Updated Admin Key: ${settings?.admin_entrance_key || "Unknown"} → ${updateData.admin_entrance_key}`
+        : "Updated System Settings";
       await logSystemSettings(logDetails);
 
       // 如果 Key 改变了，直接跳转到新地址
@@ -122,12 +124,13 @@ export default function SettingsPage() {
       }
 
       await fetchSettings();
+      alert(t("admin.settingsPage.success"));
     } catch (error) {
       console.error("Failed to save settings:", error);
       const errorMsg =
-        error?.response?.message || error?.message || "保存失败，请重试";
+        error?.response?.message || error?.message || t("admin.settingsPage.error");
       setError(errorMsg);
-      alert("Error saving settings: " + errorMsg);
+      alert(t("admin.settingsPage.error") + ": " + errorMsg);
     } finally {
       setSaving(false);
     }
@@ -169,34 +172,34 @@ export default function SettingsPage() {
               <AlertTriangle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
               <div>
                 <h3 className="text-base md:text-lg font-semibold text-red-800 mb-1">
-                  确认修改后台入口 Key？
+                  {t("admin.settingsPage.modal.title")}
                 </h3>
                 <p className="text-xs md:text-sm text-red-700 mb-2">
-                  修改后台入口 Key 会立即改变后台访问地址。如果你忘记新地址，可能会暂时无法进入后台。
+                  {t("admin.settingsPage.modal.desc")}
                 </p>
                 <div className="mt-2 rounded-lg bg-red-50 border border-red-100 px-3 py-2 text-[11px] md:text-xs text-red-800 space-y-1">
                   <p>
-                    当前 URL Key：
+                    {t("admin.settingsPage.modal.currentKey")}
                     <code className="px-1 rounded bg-white border border-red-100">
                       {adminKey}
                     </code>
                   </p>
                   {settings?.admin_entrance_key && (
                     <p>
-                      数据库中的旧 Key：
+                      {t("admin.settingsPage.modal.dbKey")}
                       <code className="px-1 rounded bg-white border border-red-100">
                         {settings.admin_entrance_key}
                       </code>
                     </p>
                   )}
                   <p>
-                    新入口 Key：
+                    {t("admin.settingsPage.modal.newKey")}
                     <code className="px-1 rounded bg-white border border-red-100">
                       {pendingUpdate.admin_entrance_key}
                     </code>
                   </p>
                   <p>
-                    新后台地址：
+                    {t("admin.settingsPage.modal.newUrl")}
                     <code className="px-1 rounded bg-white border border-red-100">
                       /{pendingUpdate.admin_entrance_key}/webadmin
                     </code>
@@ -213,7 +216,7 @@ export default function SettingsPage() {
                 }}
                 className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-100 transition-colors"
               >
-                取消
+                {t("admin.settingsPage.modal.cancel")}
               </button>
               <button
                 type="button"
@@ -224,7 +227,7 @@ export default function SettingsPage() {
                 {saving && (
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
                 )}
-                我已知风险，确认修改
+                {t("admin.settingsPage.modal.confirm")}
               </button>
             </div>
           </div>
@@ -234,17 +237,17 @@ export default function SettingsPage() {
       {loading ? (
         <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center shadow-sm">
           <Loader2 className="w-7 h-7 animate-spin text-slate-400 mx-auto mb-3" />
-          <p className="text-sm text-slate-500">加载系统设置中...</p>
+          <p className="text-sm text-slate-500">{t("admin.settingsPage.loading")}</p>
         </div>
       ) : (
         <div className="max-w-4xl">
           {/* 页面头部 */}
           <div className="mb-4">
             <h1 className="text-xl md:text-2xl font-bold text-slate-900 mb-1">
-              系统设置
+              {t("admin.settingsPage.title")}
             </h1>
             <p className="text-xs md:text-sm text-slate-500">
-              管理系统全局配置，包括统计与后台入口 Key。
+              {t("admin.settingsPage.description")}
             </p>
           </div>
 
@@ -261,22 +264,21 @@ export default function SettingsPage() {
               <div className="flex items-center gap-2 mb-6">
                 <Settings className="w-5 h-5 text-slate-600" />
                 <h2 className="text-lg md:text-xl font-semibold text-slate-900">
-                  接口设置
+                  {t("admin.settingsPage.interface.title")}
                 </h2>
               </div>
 
               {/* SSO 配置展示 */}
               <div className="mb-6">
                 <label className="block text-sm font-medium text-slate-700 mb-2">
-                  SSO 配置 (Microsoft OAuth)
+                  {t("admin.settingsPage.interface.sso")}
                 </label>
                 <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
                   <p className="text-sm text-slate-600 mb-2">
-                    Microsoft OAuth 配置通常在 PocketBase 后台面板中完成。
+                    {t("admin.settingsPage.interface.ssoDesc")}
                   </p>
                   <p className="text-xs text-slate-500">
-                    如需配置，请前往 PocketBase Admin 面板 → Settings → OAuth2
-                    Providers → Microsoft
+                    {t("admin.settingsPage.interface.ssoHint")}
                   </p>
                 </div>
               </div>
@@ -285,7 +287,7 @@ export default function SettingsPage() {
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Google Analytics ID
+                    {t("admin.settingsPage.interface.googleId")}
                   </label>
                   <input
                     type="text"
@@ -303,13 +305,13 @@ export default function SettingsPage() {
                     placeholder="G-XXXXXXXXXX"
                   />
                   <p className="mt-1 text-xs text-slate-500">
-                    格式：G-XXXXXXXXXX（可选，留空则不启用）
+                    {t("admin.settingsPage.interface.googleIdHint")}
                   </p>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">
-                    百度统计 ID (Baidu Analytics)
+                    {t("admin.settingsPage.interface.baiduId")}
                   </label>
                   <input
                     type="text"
@@ -319,7 +321,7 @@ export default function SettingsPage() {
                       // 智能提取：检测是否包含完整代码
                       const baiduIdPattern = /hm\.js\?([a-z0-9]{32})/i;
                       const match = inputValue.match(baiduIdPattern);
-                      
+
                       if (match && match[1]) {
                         // 找到 32 位 ID，自动提取
                         const extractedId = match[1];
@@ -349,7 +351,7 @@ export default function SettingsPage() {
                       const pastedText = e.clipboardData.getData('text');
                       const baiduIdPattern = /hm\.js\?([a-z0-9]{32})/i;
                       const match = pastedText.match(baiduIdPattern);
-                      
+
                       if (match && match[1]) {
                         // 阻止默认粘贴行为，使用提取的 ID
                         e.preventDefault();
@@ -366,14 +368,14 @@ export default function SettingsPage() {
                       }
                     }}
                     className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-blue)]/40 focus:border-transparent"
-                    placeholder="32 位 ID 或粘贴完整代码"
+                    placeholder="32-char ID or paste <script>"
                   />
                   <p className="mt-1 text-xs text-slate-500">
-                    请输入 32 位 ID，支持直接粘贴完整 &lt;script&gt; 代码自动提取
+                    {t("admin.settingsPage.interface.baiduIdHint")}
                   </p>
                   {baiduExtractToast && (
                     <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded-lg text-xs text-green-700">
-                      ✓ 已自动从代码中提取 ID
+                      {t("admin.settingsPage.interface.baiduExtracted")}
                     </div>
                   )}
                 </div>
@@ -385,7 +387,7 @@ export default function SettingsPage() {
               <div className="flex items-center gap-2 mb-6">
                 <Settings className="w-5 h-5 text-slate-600" />
                 <h2 className="text-lg md:text-xl font-semibold text-slate-900">
-                  后台入口设置
+                  {t("admin.settingsPage.access.title")}
                 </h2>
               </div>
 
@@ -395,11 +397,10 @@ export default function SettingsPage() {
                   <AlertTriangle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
                   <div>
                     <p className="text-sm font-semibold text-yellow-800 mb-1">
-                      重要提示
+                      {t("admin.settingsPage.access.warningTitle")}
                     </p>
                     <p className="text-sm text-yellow-700">
-                      修改此 Key 后，您访问后台的 URL 将立即改变。请确保您记住了新的入口
-                      Key，否则您将无法访问后台管理系统。
+                      {t("admin.settingsPage.access.warningDesc")}
                     </p>
                   </div>
                 </div>
@@ -407,7 +408,7 @@ export default function SettingsPage() {
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
-                  后台入口 Key *
+                  {t("admin.settingsPage.access.keyLabel")}
                 </label>
                 <input
                   type="text"
@@ -423,7 +424,7 @@ export default function SettingsPage() {
                   required
                 />
                 <p className="mt-1 text-xs text-slate-500">
-                  当前访问 URL:{" "}
+                  {t("admin.settingsPage.access.currentUrl")}{" "}
                   <code className="bg-slate-100 px-1 rounded">
                     /{adminKey}/webadmin
                   </code>
@@ -441,12 +442,12 @@ export default function SettingsPage() {
                 {saving ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    保存中...
+                    {t("admin.settingsPage.saving")}
                   </>
                 ) : (
                   <>
                     <Save className="w-4 h-4" />
-                    保存设置
+                    {t("admin.settingsPage.save")}
                   </>
                 )}
               </button>

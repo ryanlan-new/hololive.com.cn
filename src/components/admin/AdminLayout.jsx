@@ -158,7 +158,7 @@ export default function AdminLayout() {
           ? [item, ...item.children]
           : [item],
       )
-      .find((item) => item.path && isActive(item.path))?.label || "管理后台";
+      .find((item) => item.path && isActive(item.path))?.label || t("admin.backend");
 
   // 切换菜单展开/折叠
   const toggleMenu = (label) => {
@@ -183,7 +183,7 @@ export default function AdminLayout() {
             </div>
             <div className="flex flex-col">
               <span className="text-sm font-semibold tracking-wide text-slate-100 uppercase">
-                Admin Console
+                {t("admin.console")}
               </span>
               <span className="text-xs text-slate-400">{t("admin.sidebar.subtitle")}</span>
             </div>
@@ -307,7 +307,7 @@ export default function AdminLayout() {
           <header className="hidden md:flex items-center justify-between px-6 py-3 border-b border-slate-200/80 bg-white/80 backdrop-blur-md">
             <div className="flex flex-col gap-0.5">
               <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">
-                管理后台
+                {t("admin.backend")}
               </p>
               <h1 className="text-lg font-semibold text-slate-900">
                 {currentTitle}

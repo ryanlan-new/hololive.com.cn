@@ -12,13 +12,15 @@ import {
 } from "lucide-react";
 import pb from "../../lib/pocketbase";
 import * as LucideIcons from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 /**
- * 服务器信息字段管理页面
- * 支持 CRUD 操作和拖拽排序
+ * Server Info Fields Management Page
+ * Support CRUD and Drag-and-Drop Sort
  */
 export default function ServerInfoFields() {
   const { adminKey } = useParams();
+  const { t } = useTranslation();
   const [fields, setFields] = useState([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState(null);
@@ -36,7 +38,7 @@ export default function ServerInfoFields() {
     sort_order: 0,
   });
 
-  // 获取字段列表
+  // Fetch fields
   const fetchFields = async () => {
     try {
       setLoading(true);
@@ -46,7 +48,7 @@ export default function ServerInfoFields() {
       setFields(result.items);
     } catch (error) {
       console.error("Failed to fetch fields:", error);
-      showToast("error", "获取字段列表失败，请稍后重试。");
+      showToast("error", t("admin.serverInfoFields.toast.saveError")); // Reuse error
     } finally {
       setLoading(false);
     }
@@ -79,7 +81,7 @@ export default function ServerInfoFields() {
     try {
       if (editingId) {
         await pb.collection("server_info_details").update(editingId, formData);
-        showToast("success", "字段已更新");
+        showToast("success", t("admin.serverInfoFields.toast.updateSuccess"));
       } else {
         // Set sort_order to max + 1 if not provided
         const maxSort =
@@ -90,13 +92,13 @@ export default function ServerInfoFields() {
           ...formData,
           sort_order: formData.sort_order || maxSort + 1,
         });
-        showToast("success", "字段已创建");
+        showToast("success", t("admin.serverInfoFields.toast.createSuccess"));
       }
       resetForm();
       await fetchFields();
     } catch (error) {
       console.error("Failed to save field:", error);
-      showToast("error", "保存失败，请稍后重试。");
+      showToast("error", t("admin.serverInfoFields.toast.saveError"));
     }
   };
 
@@ -106,11 +108,11 @@ export default function ServerInfoFields() {
       setDeletingId(fieldId);
       await pb.collection("server_info_details").delete(fieldId);
       setDeleteConfirmId(null);
-      showToast("success", "字段已删除");
+      showToast("success", t("admin.serverInfoFields.toast.deleteSuccess"));
       await fetchFields();
     } catch (error) {
       console.error("Failed to delete field:", error);
-      showToast("error", "删除失败，请稍后重试。");
+      showToast("error", t("admin.serverInfoFields.toast.saveError")); // Reuse error
     } finally {
       setDeletingId(null);
     }
@@ -166,11 +168,11 @@ export default function ServerInfoFields() {
         )
       );
 
-      showToast("success", "排序已更新");
+      showToast("success", t("admin.homeManager.toast.orderSuccess")); // Reuse
       await fetchFields();
     } catch (error) {
       console.error("Failed to update sort order:", error);
-      showToast("error", "更新排序失败，请稍后重试。");
+      showToast("error", t("admin.homeManager.toast.orderError")); // Reuse
       await fetchFields(); // Revert to server state
     } finally {
       setDraggedIndex(null);
@@ -203,10 +205,10 @@ export default function ServerInfoFields() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">
-            服务器信息字段管理
+            {t("admin.serverInfoFields.title")}
           </h1>
           <p className="text-sm text-slate-500 mt-1">
-            管理服务器信息页面的动态字段
+            {t("admin.serverInfoFields.subtitle")}
           </p>
         </div>
         <button
@@ -217,18 +219,17 @@ export default function ServerInfoFields() {
           className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--color-brand-blue)] text-slate-950 rounded-lg font-medium hover:bg-[var(--color-brand-blue)]/90 transition-colors"
         >
           <Plus size={18} />
-          新建字段
+          {t("admin.serverInfoFields.new")}
         </button>
       </div>
 
       {/* Toast */}
       {toast && (
         <div
-          className={`fixed top-4 right-4 px-4 py-3 rounded-lg shadow-lg z-50 ${
-            toast.type === "success"
+          className={`fixed top-4 right-4 px-4 py-3 rounded-lg shadow-lg z-50 ${toast.type === "success"
               ? "bg-emerald-500 text-white"
               : "bg-red-500 text-white"
-          }`}
+            }`}
         >
           {toast.message}
         </div>
@@ -239,7 +240,7 @@ export default function ServerInfoFields() {
         <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-slate-900">
-              {editingId ? "编辑字段" : "新建字段"}
+              {editingId ? t("admin.serverInfoFields.form.editTitle") : t("admin.serverInfoFields.form.createTitle")}
             </h2>
             <button
               onClick={resetForm}
@@ -251,7 +252,7 @@ export default function ServerInfoFields() {
           <form onSubmit={handleSave} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">
-                图标名称 *
+                {t("admin.serverInfoFields.form.icon")}
               </label>
               <select
                 required
@@ -271,18 +272,18 @@ export default function ServerInfoFields() {
                 })}
               </select>
               <p className="text-xs text-slate-500 mt-1">
-                选择 Lucide React 图标名称
+                {t("admin.serverInfoFields.form.iconHint")}
               </p>
             </div>
             {/* Multi-language Label Inputs */}
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">
-                标签（多语言） *
+                {t("admin.serverInfoFields.form.label")}
               </label>
               <div className="space-y-3">
                 <div>
                   <label className="block text-xs font-medium text-slate-600 mb-1">
-                    中文 (ZH) *
+                    {t("admin.announcements.form.zh")}
                   </label>
                   <input
                     type="text"
@@ -300,7 +301,7 @@ export default function ServerInfoFields() {
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-600 mb-1">
-                    英文 (EN)
+                    {t("admin.announcements.form.en")}
                   </label>
                   <input
                     type="text"
@@ -317,7 +318,7 @@ export default function ServerInfoFields() {
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-600 mb-1">
-                    日文 (JA)
+                    {t("admin.announcements.form.ja")}
                   </label>
                   <input
                     type="text"
@@ -337,12 +338,12 @@ export default function ServerInfoFields() {
             {/* Multi-language Value Inputs */}
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">
-                显示值（多语言） *
+                {t("admin.serverInfoFields.form.value")}
               </label>
               <div className="space-y-3">
                 <div>
                   <label className="block text-xs font-medium text-slate-600 mb-1">
-                    中文 (ZH) *
+                    {t("admin.announcements.form.zh")}
                   </label>
                   <input
                     type="text"
@@ -360,7 +361,7 @@ export default function ServerInfoFields() {
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-600 mb-1">
-                    英文 (EN)
+                    {t("admin.announcements.form.en")}
                   </label>
                   <input
                     type="text"
@@ -377,7 +378,7 @@ export default function ServerInfoFields() {
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-600 mb-1">
-                    日文 (JA)
+                    {t("admin.announcements.form.ja")}
                   </label>
                   <input
                     type="text"
@@ -396,7 +397,7 @@ export default function ServerInfoFields() {
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">
-                排序顺序
+                {t("admin.serverInfoFields.form.sort")}
               </label>
               <input
                 type="number"
@@ -417,14 +418,14 @@ export default function ServerInfoFields() {
                 className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--color-brand-blue)] text-slate-950 rounded-lg font-medium hover:bg-[var(--color-brand-blue)]/90 transition-colors"
               >
                 <Save size={18} />
-                保存
+                {t("admin.serverInfoFields.form.save")}
               </button>
               <button
                 type="button"
                 onClick={resetForm}
                 className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg font-medium hover:bg-slate-200 transition-colors"
               >
-                取消
+                {t("admin.serverInfoFields.form.cancel")}
               </button>
             </div>
           </form>
@@ -435,16 +436,16 @@ export default function ServerInfoFields() {
       {loading ? (
         <div className="flex flex-col items-center justify-center py-20 bg-white rounded-xl border border-slate-200">
           <Loader2 className="w-8 h-8 animate-spin text-slate-400 mb-4" />
-          <p className="text-sm text-slate-500">加载中...</p>
+          <p className="text-sm text-slate-500">Loading...</p>
         </div>
       ) : fields.length === 0 ? (
         <div className="bg-white rounded-xl border border-dashed border-slate-300 p-10 text-center">
           <Server className="w-12 h-12 text-slate-300 mx-auto mb-4" />
           <p className="text-sm font-medium text-slate-700">
-            当前还没有字段
+            {t("admin.serverInfoFields.empty")}
           </p>
           <p className="text-xs text-slate-500 mt-1">
-            点击上面的按钮开始创建
+            {t("admin.serverInfoFields.emptyDesc")}
           </p>
         </div>
       ) : (
@@ -459,9 +460,8 @@ export default function ServerInfoFields() {
                   onDragStart={() => handleDragStart(index)}
                   onDragOver={(e) => handleDragOver(e, index)}
                   onDragEnd={handleDragEnd}
-                  className={`p-4 hover:bg-slate-50 transition-colors ${
-                    draggedIndex === index ? "opacity-50" : ""
-                  }`}
+                  className={`p-4 hover:bg-slate-50 transition-colors ${draggedIndex === index ? "opacity-50" : ""
+                    }`}
                 >
                   <div className="flex items-center gap-4">
                     <GripVertical className="w-5 h-5 text-slate-400 cursor-move" />
@@ -472,15 +472,15 @@ export default function ServerInfoFields() {
                       />
                       <div className="flex-1 min-w-0">
                         <h3 className="text-base font-semibold text-slate-900">
-                          {field.label?.zh || field.label?.en || field.label?.ja || "未命名"}
+                          {field.label?.zh || field.label?.en || field.label?.ja || t("admin.serverInfoFields.unnamed")}
                         </h3>
                         <p className="text-sm text-slate-500 truncate">
-                          {typeof field.value === "object" 
+                          {typeof field.value === "object"
                             ? (field.value?.zh || field.value?.en || field.value?.ja || "")
                             : field.value || ""}
                         </p>
                         <p className="text-xs text-slate-400 mt-1">
-                          图标: {field.icon} | 排序: {field.sort_order || 0}
+                          {t("admin.serverInfoFields.icon")}: {field.icon} | {t("admin.serverInfoFields.sort")}: {field.sort_order || 0}
                         </p>
                       </div>
                     </div>
@@ -488,7 +488,7 @@ export default function ServerInfoFields() {
                       <button
                         onClick={() => startEdit(field)}
                         className="p-2 hover:bg-blue-50 rounded-lg transition-colors"
-                        title="编辑"
+                        title={t("admin.serverInfoFields.form.editTitle")}
                       >
                         <Edit size={18} className="text-blue-600" />
                       </button>
@@ -499,20 +499,20 @@ export default function ServerInfoFields() {
                             disabled={deletingId === field.id}
                             className="px-3 py-1 text-xs bg-red-500 text-white rounded hover:bg-red-600 transition-colors disabled:opacity-50"
                           >
-                            {deletingId === field.id ? "删除中..." : "确认"}
+                            {deletingId === field.id ? t("admin.serverInfoFields.delete.deleting") : t("admin.serverInfoFields.delete.confirm")}
                           </button>
                           <button
                             onClick={() => setDeleteConfirmId(null)}
                             className="px-3 py-1 text-xs bg-slate-100 text-slate-700 rounded hover:bg-slate-200 transition-colors"
                           >
-                            取消
+                            {t("admin.serverInfoFields.delete.cancel")}
                           </button>
                         </div>
                       ) : (
                         <button
                           onClick={() => setDeleteConfirmId(field.id)}
                           className="p-2 hover:bg-red-50 rounded-lg transition-colors"
-                          title="删除"
+                          title={t("admin.serverMaps.delete.title")}
                         >
                           <Trash2 size={18} className="text-red-600" />
                         </button>
@@ -528,4 +528,3 @@ export default function ServerInfoFields() {
     </div>
   );
 }
-

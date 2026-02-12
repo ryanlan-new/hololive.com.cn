@@ -13,13 +13,15 @@ import {
   Clock,
 } from "lucide-react";
 import pb from "../../lib/pocketbase";
+import { useTranslation } from "react-i18next";
 
 /**
- * 公告管理页面
- * 管理网站横幅公告
+ * Announcement Management Page
+ * Manage site-wide banner announcements
  */
 export default function AnnouncementPage() {
   const { adminKey } = useParams();
+  const { t, i18n } = useTranslation();
   const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState(null);
@@ -36,7 +38,7 @@ export default function AnnouncementPage() {
   });
   const [toast, setToast] = useState(null);
 
-  // 获取公告列表
+  // Fetch announcements
   const fetchAnnouncements = async () => {
     try {
       setLoading(true);
@@ -52,10 +54,10 @@ export default function AnnouncementPage() {
         error?.response ||
         error?.message ||
         error;
-      alert("Error fetching announcements: " + JSON.stringify(detail));
+      // alert("Error fetching announcements: " + JSON.stringify(detail));
       setToast({
         type: "error",
-        message: "获取公告列表失败，请稍后重试。",
+        message: t("admin.announcements.toast.deleteError"), // Reuse error message or add generic fetch error later
       });
     } finally {
       setLoading(false);
@@ -66,11 +68,11 @@ export default function AnnouncementPage() {
     fetchAnnouncements();
   }, []);
 
-  // 格式化日期时间
+  // Format date time
   const formatDateTime = (dateString) => {
     if (!dateString) return "-";
     const date = new Date(dateString);
-    return new Intl.DateTimeFormat("zh-CN", {
+    return new Intl.DateTimeFormat(i18n.language, {
       year: "numeric",
       month: "2-digit",
       day: "2-digit",
@@ -79,7 +81,7 @@ export default function AnnouncementPage() {
     }).format(date);
   };
 
-  // 打开新建表单
+  // Open new form
   const handleNew = () => {
     setEditingId(null);
     setFormData({
@@ -93,7 +95,7 @@ export default function AnnouncementPage() {
     setShowForm(true);
   };
 
-  // 打开编辑表单
+  // Open edit form
   const handleEdit = (item) => {
     setEditingId(item.id);
     setFormData({
@@ -111,7 +113,7 @@ export default function AnnouncementPage() {
     setShowForm(true);
   };
 
-  // 切换公告状态
+  // Toggle active status
   const handleToggleActive = async (id, currentStatus) => {
     try {
       console.log("Toggling announcement active:", {
@@ -137,7 +139,7 @@ export default function AnnouncementPage() {
     }
   };
 
-  // 保存（新建或更新）
+  // Save (Create or Update)
   const handleSave = async (e) => {
     e.preventDefault();
     try {
@@ -158,13 +160,13 @@ export default function AnnouncementPage() {
       let saved;
       if (editingId) {
         saved = await pb.collection("announcements").update(editingId, saveData);
-        setToast({ type: "success", message: "公告已更新。" });
+        setToast({ type: "success", message: t("admin.announcements.toast.updateSuccess") });
       } else {
         saved = await pb.collection("announcements").create(saveData);
-        setToast({ type: "success", message: "公告已创建。" });
+        setToast({ type: "success", message: t("admin.announcements.toast.createSuccess") });
       }
 
-      // 本地更新列表，避免依赖立即重新请求列表导致的瞬时错误
+      // Local update to avoid immediate refetch issues
       setAnnouncements((prev) => {
         if (!prev || prev.length === 0) {
           return [saved];
@@ -172,7 +174,7 @@ export default function AnnouncementPage() {
         if (editingId) {
           return prev.map((item) => (item.id === saved.id ? saved : item));
         }
-        // 新建时插入到列表头部
+        // Insert at top
         return [saved, ...prev];
       });
 
@@ -187,13 +189,13 @@ export default function AnnouncementPage() {
         error?.message ||
         error;
       const errorMsg =
-        error?.response?.message || error?.message || "保存失败，请重试";
+        error?.response?.message || error?.message || t("admin.announcements.toast.deleteError"); // Fallback
       setToast({ type: "error", message: errorMsg });
       alert("Error saving announcement: " + JSON.stringify(detail));
     }
   };
 
-  // 删除公告
+  // Delete announcement
   const handleDelete = async (id) => {
     try {
       console.log("Deleting announcement:", { id });
@@ -201,24 +203,25 @@ export default function AnnouncementPage() {
       await pb.collection("announcements").delete(id);
       await fetchAnnouncements();
       setDeleteConfirmId(null);
-      setToast({ type: "success", message: "公告已删除。" });
+      setToast({ type: "success", message: t("admin.announcements.toast.deleteSuccess") });
     } catch (error) {
       console.error("Failed to delete announcement:", error);
-      setToast({ type: "error", message: "删除失败，请重试。" });
+      setToast({ type: "error", message: t("admin.announcements.toast.deleteError") });
       alert("Error deleting announcement: " + (error?.message || "unknown error"));
     } finally {
       setDeletingId(null);
     }
   };
 
-  // 预览文本（根据当前语言显示）
+  // Preview text
   const getPreviewText = () => {
-    const lang = "zh"; // 默认使用中文预览
+    const lang = i18n.language;
     return (
       formData.content[lang] ||
       formData.content.en ||
       formData.content.zh ||
-      "（预览内容）"
+      formData.content.ja ||
+      "（" + t("admin.announcements.form.preview") + "）"
     );
   };
 
@@ -227,11 +230,10 @@ export default function AnnouncementPage() {
       {/* Toast */}
       {toast && (
         <div
-          className={`rounded-2xl px-4 py-2.5 text-xs md:text-sm flex items-center justify-between gap-3 shadow-sm ${
-            toast.type === "success"
+          className={`rounded-2xl px-4 py-2.5 text-xs md:text-sm flex items-center justify-between gap-3 shadow-sm ${toast.type === "success"
               ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
               : "bg-red-50 text-red-800 border border-red-200"
-          }`}
+            }`}
         >
           <span>{toast.message}</span>
           <button
@@ -239,20 +241,20 @@ export default function AnnouncementPage() {
             onClick={() => setToast(null)}
             className="text-[11px] font-medium opacity-80 hover:opacity-100"
           >
-            关闭
+            {t("admin.announcements.form.cancel")} {/* Using Cancel as Close */}
           </button>
         </div>
       )}
 
       <div className="space-y-4">
-        {/* 页面头部 */}
+        {/* Header */}
         <div className="flex items-center justify-between gap-3">
           <div>
             <h1 className="text-xl md:text-2xl font-bold text-slate-900 mb-1">
-              公告管理
+              {t("admin.announcements.title")}
             </h1>
             <p className="text-xs md:text-sm text-slate-500">
-              管理站点顶部的全局横幅公告，支持多语言与时间范围。
+              {t("admin.announcements.subtitle")}
             </p>
           </div>
           <button
@@ -260,17 +262,17 @@ export default function AnnouncementPage() {
             className="inline-flex items-center gap-1.5 rounded-full bg-[var(--color-brand-blue)] px-4 py-1.5 text-xs md:text-sm font-semibold text-slate-950 shadow-[0_0_18px_rgba(142,209,252,0.8)] hover:scale-[1.02] active:scale-[0.98] transition-transform"
           >
             <Plus className="w-4 h-4" />
-            新建公告
+            {t("admin.announcements.new")}
           </button>
         </div>
 
-        {/* 表单弹窗 */}
+        {/* Form Modal */}
         {showForm && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
             <div className="bg-white rounded-2xl shadow-xl border border-slate-200 p-6 max-w-3xl w-full mx-4 my-8">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-lg font-semibold text-slate-900">
-                  {editingId ? "编辑公告" : "新建公告"}
+                  {editingId ? t("admin.announcements.form.editTitle") : t("admin.announcements.form.createTitle")}
                 </h3>
                 <button
                   onClick={() => {
@@ -284,15 +286,15 @@ export default function AnnouncementPage() {
               </div>
 
               <form onSubmit={handleSave} className="space-y-6">
-                {/* 多语言输入 */}
+                {/* Multi-language Input */}
                 <div className="space-y-4">
                   <h4 className="text-sm font-semibold text-slate-800">
-                    多语言内容 *
+                    {t("admin.announcements.form.contentLabel")}
                   </h4>
                   <div className="space-y-3">
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-2">
-                        中文内容 (ZH) *
+                        {t("admin.announcements.form.zh")}
                       </label>
                       <input
                         type="text"
@@ -307,13 +309,13 @@ export default function AnnouncementPage() {
                           })
                         }
                         className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-blue)]/40 focus:border-transparent bg-slate-50"
-                        placeholder="输入中文公告内容"
+                        placeholder="输入中文公告内容" // Could translate placeholder too but good enough
                         required
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-2">
-                        英文内容 (EN)
+                        {t("admin.announcements.form.en")}
                       </label>
                       <input
                         type="text"
@@ -333,7 +335,7 @@ export default function AnnouncementPage() {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-2">
-                        日文内容 (JA)
+                        {t("admin.announcements.form.ja")}
                       </label>
                       <input
                         type="text"
@@ -354,10 +356,10 @@ export default function AnnouncementPage() {
                   </div>
                 </div>
 
-                {/* 链接 */}
+                {/* Link */}
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">
-                    跳转链接（可选）
+                    {t("admin.announcements.form.link")}
                   </label>
                   <input
                     type="url"
@@ -370,10 +372,10 @@ export default function AnnouncementPage() {
                   />
                 </div>
 
-                {/* 公告类型 */}
+                {/* Type */}
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">
-                    公告类型
+                    {t("admin.announcements.form.type")}
                   </label>
                   <select
                     value={formData.type}
@@ -382,20 +384,21 @@ export default function AnnouncementPage() {
                     }
                     className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-blue)]/40 focus:border-transparent bg-white"
                   >
-                    <option value="info">普通 (蓝色)</option>
-                    <option value="urgent">紧急 (红色)</option>
+                    <option value="info">{t("admin.announcements.form.typeInfo")}</option>
+                    <option value="urgent">{t("admin.announcements.form.typeUrgent")}</option>
                   </select>
                   <p className="text-xs text-slate-500 mt-1">
-                    选择公告的显示颜色：普通公告显示蓝色，紧急公告显示红色
+                    {/* Optional: Add help text translation or remove */}
+                    {t("admin.announcements.form.typeInfo")} / {t("admin.announcements.form.typeUrgent")}
                   </p>
                 </div>
 
-                {/* 时间范围 */}
+                {/* Time Range */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">
                       <Calendar className="w-4 h-4 inline mr-1 text-slate-500" />
-                      开始时间（可选）
+                      {t("admin.announcements.form.startTime")}
                     </label>
                     <input
                       type="datetime-local"
@@ -409,7 +412,7 @@ export default function AnnouncementPage() {
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">
                       <Clock className="w-4 h-4 inline mr-1 text-slate-500" />
-                      结束时间（可选）
+                      {t("admin.announcements.form.endTime")}
                     </label>
                     <input
                       type="datetime-local"
@@ -422,23 +425,23 @@ export default function AnnouncementPage() {
                   </div>
                 </div>
 
-                {/* 预览 */}
+                {/* Preview */}
                 <div className="p-4 bg-sky-50 rounded-lg border border-sky-200">
                   <div className="flex items-center gap-2 mb-2">
                     <Eye className="w-4 h-4 text-sky-600" />
                     <span className="text-sm font-semibold text-sky-900">
-                      预览
+                      {t("admin.announcements.form.preview")}
                     </span>
                   </div>
                   <p className="text-sm text-sky-800">{getPreviewText()}</p>
                   {formData.link && (
                     <p className="text-xs text-sky-700 mt-1">
-                      (查看详情) →
+                      {t("admin.announcements.form.details")}
                     </p>
                   )}
                 </div>
 
-                {/* 启用状态 */}
+                {/* Active Status */}
                 <div className="flex items-center gap-3">
                   <input
                     type="checkbox"
@@ -449,7 +452,7 @@ export default function AnnouncementPage() {
                     className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
                   />
                   <label className="text-sm font-medium text-slate-700">
-                    启用此公告
+                    {t("admin.announcements.form.active")}
                   </label>
                 </div>
 
@@ -462,14 +465,14 @@ export default function AnnouncementPage() {
                     }}
                     className="px-4 py-2 text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg font-medium transition-colors"
                   >
-                    取消
+                    {t("admin.announcements.form.cancel")}
                   </button>
                   <button
                     type="submit"
                     className="flex items-center gap-2 px-4 py-2 bg-[var(--color-brand-blue)] hover:bg-sky-400 text-slate-950 rounded-lg font-medium transition-colors"
                   >
                     <Save className="w-4 h-4" />
-                    {editingId ? "更新" : "创建"}
+                    {editingId ? t("admin.announcements.form.update") : t("admin.announcements.form.create")}
                   </button>
                 </div>
               </form>
@@ -477,26 +480,26 @@ export default function AnnouncementPage() {
           </div>
         )}
 
-        {/* 公告列表 */}
+        {/* Announcement List */}
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
           {loading ? (
             <div className="p-12 text-center">
               <Loader2 className="w-8 h-8 animate-spin text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500">加载中...</p>
+              <p className="text-gray-500">Loading...</p>
             </div>
           ) : announcements.length === 0 ? (
             <div className="p-12 text-center">
               <Bell className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500 text-lg mb-2">暂无公告</p>
+              <p className="text-gray-500 text-lg mb-2">{t("admin.announcements.empty")}</p>
               <p className="text-gray-400 text-sm mb-6">
-                创建公告以在网站顶部显示横幅
+                {t("admin.announcements.emptyDesc")}
               </p>
               <button
                 onClick={handleNew}
                 className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
               >
                 <Plus className="w-5 h-5" />
-                新建公告
+                {t("admin.announcements.new")}
               </button>
             </div>
           ) : (
@@ -505,19 +508,19 @@ export default function AnnouncementPage() {
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      内容预览
+                      {t("admin.announcements.table.content")}
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      链接
+                      {t("admin.announcements.table.link")}
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      时间范围
+                      {t("admin.announcements.table.time")}
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      状态
+                      {t("admin.announcements.table.status")}
                     </th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      操作
+                      {t("admin.announcements.table.actions")}
                     </th>
                   </tr>
                 </thead>
@@ -532,7 +535,7 @@ export default function AnnouncementPage() {
                           {item.content?.zh ||
                             item.content?.en ||
                             item.content?.ja ||
-                            "无内容"}
+                            "No Content"}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -558,7 +561,7 @@ export default function AnnouncementPage() {
                           )}
                           {item.end_time && (
                             <div className="text-xs">
-                              至 {formatDateTime(item.end_time)}
+                              - {formatDateTime(item.end_time)}
                             </div>
                           )}
                         </div>
@@ -568,13 +571,12 @@ export default function AnnouncementPage() {
                           onClick={() =>
                             handleToggleActive(item.id, item.is_active)
                           }
-                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full transition-colors ${
-                            item.is_active
+                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full transition-colors ${item.is_active
                               ? "bg-green-100 text-green-800 hover:bg-green-200"
                               : "bg-gray-100 text-gray-800 hover:bg-gray-200"
-                          }`}
+                            }`}
                         >
-                          {item.is_active ? "已启用" : "已禁用"}
+                          {item.is_active ? t("admin.announcements.status.active") : t("admin.announcements.status.disabled")}
                         </button>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -582,7 +584,7 @@ export default function AnnouncementPage() {
                           <button
                             onClick={() => handleEdit(item)}
                             className="text-blue-600 hover:text-blue-900 transition-colors"
-                            title="编辑"
+                            title={t("admin.announcements.form.editTitle")}
                           >
                             <Edit className="w-4 h-4" />
                           </button>
@@ -590,7 +592,7 @@ export default function AnnouncementPage() {
                             onClick={() => setDeleteConfirmId(item.id)}
                             className="text-red-600 hover:text-red-900 transition-colors"
                             disabled={deletingId === item.id}
-                            title="删除"
+                            title={t("admin.announcements.delete.title")}
                           >
                             {deletingId === item.id ? (
                               <Loader2 className="w-4 h-4 animate-spin" />
@@ -609,22 +611,22 @@ export default function AnnouncementPage() {
         </div>
       </div>
 
-      {/* 删除确认弹窗 */}
+      {/* Delete Confirm Modal */}
       {deleteConfirmId && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              确认删除
+              {t("admin.announcements.delete.title")}
             </h3>
             <p className="text-gray-600 mb-6">
-              您确定要删除这个公告吗？此操作不可撤销。
+              {t("admin.announcements.delete.desc")}
             </p>
             <div className="flex items-center justify-end gap-3">
               <button
                 onClick={() => setDeleteConfirmId(null)}
                 className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium transition-colors"
               >
-                取消
+                {t("admin.announcements.delete.cancel")}
               </button>
               <button
                 onClick={() => handleDelete(deleteConfirmId)}
@@ -634,7 +636,7 @@ export default function AnnouncementPage() {
                 {deletingId === deleteConfirmId && (
                   <Loader2 className="w-4 h-4 animate-spin" />
                 )}
-                确认删除
+                {t("admin.announcements.delete.confirm")}
               </button>
             </div>
           </div>
@@ -643,4 +645,3 @@ export default function AnnouncementPage() {
     </div>
   );
 }
-

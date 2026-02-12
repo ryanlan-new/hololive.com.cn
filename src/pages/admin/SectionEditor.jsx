@@ -4,6 +4,7 @@ import { Save, ArrowLeft, Loader2, Plus, Trash2, Languages } from "lucide-react"
 import pb from "../../lib/pocketbase";
 import { detectSourceLanguage, translateFields } from "../../lib/translation";
 import ImagePicker from "../../components/admin/ImagePicker";
+import { useTranslation } from "react-i18next";
 
 /**
  * 首页分段编辑器组件
@@ -12,6 +13,7 @@ import ImagePicker from "../../components/admin/ImagePicker";
 export default function SectionEditor() {
   const { adminKey, id } = useParams();
   const navigate = useNavigate();
+  const { t } = useTranslation("admin");
   const isEditMode = !!id;
 
   // 语言选项
@@ -67,13 +69,13 @@ export default function SectionEditor() {
         const section = await pb.collection("cms_sections").getOne(id, {
           expand: "background_ref",
         });
-        
+
         // 处理多语言字段
         const title = typeof section.title === "object" ? section.title : { zh: section.title || "", en: "", ja: "" };
         const subtitle = typeof section.subtitle === "object" ? section.subtitle : { zh: section.subtitle || "", en: "", ja: "" };
         const content = typeof section.content === "object" ? section.content : { zh: section.content || "", en: "", ja: "" };
         const announcement = typeof section.announcement === "object" ? section.announcement : { zh: section.announcement || "", en: "", ja: "" };
-        
+
         // 处理按钮数据（确保格式正确）
         let buttons = section.buttons || [];
         if (Array.isArray(buttons)) {
@@ -83,7 +85,7 @@ export default function SectionEditor() {
             style: btn.style || "primary",
           }));
         }
-        
+
         setFormData({
           title: { zh: title.zh || "", en: title.en || "", ja: title.ja || "" },
           subtitle: { zh: subtitle.zh || "", en: subtitle.en || "", ja: subtitle.ja || "" },
@@ -93,7 +95,7 @@ export default function SectionEditor() {
           buttons: buttons,
           background_ref: section.background_ref || null,
         });
-        
+
         // 处理旧版背景图片（向后兼容）
         let legacyUrl = null;
         if (section.background_ref && section.expand && section.expand.background_ref) {
@@ -107,11 +109,11 @@ export default function SectionEditor() {
           legacyUrl = pb.files.getUrl(section, section.background);
         }
         setLegacyBackgroundUrl(legacyUrl);
-        
+
         setError(null);
       } catch (err) {
         console.error("Failed to fetch section:", err);
-        setError("加载分段失败，请重试");
+        setError("Failed to load section.");
       } finally {
         setLoading(false);
       }
@@ -195,34 +197,34 @@ export default function SectionEditor() {
   const handleAutoTranslate = async () => {
     try {
       setTranslating(true);
-      setToast({ type: "info", message: "正在连接免费翻译接口..." });
-      
+      setToast({ type: "info", message: t("sectionEditor.buttons.translating") });
+
       // 需要翻译的字段列表
       const fieldsToTranslate = ['title', 'subtitle', 'content', 'announcement'];
       const updatedFormData = { ...formData };
       let translatedCount = 0;
-      
+
       for (let i = 0; i < fieldsToTranslate.length; i++) {
         const fieldName = fieldsToTranslate[i];
         const field = formData[fieldName];
         if (!field) continue;
-        
+
         // 检测源语言
         const sourceLang = detectSourceLanguage(field);
         if (!sourceLang) continue; // 如果没有源语言，跳过
-        
+
         // 确定目标语言（除了源语言外的其他语言）
         const targetLangs = ['zh', 'en', 'ja'].filter(lang => lang !== sourceLang);
-        
+
         // 添加字段间的延迟（除了第一个字段）
         if (i > 0) {
           await new Promise(resolve => setTimeout(resolve, 500));
         }
-        
+
         // 翻译字段，带进度回调
         const translated = await translateFields(
-          field, 
-          sourceLang, 
+          field,
+          sourceLang,
           targetLangs,
           (progressMsg) => {
             setToast({ type: "info", message: progressMsg });
@@ -231,63 +233,63 @@ export default function SectionEditor() {
         updatedFormData[fieldName] = translated;
         translatedCount++;
       }
-      
+
       // 翻译按钮数组
       if (formData.buttons && formData.buttons.length > 0) {
-        setToast({ type: "info", message: "正在翻译按钮..." });
-        
+        setToast({ type: "info", message: t("sectionEditor.buttons.translating") });
+
         for (let i = 0; i < formData.buttons.length; i++) {
           const button = formData.buttons[i];
           if (!button) continue;
-          
+
           // 确保 label 是对象格式
           const labelObj = typeof button.label === "object" && button.label !== null
             ? button.label
             : { zh: button.label || "", en: "", ja: "" };
-          
+
           // 检测按钮标签的源语言
           const sourceLang = detectSourceLanguage(labelObj);
           if (!sourceLang) continue;
-          
+
           // 确定目标语言
           const targetLangs = ['zh', 'en', 'ja'].filter(lang => lang !== sourceLang);
-          
+
           // 添加延迟
           if (i > 0 || translatedCount > 0) {
             await new Promise(resolve => setTimeout(resolve, 500));
           }
-          
+
           // 翻译按钮标签
           const translatedLabel = await translateFields(
             labelObj,
             sourceLang,
             targetLangs,
             (progressMsg) => {
-              setToast({ type: "info", message: `按钮 ${i + 1}: ${progressMsg}` });
+              setToast({ type: "info", message: `Button ${i + 1}: ${progressMsg}` });
             }
           );
-          
+
           updatedFormData.buttons[i] = {
             ...button,
             label: translatedLabel,
           };
         }
       }
-      
+
       if (translatedCount === 0 && (!formData.buttons || formData.buttons.length === 0)) {
-        setToast({ 
-          type: "warning", 
-          message: "未检测到需要翻译的内容，请先填写至少一个语言的字段。" 
+        setToast({
+          type: "warning",
+          message: t("sectionEditor.toast.noContent")
         });
       } else {
         setFormData(updatedFormData);
-        setToast({ type: "success", message: "翻译完成！" });
+        setToast({ type: "success", message: t("sectionEditor.toast.translateSuccess") });
       }
     } catch (err) {
       console.error("Translation error:", err);
-      setToast({ 
-        type: "error", 
-        message: err.message || "翻译失败，请检查网络连接或稍后重试。" 
+      setToast({
+        type: "error",
+        message: err.message || t("sectionEditor.toast.translateError")
       });
     } finally {
       setTranslating(false);
@@ -323,7 +325,7 @@ export default function SectionEditor() {
 
       setToast({
         type: "success",
-        message: isEditMode ? "分段已更新" : "分段已创建",
+        message: isEditMode ? t("sectionEditor.toast.updated") : t("sectionEditor.toast.created"),
       });
       setTimeout(() => {
         setToast(null);
@@ -331,11 +333,11 @@ export default function SectionEditor() {
       }, 900);
     } catch (err) {
       console.error("Failed to save section:", err);
-      const errorMsg = err?.response?.message || err?.message || "保存失败，请重试";
+      const errorMsg = err?.response?.message || err?.message || t("sectionEditor.toast.saveError");
       setError(errorMsg);
       setToast({
         type: "error",
-        message: "保存失败，请检查表单或稍后再试。",
+        message: t("sectionEditor.toast.saveError"),
       });
     } finally {
       setSaving(false);
@@ -355,15 +357,14 @@ export default function SectionEditor() {
       {/* Toast 提示 */}
       {toast && (
         <div
-          className={`rounded-2xl px-4 py-2.5 text-xs md:text-sm flex items-center justify-between gap-3 shadow-sm ${
-            toast.type === "success"
+          className={`rounded-2xl px-4 py-2.5 text-xs md:text-sm flex items-center justify-between gap-3 shadow-sm ${toast.type === "success"
               ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
               : toast.type === "error"
-              ? "bg-red-50 text-red-800 border border-red-200"
-              : toast.type === "warning"
-              ? "bg-amber-50 text-amber-800 border border-amber-200"
-              : "bg-blue-50 text-blue-800 border border-blue-200"
-          }`}
+                ? "bg-red-50 text-red-800 border border-red-200"
+                : toast.type === "warning"
+                  ? "bg-amber-50 text-amber-800 border border-amber-200"
+                  : "bg-blue-50 text-blue-800 border border-blue-200"
+            }`}
         >
           <span>{toast.message}</span>
           <button
@@ -393,7 +394,7 @@ export default function SectionEditor() {
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <h1 className="text-2xl font-bold text-slate-900">
-            {isEditMode ? "编辑分段" : "新建分段"}
+            {isEditMode ? t("sectionEditor.title.edit") : t("sectionEditor.title.create")}
           </h1>
         </div>
         <div className="flex items-center gap-3">
@@ -407,7 +408,7 @@ export default function SectionEditor() {
             ) : (
               <Languages className="w-4 h-4" />
             )}
-            {translating ? "正在连接免费翻译接口..." : "一键智能翻译 (免费版)"}
+            {translating ? t("sectionEditor.buttons.translating") : t("sectionEditor.buttons.translate")}
           </button>
           <button
             onClick={handleSave}
@@ -419,7 +420,7 @@ export default function SectionEditor() {
             ) : (
               <Save className="w-4 h-4" />
             )}
-            保存
+            {t("sectionEditor.buttons.save")}
           </button>
         </div>
       </div>
@@ -429,7 +430,7 @@ export default function SectionEditor() {
         {/* 排序 */}
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-2">
-            排序顺序
+            {t("sectionEditor.form.sort")}
           </label>
           <input
             type="number"
@@ -445,7 +446,7 @@ export default function SectionEditor() {
             required
           />
           <p className="mt-1 text-xs text-slate-500">
-            数字越小，显示越靠前
+            {t("sectionEditor.form.sortHint")}
           </p>
         </div>
 
@@ -453,7 +454,7 @@ export default function SectionEditor() {
         <div>
           <div className="flex items-center justify-between mb-2">
             <label className="block text-sm font-medium text-slate-700">
-              标题 *
+              {t("sectionEditor.form.title")} *
             </label>
             <div className="flex gap-2">
               {languages.map((lang) => (
@@ -461,11 +462,10 @@ export default function SectionEditor() {
                   key={lang.code}
                   type="button"
                   onClick={() => setActiveLang(lang.code)}
-                  className={`px-3 py-1 text-xs rounded-lg transition-colors ${
-                    activeLang === lang.code
+                  className={`px-3 py-1 text-xs rounded-lg transition-colors ${activeLang === lang.code
                       ? "bg-blue-600 text-white"
                       : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                  }`}
+                    }`}
                 >
                   {lang.label}
                 </button>
@@ -479,7 +479,7 @@ export default function SectionEditor() {
               updateMultilangField("title", activeLang, e.target.value)
             }
             className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            placeholder={`请输入${languages.find((l) => l.code === activeLang)?.label}标题`}
+            placeholder={t("sectionEditor.placeholders.enter", { lang: languages.find((l) => l.code === activeLang)?.label, field: t("sectionEditor.form.title") })}
             required
           />
         </div>
@@ -488,7 +488,7 @@ export default function SectionEditor() {
         <div>
           <div className="flex items-center justify-between mb-2">
             <label className="block text-sm font-medium text-slate-700">
-              副标题
+              {t("sectionEditor.form.subtitle")}
             </label>
             <div className="flex gap-2">
               {languages.map((lang) => (
@@ -496,11 +496,10 @@ export default function SectionEditor() {
                   key={lang.code}
                   type="button"
                   onClick={() => setActiveLang(lang.code)}
-                  className={`px-3 py-1 text-xs rounded-lg transition-colors ${
-                    activeLang === lang.code
+                  className={`px-3 py-1 text-xs rounded-lg transition-colors ${activeLang === lang.code
                       ? "bg-blue-600 text-white"
                       : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                  }`}
+                    }`}
                 >
                   {lang.label}
                 </button>
@@ -514,7 +513,7 @@ export default function SectionEditor() {
             }
             className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             rows="3"
-            placeholder={`请输入${languages.find((l) => l.code === activeLang)?.label}副标题`}
+            placeholder={t("sectionEditor.placeholders.enter", { lang: languages.find((l) => l.code === activeLang)?.label, field: t("sectionEditor.form.subtitle") })}
           />
         </div>
 
@@ -522,7 +521,7 @@ export default function SectionEditor() {
         <div>
           <div className="flex items-center justify-between mb-2">
             <label className="block text-sm font-medium text-slate-700">
-              内容
+              {t("sectionEditor.form.content")}
             </label>
             <div className="flex gap-2">
               {languages.map((lang) => (
@@ -530,11 +529,10 @@ export default function SectionEditor() {
                   key={lang.code}
                   type="button"
                   onClick={() => setActiveLang(lang.code)}
-                  className={`px-3 py-1 text-xs rounded-lg transition-colors ${
-                    activeLang === lang.code
+                  className={`px-3 py-1 text-xs rounded-lg transition-colors ${activeLang === lang.code
                       ? "bg-blue-600 text-white"
                       : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                  }`}
+                    }`}
                 >
                   {lang.label}
                 </button>
@@ -548,7 +546,7 @@ export default function SectionEditor() {
             }
             className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             rows="6"
-            placeholder={`请输入${languages.find((l) => l.code === activeLang)?.label}内容`}
+            placeholder={t("sectionEditor.placeholders.enter", { lang: languages.find((l) => l.code === activeLang)?.label, field: t("sectionEditor.form.content") })}
           />
         </div>
 
@@ -556,7 +554,7 @@ export default function SectionEditor() {
         <div>
           <div className="flex items-center justify-between mb-2">
             <label className="block text-sm font-medium text-slate-700">
-              公告
+              {t("sectionEditor.form.announcement")}
             </label>
             <div className="flex gap-2">
               {languages.map((lang) => (
@@ -564,11 +562,10 @@ export default function SectionEditor() {
                   key={lang.code}
                   type="button"
                   onClick={() => setActiveLang(lang.code)}
-                  className={`px-3 py-1 text-xs rounded-lg transition-colors ${
-                    activeLang === lang.code
+                  className={`px-3 py-1 text-xs rounded-lg transition-colors ${activeLang === lang.code
                       ? "bg-blue-600 text-white"
                       : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                  }`}
+                    }`}
                 >
                   {lang.label}
                 </button>
@@ -582,7 +579,7 @@ export default function SectionEditor() {
             }
             className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             rows="4"
-            placeholder={`请输入${languages.find((l) => l.code === activeLang)?.label}公告`}
+            placeholder={t("sectionEditor.placeholders.enter", { lang: languages.find((l) => l.code === activeLang)?.label, field: t("sectionEditor.form.announcement") })}
           />
         </div>
 
@@ -591,14 +588,14 @@ export default function SectionEditor() {
           value={formData.background_ref}
           onChange={handleBackgroundChange}
           previewUrl={legacyBackgroundUrl}
-          label="背景图片"
+          label={t("sectionEditor.form.background")}
         />
 
         {/* 按钮列表 */}
         <div>
           <div className="flex items-center justify-between mb-2">
             <label className="block text-sm font-medium text-slate-700">
-              按钮
+              {t("sectionEditor.form.buttons")}
             </label>
             <button
               type="button"
@@ -606,12 +603,12 @@ export default function SectionEditor() {
               className="inline-flex items-center gap-1 px-3 py-1 text-sm bg-emerald-600 text-white rounded-lg hover:bg-emerald-700"
             >
               <Plus className="w-4 h-4" />
-              添加按钮
+              {t("sectionEditor.buttons.add")}
             </button>
           </div>
           {formData.buttons.length === 0 ? (
             <p className="text-sm text-slate-500 py-4 text-center border border-slate-200 rounded-lg">
-              暂无按钮，点击"添加按钮"创建
+              {t("sectionEditor.emptyButtons")}
             </p>
           ) : (
             <div className="space-y-3">
@@ -622,7 +619,7 @@ export default function SectionEditor() {
                 >
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium text-slate-700">
-                      按钮 {index + 1}
+                      button {index + 1}
                     </span>
                     <button
                       type="button"
@@ -635,7 +632,7 @@ export default function SectionEditor() {
                   <div>
                     <div className="flex items-center gap-2 mb-2">
                       <label className="text-xs font-medium text-slate-600">
-                        按钮文字
+                        {t("sectionEditor.form.buttonLabel")}
                       </label>
                       <div className="flex gap-1 ml-auto">
                         {languages.map((lang) => (
@@ -643,11 +640,10 @@ export default function SectionEditor() {
                             key={lang.code}
                             type="button"
                             onClick={() => setActiveLang(lang.code)}
-                            className={`px-2 py-0.5 text-xs rounded ${
-                              activeLang === lang.code
+                            className={`px-2 py-0.5 text-xs rounded ${activeLang === lang.code
                                 ? "bg-blue-600 text-white"
                                 : "bg-slate-100 text-slate-600"
-                            }`}
+                              }`}
                           >
                             {lang.label}
                           </button>
@@ -661,12 +657,12 @@ export default function SectionEditor() {
                         updateButton(index, "label", e.target.value)
                       }
                       className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm"
-                      placeholder={`${languages.find((l) => l.code === activeLang)?.label}按钮文字`}
+                      placeholder={t("sectionEditor.placeholders.enter", { lang: languages.find((l) => l.code === activeLang)?.label, field: t("sectionEditor.form.buttonLabel") })}
                     />
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-slate-600 mb-1">
-                      链接
+                      {t("sectionEditor.form.link")}
                     </label>
                     <input
                       type="text"
@@ -680,7 +676,7 @@ export default function SectionEditor() {
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-slate-600 mb-1">
-                      样式
+                      {t("sectionEditor.form.style")}
                     </label>
                     <select
                       value={button.style}
@@ -689,8 +685,8 @@ export default function SectionEditor() {
                       }
                       className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm"
                     >
-                      <option value="primary">主要</option>
-                      <option value="secondary">次要</option>
+                      <option value="primary">{t("sectionEditor.styles.primary")}</option>
+                      <option value="secondary">{t("sectionEditor.styles.secondary")}</option>
                     </select>
                   </div>
                 </div>
@@ -702,4 +698,3 @@ export default function SectionEditor() {
     </div>
   );
 }
-
