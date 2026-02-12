@@ -41,7 +41,6 @@ async function main() {
     await updateJarVersion();
 
     // Subscribe to Settings Changes (Restart Trigger & Config Updates)
-    // Subscribe to Settings Changes (Restart Trigger & Config Updates)
     pb.collection('velocity_settings').subscribe('*', async (e) => {
         // console.log(`[Realtime] Settings update detected (${e.action})`);
 
@@ -178,7 +177,6 @@ async function syncConfig() {
     } catch (err) {
         console.error("Error fetching servers:", err.message);
         return;
-        return;
     }
 
     // Fetch Forced Hosts
@@ -223,12 +221,6 @@ async function syncConfig() {
         }
     }
 }
-// ... rest of file (updateJarVersion, restartService etc) remains same
-// BUT I need to include them to match EndLine correctly or just replace the function?
-// replace_file_content tool needs exact match.
-// I will just replace from line 74 (watching for changes) down to syncConfig end?
-// No, syncConfig is large. I should use multi_replace.
-
 
 async function updateJarVersion() {
     const jarPath = path.join(VELOCITY_DIR, 'velocity.jar');
