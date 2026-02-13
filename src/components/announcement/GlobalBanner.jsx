@@ -14,7 +14,7 @@ const logger = createAppLogger("GlobalBanner");
  * 用于后台编辑时实时预览效果。
  */
 export default function GlobalBanner({ overrideAnnouncement = null }) {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation("common");
   const [announcement, setAnnouncement] = useState(null);
   const [loading, setLoading] = useState(true);
   const [dismissed, setDismissed] = useState(false);
@@ -30,17 +30,6 @@ export default function GlobalBanner({ overrideAnnouncement = null }) {
       content[currentLang] || content.en || content.zh || Object.values(content)[0]
     );
   }, [i18n.language]);
-
-  // 获取详情链接文本
-  const getLinkText = (lang) => {
-    const texts = {
-      zh: "(查看详情)",
-      en: "(View Details)",
-      ja: "(詳細を見る)",
-    };
-    const currentLang = lang || i18n.language || "zh";
-    return texts[currentLang] || texts.en;
-  };
 
   // 获取或接收公告
   useEffect(() => {
@@ -167,16 +156,17 @@ export default function GlobalBanner({ overrideAnnouncement = null }) {
                 rel="noopener noreferrer"
                 className="ml-2 text-white/90 hover:text-white underline underline-offset-2 inline-flex items-center gap-1 transition-colors"
               >
-                {getLinkText(i18n.language)}
+                {t("banner.details")}
                 <ExternalLink className="w-3 h-3" />
               </a>
             )}
           </span>
         </div>
         <button
+          type="button"
           onClick={() => setDismissed(true)}
           className="absolute right-4 flex-shrink-0 p-1 hover:bg-white/20 rounded transition-colors text-white hover:bg-white/30"
-          aria-label="关闭公告"
+          aria-label={t("banner.close")}
         >
           <X className="w-4 h-4 drop-shadow-sm" />
         </button>

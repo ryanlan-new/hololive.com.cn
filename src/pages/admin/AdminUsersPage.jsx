@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
-import { Plus, Trash2, Loader2, User, UserX, X, Save, AlertTriangle } from "lucide-react";
+import { Plus, Trash2, Loader2, User, UserX, Save, AlertTriangle } from "lucide-react";
 import pb from "../../lib/pocketbase";
 import { useTranslation } from "react-i18next";
 import { useUIFeedback } from "../../hooks/useUIFeedback";
 import { createAppLogger } from "../../lib/appLogger";
+import Modal from "../../components/admin/ui/Modal";
+import { formatLocalizedDate } from "../../utils/localeFormat";
 
 /**
  * 本地管理员账号管理页面
@@ -12,7 +14,7 @@ import { createAppLogger } from "../../lib/appLogger";
 const logger = createAppLogger("AdminUsersPage");
 
 export default function AdminUsersPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { notify } = useUIFeedback();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -26,6 +28,11 @@ export default function AdminUsersPage() {
   });
   const [enableLocalLogin, setEnableLocalLogin] = useState(true);
   const [updatingLoginSetting, setUpdatingLoginSetting] = useState(false);
+
+  const closeForm = () => {
+    setShowForm(false);
+    setFormData({ email: "", password: "", passwordConfirm: "" });
+  };
 
   // 获取用户列表
   const fetchUsers = async () => {
@@ -43,7 +50,7 @@ export default function AdminUsersPage() {
         error?.response ||
         error?.message ||
         error;
-      notify("Error fetching users: " + JSON.stringify(detail), "error");
+      notify(`${t("admin.users.error.fetchUsers")} ${JSON.stringify(detail)}`, "error");
     } finally {
       setLoading(false);
     }
@@ -77,7 +84,7 @@ export default function AdminUsersPage() {
         error?.response ||
         error?.message ||
         error;
-      notify("Error updating login setting: " + JSON.stringify(detail), "error");
+      notify(`${t("admin.users.error.updateLoginSetting")} ${JSON.stringify(detail)}`, "error");
     } finally {
       setUpdatingLoginSetting(false);
     }
@@ -90,15 +97,14 @@ export default function AdminUsersPage() {
 
   // 格式化日期
   const formatDate = (dateString) => {
-    if (!dateString) return "-";
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat("zh-CN", {
+    const value = formatLocalizedDate(dateString, i18n.language, {
       year: "numeric",
       month: "2-digit",
       day: "2-digit",
       hour: "2-digit",
       minute: "2-digit",
-    }).format(date);
+    });
+    return value || "-";
   };
 
   // 打开新建表单
@@ -131,8 +137,7 @@ export default function AdminUsersPage() {
       };
       await pb.collection("users").create(payload);
       notify(t("admin.users.modal.success"), "success");
-      setShowForm(false);
-      setFormData({ email: "", password: "", passwordConfirm: "" });
+      closeForm();
       await fetchUsers();
     } catch (error) {
       logger.error("Failed to create user:", error);
@@ -142,7 +147,7 @@ export default function AdminUsersPage() {
         error?.response ||
         error?.message ||
         error;
-      notify("Error creating user: " + JSON.stringify(detail), "error");
+      notify(`${t("admin.users.error.createUser")} ${JSON.stringify(detail)}`, "error");
     }
   };
 
@@ -162,7 +167,7 @@ export default function AdminUsersPage() {
         error?.response ||
         error?.message ||
         error;
-      notify("Error disabling user: " + JSON.stringify(detail), "error");
+      notify(`${t("admin.users.error.disableUser")} ${JSON.stringify(detail)}`, "error");
     }
   };
 
@@ -181,7 +186,7 @@ export default function AdminUsersPage() {
         error?.response ||
         error?.message ||
         error;
-      notify("Error deleting user: " + JSON.stringify(detail), "error");
+      notify(`${t("admin.users.error.deleteUser")} ${JSON.stringify(detail)}`, "error");
     } finally {
       setDeletingId(null);
     }
@@ -199,6 +204,7 @@ export default function AdminUsersPage() {
             <p className="text-gray-600">{t("admin.users.subtitle")}</p>
           </div>
           <button
+            type="button"
             onClick={handleNew}
             className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
           >
@@ -243,104 +249,95 @@ export default function AdminUsersPage() {
         </div>
 
         {/* 新建表单弹窗 */}
-        {showForm && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  {t("admin.users.modal.addTitle")}
-                </h3>
-                <button
-                  onClick={() => {
-                    setShowForm(false);
-                    setFormData({ email: "", password: "", passwordConfirm: "" });
-                  }}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-              <form onSubmit={handleCreate} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t("admin.users.modal.email")}
-                  </label>
-                  <input
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) =>
-                      setFormData({ ...formData, email: e.target.value })
-                    }
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="admin@example.com"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t("admin.users.modal.password")}
-                  </label>
-                  <input
-                    type="password"
-                    value={formData.password}
-                    onChange={(e) =>
-                      setFormData({ ...formData, password: e.target.value })
-                    }
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder={t("admin.users.modal.passwordHint")}
-                    required
-                    minLength={8}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t("admin.users.modal.confirmPassword")}
-                  </label>
-                  <input
-                    type="password"
-                    value={formData.passwordConfirm}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        passwordConfirm: e.target.value,
-                      })
-                    }
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder={t("admin.users.modal.confirmPasswordHint")}
-                    required
-                    minLength={8}
-                  />
-                </div>
-                <div className="flex items-center justify-end gap-3 pt-4">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowForm(false);
-                      setFormData({ email: "", password: "", passwordConfirm: "" });
-                    }}
-                    className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium transition-colors"
-                  >
-                    {t("admin.users.modal.cancel")}
-                  </button>
-                  <button
-                    type="submit"
-                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
-                  >
-                    <Save className="w-4 h-4" />
-                    {t("admin.users.modal.create")}
-                  </button>
-                </div>
-              </form>
+        <Modal
+          isOpen={showForm}
+          onClose={closeForm}
+          title={t("admin.users.modal.addTitle")}
+          size="sm"
+        >
+          <form onSubmit={handleCreate} className="space-y-4 px-6 py-5">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {t("admin.users.modal.email")}
+              </label>
+              <input
+                type="email"
+                name="email"
+                autoComplete="off"
+                spellCheck={false}
+                value={formData.email}
+                onChange={(e) =>
+                  setFormData({ ...formData, email: e.target.value })
+                }
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder={t("admin.users.modal.emailPlaceholder")}
+                required
+              />
             </div>
-          </div>
-        )}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {t("admin.users.modal.password")}
+              </label>
+              <input
+                type="password"
+                name="password"
+                autoComplete="new-password"
+                value={formData.password}
+                onChange={(e) =>
+                  setFormData({ ...formData, password: e.target.value })
+                }
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder={t("admin.users.modal.passwordHint")}
+                required
+                minLength={8}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {t("admin.users.modal.confirmPassword")}
+              </label>
+              <input
+                type="password"
+                name="passwordConfirm"
+                autoComplete="new-password"
+                value={formData.passwordConfirm}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    passwordConfirm: e.target.value,
+                  })
+                }
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder={t("admin.users.modal.confirmPasswordHint")}
+                required
+                minLength={8}
+              />
+            </div>
+            <div className="flex items-center justify-end gap-3 pt-4">
+              <button
+                type="button"
+                onClick={closeForm}
+                className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium transition-colors"
+              >
+                {t("admin.users.modal.cancel")}
+              </button>
+              <button
+                type="submit"
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+              >
+                <Save className="w-4 h-4" />
+                {t("admin.users.modal.create")}
+              </button>
+            </div>
+          </form>
+        </Modal>
 
         {/* 用户列表 */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
           {loading ? (
             <div className="p-12 text-center">
               <Loader2 className="w-8 h-8 animate-spin text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500">加载中...</p>
+              <p className="text-gray-500">{t("admin.users.loading")}</p>
             </div>
           ) : users.length === 0 ? (
             <div className="p-12 text-center">
@@ -350,6 +347,7 @@ export default function AdminUsersPage() {
                 {t("admin.users.table.emptyDesc")}
               </p>
               <button
+                type="button"
                 onClick={handleNew}
                 className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
               >
@@ -410,18 +408,22 @@ export default function AdminUsersPage() {
                         <div className="flex items-center justify-end gap-2">
                           {user.verified && (
                             <button
+                              type="button"
                               onClick={() => handleDisable(user.id)}
                               className="text-orange-600 hover:text-orange-900 transition-colors"
                               title={t("admin.users.actions.disable")}
+                              aria-label={t("admin.users.actions.disable")}
                             >
                               <UserX className="w-4 h-4" />
                             </button>
                           )}
                           <button
+                            type="button"
                             onClick={() => setDeleteConfirmId(user.id)}
                             className="text-red-600 hover:text-red-900 transition-colors"
                             disabled={deletingId === user.id}
-                            title="删除"
+                            title={t("admin.users.actions.delete")}
+                            aria-label={t("admin.users.actions.delete")}
                           >
                             {deletingId === user.id ? (
                               <Loader2 className="w-4 h-4 animate-spin" />
@@ -441,36 +443,38 @@ export default function AdminUsersPage() {
       </div>
 
       {/* 删除确认弹窗 */}
-      {deleteConfirmId && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              {t("admin.users.delete.title")}
-            </h3>
-            <p className="text-gray-600 mb-6">
-              {t("admin.users.delete.desc")}
-            </p>
-            <div className="flex items-center justify-end gap-3">
-              <button
-                onClick={() => setDeleteConfirmId(null)}
-                className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium transition-colors"
-              >
-                {t("admin.users.delete.cancel")}
-              </button>
-              <button
-                onClick={() => handleDelete(deleteConfirmId)}
-                disabled={deletingId === deleteConfirmId}
-                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-              >
-                {deletingId === deleteConfirmId && (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                )}
-                {t("admin.users.delete.confirm")}
-              </button>
-            </div>
+      <Modal
+        isOpen={Boolean(deleteConfirmId)}
+        onClose={() => setDeleteConfirmId(null)}
+        title={t("admin.users.delete.title")}
+        size="sm"
+      >
+        <div className="space-y-5 px-6 py-5">
+          <p className="text-gray-600">
+            {t("admin.users.delete.desc")}
+          </p>
+          <div className="flex items-center justify-end gap-3">
+            <button
+              type="button"
+              onClick={() => setDeleteConfirmId(null)}
+              className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium transition-colors"
+            >
+              {t("admin.users.delete.cancel")}
+            </button>
+            <button
+              type="button"
+              onClick={() => handleDelete(deleteConfirmId)}
+              disabled={deletingId === deleteConfirmId}
+              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              {deletingId === deleteConfirmId && (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              )}
+              {t("admin.users.delete.confirm")}
+            </button>
           </div>
         </div>
-      )}
+      </Modal>
     </div>
   );
 }

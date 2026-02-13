@@ -1,18 +1,19 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AlertTriangle, CheckCircle2, Info, X, XCircle } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { FeedbackContext } from "./feedbackContext";
 
 const EMPTY_CONFIRM_STATE = {
   open: false,
   title: "",
   message: "",
-  confirmText: "确认",
-  cancelText: "取消",
+  confirmText: "",
+  cancelText: "",
   danger: false,
   resolve: null,
 };
 
-function ToastItem({ toast, onClose }) {
+function ToastItem({ toast, onClose, closeLabel }) {
   const styleMap = {
     success: {
       wrapper: "border-emerald-200 bg-emerald-50 text-emerald-900",
@@ -35,7 +36,10 @@ function ToastItem({ toast, onClose }) {
   const style = styleMap[toast.type] || styleMap.info;
 
   return (
-    <div className={`pointer-events-auto w-full max-w-sm rounded-xl border px-3 py-2 shadow-lg ${style.wrapper}`}>
+    <div
+      role="status"
+      className={`pointer-events-auto w-full max-w-sm rounded-xl border px-3 py-2 shadow-lg ${style.wrapper}`}
+    >
       <div className="flex items-start gap-2">
         <div className="mt-0.5">{style.icon}</div>
         <p className="flex-1 text-sm whitespace-pre-line break-words">{toast.message}</p>
@@ -43,7 +47,7 @@ function ToastItem({ toast, onClose }) {
           type="button"
           onClick={() => onClose(toast.id)}
           className="rounded p-0.5 text-slate-500 hover:bg-black/5"
-          aria-label="关闭提示"
+          aria-label={closeLabel}
         >
           <X className="h-4 w-4" />
         </button>
@@ -53,6 +57,7 @@ function ToastItem({ toast, onClose }) {
 }
 
 export function FeedbackProvider({ children }) {
+  const { t } = useTranslation("common");
   const [toasts, setToasts] = useState([]);
   const [confirmState, setConfirmState] = useState(EMPTY_CONFIRM_STATE);
   const timersRef = useRef(new Map());
@@ -93,16 +98,16 @@ export function FeedbackProvider({ children }) {
         }
         return {
           open: true,
-          title: options.title || "请确认操作",
+          title: options.title || t("feedback.confirmTitle"),
           message: options.message || "",
-          confirmText: options.confirmText || "确认",
-          cancelText: options.cancelText || "取消",
+          confirmText: options.confirmText || t("feedback.confirm"),
+          cancelText: options.cancelText || t("feedback.cancel"),
           danger: Boolean(options.danger),
           resolve,
         };
       });
     });
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     return () => {
@@ -126,16 +131,29 @@ export function FeedbackProvider({ children }) {
     <FeedbackContext.Provider value={{ notify, confirm }}>
       {children}
 
-      <div className="pointer-events-none fixed right-4 top-4 z-[120] flex w-[min(92vw,360px)] flex-col gap-2">
+      <div
+        aria-live="polite"
+        aria-atomic="false"
+        className="pointer-events-none fixed right-4 top-4 z-[120] flex w-[min(92vw,360px)] flex-col gap-2"
+      >
         {toasts.map((toast) => (
-          <ToastItem key={toast.id} toast={toast} onClose={dismissToast} />
+          <ToastItem key={toast.id} toast={toast} onClose={dismissToast} closeLabel={t("actions.close")} />
         ))}
       </div>
 
       {confirmState.open && (
-        <div className="fixed inset-0 z-[130] flex items-center justify-center bg-black/45 px-4">
-          <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-5 shadow-xl">
-            <h3 className="text-base font-semibold text-slate-900">{confirmState.title}</h3>
+        <div
+          className="fixed inset-0 z-[130] flex items-center justify-center bg-black/45 px-4"
+          onClick={() => closeConfirm(false)}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="feedback-confirm-title"
+            className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-5 shadow-xl"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <h3 id="feedback-confirm-title" className="text-base font-semibold text-slate-900">{confirmState.title}</h3>
             {confirmState.message && (
               <p className="mt-2 whitespace-pre-line break-words text-sm text-slate-600">
                 {confirmState.message}

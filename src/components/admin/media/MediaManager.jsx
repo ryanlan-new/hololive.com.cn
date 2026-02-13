@@ -6,12 +6,14 @@ import {
   Video,
   File,
   Trash2,
-  X,
   Loader2,
 } from "lucide-react";
 import pb from "../../../lib/pocketbase";
 import { useUIFeedback } from "../../../hooks/useUIFeedback";
 import { createAppLogger } from "../../../lib/appLogger";
+import { useTranslation } from "react-i18next";
+import Modal from "../ui/Modal";
+import { formatLocalizedDate } from "../../../utils/localeFormat";
 
 const logger = createAppLogger("MediaManager");
 
@@ -23,6 +25,7 @@ const logger = createAppLogger("MediaManager");
  * @param {Function} closeModal - 可选，关闭模态框的函数
  */
 export default function MediaManager({ onSelect, closeModal }) {
+  const { t, i18n } = useTranslation();
   const { notify, confirm } = useUIFeedback();
   const [mediaList, setMediaList] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -32,6 +35,17 @@ export default function MediaManager({ onSelect, closeModal }) {
   const [selectedMedia, setSelectedMedia] = useState(null);
   const fileInputRef = useRef(null);
   const baseUrl = import.meta.env.VITE_POCKETBASE_URL?.replace(/\/$/, "") || "";
+
+  const formatDateTime = (dateString) => {
+    const value = formatLocalizedDate(dateString, i18n.language, {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    return value || "-";
+  };
 
   // 获取媒体列表
   const fetchMedia = async () => {
@@ -43,7 +57,7 @@ export default function MediaManager({ onSelect, closeModal }) {
       setMediaList(result.items);
     } catch (error) {
       logger.error("获取媒体列表失败:", error);
-      notify("获取媒体列表失败，请重试", "error");
+      notify(t("admin.media.manager.toast.fetchError"), "error");
     } finally {
       setLoading(false);
     }
@@ -66,7 +80,7 @@ export default function MediaManager({ onSelect, closeModal }) {
       await fetchMedia(); // 刷新列表
     } catch (error) {
       logger.error("上传失败:", error);
-      notify("上传失败，请重试", "error");
+      notify(t("admin.media.manager.toast.uploadError"), "error");
     } finally {
       setUploading(false);
       if (fileInputRef.current) {
@@ -78,11 +92,11 @@ export default function MediaManager({ onSelect, closeModal }) {
   // 删除文件
   const handleDelete = async (id) => {
     const accepted = await confirm({
-      title: "确认删除",
-      message: "确定要删除这个文件吗？此操作不可恢复。",
+      title: t("admin.media.manager.delete.title"),
+      message: t("admin.media.manager.delete.desc"),
       danger: true,
-      confirmText: "删除",
-      cancelText: "取消",
+      confirmText: t("admin.media.manager.delete.confirm"),
+      cancelText: t("admin.media.manager.delete.cancel"),
     });
     if (!accepted) {
       return;
@@ -94,7 +108,7 @@ export default function MediaManager({ onSelect, closeModal }) {
       setSelectedMedia(null);
     } catch (error) {
       logger.error("删除失败:", error);
-      notify("删除失败，请重试", "error");
+      notify(t("admin.media.manager.toast.deleteError"), "error");
     }
   };
 
@@ -187,10 +201,12 @@ export default function MediaManager({ onSelect, closeModal }) {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
             type="text"
+            name="search"
+            autoComplete="off"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="搜索文件..."
-            className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 bg-white text-sm text-slate-900 focus:border-[var(--color-brand-blue)] focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-blue)]/30"
+            placeholder={t("admin.media.manager.searchPlaceholder")}
+            className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 bg-white text-sm text-slate-900 focus:border-[var(--color-brand-blue)] focus:ring-2 focus:ring-[var(--color-brand-blue)]/30"
           />
         </div>
 
@@ -198,10 +214,10 @@ export default function MediaManager({ onSelect, closeModal }) {
         {!onSelect && (
           <div className="flex items-center gap-2">
             {[
-              { key: "all", label: "全部" },
-              { key: "images", label: "图片" },
-              { key: "videos", label: "视频" },
-              { key: "files", label: "其他" },
+              { key: "all", label: t("admin.media.manager.tabs.all") },
+              { key: "images", label: t("admin.media.manager.tabs.images") },
+              { key: "videos", label: t("admin.media.manager.tabs.videos") },
+              { key: "files", label: t("admin.media.manager.tabs.files") },
             ].map((tab) => (
             <button
               key={tab.key}
@@ -240,12 +256,12 @@ export default function MediaManager({ onSelect, closeModal }) {
             {uploading ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                上传中...
+                {t("admin.media.manager.uploading")}
               </>
             ) : (
               <>
                 <Upload className="w-4 h-4" />
-                上传文件
+                {t("admin.media.manager.upload")}
               </>
             )}
           </button>
@@ -262,8 +278,8 @@ export default function MediaManager({ onSelect, closeModal }) {
           <File className="w-12 h-12 mx-auto mb-3 opacity-50" />
           <p className="text-sm">
             {searchQuery || category !== "all"
-              ? "没有找到符合条件的文件"
-              : "还没有上传任何文件"}
+              ? t("admin.media.manager.empty.noResults")
+              : t("admin.media.manager.empty.default")}
           </p>
         </div>
       ) : (
@@ -278,8 +294,17 @@ export default function MediaManager({ onSelect, closeModal }) {
             return (
               <div
                 key={item.id}
-                className="group relative aspect-square rounded-xl border border-slate-200 bg-slate-50 overflow-hidden cursor-pointer hover:border-[var(--color-brand-blue)] hover:shadow-md transition-all"
+                className="group relative aspect-square rounded-xl border border-slate-200 bg-slate-50 overflow-hidden cursor-pointer hover:border-[var(--color-brand-blue)] hover:shadow-md transition-[border-color,box-shadow]"
                 onClick={() => handleFileClick(item)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    handleFileClick(item);
+                  }
+                }}
+                role="button"
+                tabIndex={0}
+                aria-label={`${t("admin.media.manager.details.title")}: ${fileName || t("admin.media.manager.details.unknown")}`}
               >
                 {fileType === "image" ? (
                   <img
@@ -305,7 +330,8 @@ export default function MediaManager({ onSelect, closeModal }) {
                         e.stopPropagation();
                         handleDelete(item.id);
                       }}
-                      className="opacity-0 group-hover:opacity-100 p-2 rounded-full bg-red-500 text-white hover:bg-red-600 transition-all"
+                      className="opacity-0 group-hover:opacity-100 p-2 rounded-full bg-red-500 text-white hover:bg-red-600 transition-[background-color,opacity]"
+                      aria-label={t("admin.media.manager.delete.confirm")}
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -323,87 +349,77 @@ export default function MediaManager({ onSelect, closeModal }) {
       )}
 
       {/* 文件详情 Modal（管理模式） */}
-      {selectedMedia && !onSelect && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-          <div className="relative max-w-4xl w-full bg-white rounded-2xl shadow-xl overflow-hidden">
-            {/* 头部 */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
-              <h3 className="text-lg font-semibold text-slate-900">文件详情</h3>
+      <Modal
+        isOpen={Boolean(selectedMedia && !onSelect)}
+        onClose={() => setSelectedMedia(null)}
+        title={t("admin.media.manager.details.title")}
+        size="lg"
+      >
+        {selectedMedia && (
+          <div className="p-6">
+            {getFileType(selectedMedia.file) === "image" ? (
+              <img
+                src={getFileUrl(selectedMedia)}
+                alt={selectedMedia.file || t("admin.media.manager.details.unknown")}
+                className="w-full max-h-[60vh] object-contain rounded-lg"
+              />
+            ) : (
+              <div className="flex items-center justify-center py-20 bg-slate-50 rounded-lg">
+                {(() => {
+                  const Icon = getFileIcon(selectedMedia.file);
+                  return <Icon className="w-24 h-24 text-slate-400" />;
+                })()}
+              </div>
+            )}
+
+            {/* 文件信息 */}
+            <div className="mt-6 space-y-2">
+              <div className="flex items-center justify-between text-sm gap-3">
+                <span className="text-slate-500">{t("admin.media.manager.details.fileName")}</span>
+                <span className="text-slate-900 font-mono break-all text-right">{selectedMedia.file || t("admin.media.manager.details.unknown")}</span>
+              </div>
+              <div className="flex items-center justify-between text-sm gap-3">
+                <span className="text-slate-500">{t("admin.media.manager.details.uploadedAt")}</span>
+                <span className="text-slate-900 text-right">
+                  {formatDateTime(selectedMedia.created)}
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-sm gap-3">
+                <span className="text-slate-500">{t("admin.media.manager.details.fileUrl")}</span>
+                <span className="text-slate-900 font-mono text-xs break-all text-right max-w-md">
+                  {getFileUrl(selectedMedia)}
+                </span>
+              </div>
+            </div>
+
+            {/* 操作按钮 */}
+            <div className="mt-6 flex items-center justify-end gap-3">
               <button
                 type="button"
-                onClick={() => setSelectedMedia(null)}
-                className="p-2 rounded-lg hover:bg-slate-100 transition-colors"
+                onClick={async () => {
+                  try {
+                    await navigator.clipboard.writeText(getFileUrl(selectedMedia));
+                    notify(t("admin.media.manager.toast.copySuccess"), "success");
+                  } catch (error) {
+                    logger.error("复制 URL 失败:", error);
+                    notify(t("admin.media.manager.toast.copyError"), "error");
+                  }
+                }}
+                className="px-4 py-2 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 transition-colors text-sm font-medium"
               >
-                <X className="w-5 h-5 text-slate-600" />
+                {t("admin.media.manager.actions.copyUrl")}
+              </button>
+              <button
+                type="button"
+                onClick={() => handleDelete(selectedMedia.id)}
+                className="px-4 py-2 rounded-xl bg-red-500 text-white hover:bg-red-600 transition-colors text-sm font-medium"
+              >
+                {t("admin.media.manager.actions.deleteFile")}
               </button>
             </div>
-
-            {/* 内容 */}
-            <div className="p-6">
-              {getFileType(selectedMedia.file) === "image" ? (
-                <img
-                  src={getFileUrl(selectedMedia)}
-                  alt={selectedMedia.file || "文件"}
-                  className="w-full max-h-[60vh] object-contain rounded-lg"
-                />
-              ) : (
-                <div className="flex items-center justify-center py-20 bg-slate-50 rounded-lg">
-                  {(() => {
-                    const Icon = getFileIcon(selectedMedia.file);
-                    return <Icon className="w-24 h-24 text-slate-400" />;
-                  })()}
-                </div>
-              )}
-
-              {/* 文件信息 */}
-              <div className="mt-6 space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-slate-500">文件名：</span>
-                  <span className="text-slate-900 font-mono">{selectedMedia.file || "未知"}</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-slate-500">上传时间：</span>
-                  <span className="text-slate-900">
-                    {new Date(selectedMedia.created).toLocaleString("zh-CN")}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-slate-500">文件 URL：</span>
-                  <span className="text-slate-900 font-mono text-xs truncate max-w-md">
-                    {getFileUrl(selectedMedia)}
-                  </span>
-                </div>
-              </div>
-
-              {/* 操作按钮 */}
-              <div className="mt-6 flex items-center justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={async () => {
-                    try {
-                      await navigator.clipboard.writeText(getFileUrl(selectedMedia));
-                      notify("URL 已复制到剪贴板", "success");
-                    } catch (error) {
-                      logger.error("复制 URL 失败:", error);
-                      notify("复制失败，请手动复制", "error");
-                    }
-                  }}
-                  className="px-4 py-2 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 transition-colors text-sm font-medium"
-                >
-                  复制 URL
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleDelete(selectedMedia.id)}
-                  className="px-4 py-2 rounded-xl bg-red-500 text-white hover:bg-red-600 transition-colors text-sm font-medium"
-                >
-                  删除文件
-                </button>
-              </div>
-            </div>
           </div>
-        </div>
-      )}
+        )}
+      </Modal>
     </div>
   );
 }

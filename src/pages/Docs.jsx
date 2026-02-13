@@ -70,7 +70,7 @@ export default function Docs() {
               >
                 <Link
                   to={section.link}
-                  className="group flex flex-col justify-center items-start gap-2 w-full h-full bg-white p-6 md:p-8 rounded-2xl shadow-xl hover:-translate-y-2 transition-all duration-300 cursor-pointer border border-transparent hover:border-blue-100 text-left"
+                  className="group flex flex-col justify-center items-start gap-2 w-full h-full bg-white p-6 md:p-8 rounded-2xl shadow-xl hover:-translate-y-2 transition-[transform,border-color,box-shadow] duration-300 cursor-pointer border border-transparent hover:border-blue-100 text-left"
                 >
                   {/* Icon and Title Section */}
                   <div className="flex items-center gap-3">

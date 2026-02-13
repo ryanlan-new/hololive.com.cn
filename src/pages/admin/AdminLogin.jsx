@@ -142,7 +142,7 @@ export default function AdminLogin() {
       const userEmail = authData?.record?.email;
 
       if (!userEmail) {
-        throw new Error("无法获取用户邮箱信息");
+        throw new Error(t("admin.login.alerts.missingEmail"));
       }
 
       // 白名单校验：从 whitelists 集合查询
@@ -160,7 +160,7 @@ export default function AdminLogin() {
       pb.authStore.clear();
 
       // 提取详细错误信息
-      let errorMessage = "未知错误";
+      let errorMessage = t("admin.login.alerts.unknownError");
 
       // ... (Error extraction logic maintained but abbreviated for clarity)
       if (error?.message) {
@@ -282,7 +282,7 @@ export default function AdminLogin() {
           <button
             onClick={handleMicrosoftLogin}
             disabled={isLoading}
-            className="w-full flex items-center justify-center gap-3 px-6 py-3 bg-white hover:bg-gray-50 text-gray-900 rounded-lg font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-[1.02] active:scale-[0.98] shadow-lg border border-gray-200"
+            className="w-full flex items-center justify-center gap-3 px-6 py-3 bg-white hover:bg-gray-50 text-gray-900 rounded-lg font-medium transition-[transform,background-color,color,border-color,box-shadow] duration-200 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-[1.02] active:scale-[0.98] shadow-lg border border-gray-200"
           >
             {microsoftLoading ? (
               <>
@@ -347,8 +347,8 @@ export default function AdminLogin() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={isLoading}
-                  className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
-                  placeholder="your-admin@example.com"
+                  className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+                  placeholder={t("admin.login.emailPlaceholder")}
                   required
                 />
               </div>
@@ -366,8 +366,8 @@ export default function AdminLogin() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={isLoading}
-                  className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
-                  placeholder="请输入密码"
+                  className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+                  placeholder={t("admin.login.passwordPlaceholder")}
                   required
                 />
               </div>
@@ -375,7 +375,7 @@ export default function AdminLogin() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-[1.02] active:scale-[0.98] shadow-lg"
+                className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-medium transition-[transform,background-color,color,border-color,box-shadow] duration-200 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-[1.02] active:scale-[0.98] shadow-lg"
               >
                 {localLoading ? (
                   <>

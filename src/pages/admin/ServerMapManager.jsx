@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
-import { Plus, Edit, Trash2, Loader2, Map, GripVertical, X, Save } from "lucide-react";
+import { Plus, Edit, Trash2, Loader2, Map, GripVertical, Save } from "lucide-react";
 import pb from "../../lib/pocketbase";
 import { useTranslation } from "react-i18next";
+import { useUIFeedback } from "../../hooks/useUIFeedback";
 import { createAppLogger } from "../../lib/appLogger";
+import Modal from "../../components/admin/ui/Modal";
 
 /**
  * Server Map Manager Page
@@ -12,16 +14,15 @@ const logger = createAppLogger("ServerMapManager");
 
 export default function ServerMapManager() {
   const { t } = useTranslation();
+  const { notify } = useUIFeedback();
   const [maps, setMaps] = useState([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState(null);
-  const [deleteConfirmId, setDeleteConfirmId] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
   const [editingId, setEditingId] = useState(null);
   const [isCreating, setIsCreating] = useState(false);
   const [draggedIndex, setDraggedIndex] = useState(null);
-  const [toast, setToast] = useState(null);
 
-  // Form state
   const [formData, setFormData] = useState({
     name: "",
     url: "",
@@ -47,7 +48,6 @@ export default function ServerMapManager() {
     }
   };
 
-  // Fetch maps
   const fetchMaps = useCallback(async () => {
     try {
       setLoading(true);
@@ -57,34 +57,34 @@ export default function ServerMapManager() {
       setMaps(result.items);
     } catch (error) {
       logger.error("Failed to fetch maps:", error);
-      showToast("error", t("admin.serverMaps.toast.saveError")); // Fallback/reuse
+      notify(t("admin.serverMaps.toast.saveError"), "error");
     } finally {
       setLoading(false);
     }
-  }, [t]);
+  }, [notify, t]);
 
   useEffect(() => {
     fetchMaps();
   }, [fetchMaps]);
 
-  const showToast = (type, message) => {
-    setToast({ type, message });
-    setTimeout(() => setToast(null), 3000);
-  };
+  const showToast = useCallback(
+    (type, message) => {
+      notify(message, type);
+    },
+    [notify]
+  );
 
-  // Reset form
   const resetForm = () => {
     setFormData({ name: "", url: "", sort_order: 0 });
     setEditingId(null);
     setIsCreating(false);
   };
 
-  // Handle create/edit
-  const handleSave = async (e) => {
-    e.preventDefault();
+  const handleSave = async (event) => {
+    event.preventDefault();
     const normalizedUrl = normalizeMapUrl(formData.url);
     if (!normalizedUrl) {
-      showToast("error", "地图地址格式不正确，请使用 http(s)://host:port/path");
+      showToast("error", t("admin.serverMaps.validation.invalidUrl"));
       return;
     }
 
@@ -98,14 +98,14 @@ export default function ServerMapManager() {
         await pb.collection("server_maps").update(editingId, payload);
         showToast("success", t("admin.serverMaps.toast.updateSuccess"));
       } else {
-        // Set sort_order to max + 1 if not provided
-        const maxSort = maps.length > 0 ? Math.max(...maps.map((m) => m.sort_order || 0)) : 0;
+        const maxSort = maps.length > 0 ? Math.max(...maps.map((item) => item.sort_order || 0)) : 0;
         await pb.collection("server_maps").create({
           ...payload,
           sort_order: payload.sort_order || maxSort + 1,
         });
         showToast("success", t("admin.serverMaps.toast.createSuccess"));
       }
+
       resetForm();
       await fetchMaps();
     } catch (error) {
@@ -114,23 +114,21 @@ export default function ServerMapManager() {
     }
   };
 
-  // Handle delete
   const handleDelete = async (mapId) => {
     try {
       setDeletingId(mapId);
       await pb.collection("server_maps").delete(mapId);
-      setDeleteConfirmId(null);
+      setDeleteTarget(null);
       showToast("success", t("admin.serverMaps.toast.deleteSuccess"));
       await fetchMaps();
     } catch (error) {
       logger.error("Failed to delete map:", error);
-      showToast("error", t("admin.serverMaps.toast.saveError")); // Reuse error
+      showToast("error", t("admin.serverMaps.toast.saveError"));
     } finally {
       setDeletingId(null);
     }
   };
 
-  // Start editing
   const startEdit = (map) => {
     setFormData({
       name: map.name || "",
@@ -141,14 +139,12 @@ export default function ServerMapManager() {
     setIsCreating(false);
   };
 
-  // Handle drag start
   const handleDragStart = (index) => {
     setDraggedIndex(index);
   };
 
-  // Handle drag over
-  const handleDragOver = (e, index) => {
-    e.preventDefault();
+  const handleDragOver = (event, index) => {
+    event.preventDefault();
     if (draggedIndex === null || draggedIndex === index) return;
 
     const newMaps = [...maps];
@@ -159,30 +155,27 @@ export default function ServerMapManager() {
     setDraggedIndex(index);
   };
 
-  // Handle drag end - update sort_order
   const handleDragEnd = async () => {
     if (draggedIndex === null) return;
 
     try {
-      // Update sort_order for all maps
       const updates = maps.map((map, index) => ({
         id: map.id,
         sort_order: index + 1,
       }));
 
-      // Update all maps
       await Promise.all(
         updates.map((update) =>
           pb.collection("server_maps").update(update.id, { sort_order: update.sort_order })
         )
       );
 
-      showToast("success", t("admin.homeManager.toast.orderSuccess")); // Reuse homeManager key which says "Order updated."
+      showToast("success", t("admin.homeManager.toast.orderSuccess"));
       await fetchMaps();
     } catch (error) {
       logger.error("Failed to update sort order:", error);
-      showToast("error", t("admin.homeManager.toast.orderError")); // Reuse
-      await fetchMaps(); // Revert to server state
+      showToast("error", t("admin.homeManager.toast.orderError"));
+      await fetchMaps();
     } finally {
       setDraggedIndex(null);
     }
@@ -190,7 +183,6 @@ export default function ServerMapManager() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">{t("admin.serverMaps.title")}</h1>
@@ -208,103 +200,117 @@ export default function ServerMapManager() {
         </button>
       </div>
 
-      {/* Toast */}
-      {toast && (
-        <div
-          className={`fixed top-4 right-4 px-4 py-3 rounded-lg shadow-lg z-50 ${toast.type === "success"
-              ? "bg-emerald-500 text-white"
-              : "bg-red-500 text-white"
-            }`}
-        >
-          {toast.message}
-        </div>
-      )}
-
-      {/* Create/Edit Form */}
-      {(isCreating || editingId) && (
-        <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-slate-900">
-              {editingId ? t("admin.serverMaps.form.editTitle") : t("admin.serverMaps.form.createTitle")}
-            </h2>
+      <Modal
+        isOpen={isCreating || Boolean(editingId)}
+        onClose={resetForm}
+        title={editingId ? t("admin.serverMaps.form.editTitle") : t("admin.serverMaps.form.createTitle")}
+        size="md"
+      >
+        <form onSubmit={handleSave} className="space-y-4 p-6">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">
+              {t("admin.serverMaps.form.name")}
+            </label>
+            <input
+              type="text"
+              required
+              value={formData.name}
+              onChange={(event) => setFormData({ ...formData, name: event.target.value })}
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[var(--color-brand-blue)]"
+              placeholder={t("admin.serverMaps.form.namePlaceholder")}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">
+              {t("admin.serverMaps.form.url")}
+            </label>
+            <input
+              type="text"
+              required
+              value={formData.url}
+              onChange={(event) => setFormData({ ...formData, url: event.target.value })}
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[var(--color-brand-blue)]"
+              placeholder={t("admin.serverMaps.form.urlPlaceholder")}
+              inputMode="url"
+              spellCheck={false}
+            />
+            <p className="text-xs text-slate-500 mt-1">
+              {t("admin.serverMaps.form.urlHint")}
+            </p>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">
+              {t("admin.serverMaps.form.sort")}
+            </label>
+            <input
+              type="number"
+              value={formData.sort_order}
+              onChange={(event) =>
+                setFormData({ ...formData, sort_order: parseInt(event.target.value, 10) || 0 })
+              }
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[var(--color-brand-blue)]"
+              placeholder={t("admin.serverMaps.form.sortPlaceholder")}
+            />
+          </div>
+          <div className="flex gap-2 justify-end">
             <button
+              type="button"
               onClick={resetForm}
-              className="p-1 hover:bg-slate-100 rounded"
+              className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg font-medium hover:bg-slate-200 transition-colors"
             >
-              <X size={20} className="text-slate-500" />
+              {t("admin.serverMaps.form.cancel")}
+            </button>
+            <button
+              type="submit"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--color-brand-blue)] text-slate-950 rounded-lg font-medium hover:bg-[var(--color-brand-blue)]/90 transition-colors"
+            >
+              <Save size={18} />
+              {t("admin.serverMaps.form.save")}
             </button>
           </div>
-          <form onSubmit={handleSave} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                {t("admin.serverMaps.form.name")}
-              </label>
-              <input
-                type="text"
-                required
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-blue)]"
-                placeholder="例如：主世界地图"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                {t("admin.serverMaps.form.url")}
-              </label>
-              <input
-                type="text"
-                required
-                value={formData.url}
-                onChange={(e) => setFormData({ ...formData, url: e.target.value })}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-blue)]"
-                placeholder="http://127.0.0.1:8123/map (支持非标端口)"
-                inputMode="url"
-                spellCheck={false}
-              />
-              <p className="text-xs text-slate-500 mt-1">
-                支持 `http://` / `https://`，并支持自定义端口（如 `:8123`）。
-              </p>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                {t("admin.serverMaps.form.sort")}
-              </label>
-              <input
-                type="number"
-                value={formData.sort_order}
-                onChange={(e) =>
-                  setFormData({ ...formData, sort_order: parseInt(e.target.value) || 0 })
-                }
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-blue)]"
-                placeholder="0"
-              />
-            </div>
-            <div className="flex gap-2">
-              <button
-                type="submit"
-                className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--color-brand-blue)] text-slate-950 rounded-lg font-medium hover:bg-[var(--color-brand-blue)]/90 transition-colors"
-              >
-                <Save size={18} />
-                {t("admin.serverMaps.form.save")}
-              </button>
-              <button
-                type="button"
-                onClick={resetForm}
-                className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg font-medium hover:bg-slate-200 transition-colors"
-              >
-                {t("admin.serverMaps.form.cancel")}
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
+        </form>
+      </Modal>
 
-      {/* Maps List */}
+      <Modal
+        isOpen={Boolean(deleteTarget)}
+        onClose={() => setDeleteTarget(null)}
+        title={t("admin.serverMaps.delete.title")}
+        size="sm"
+      >
+        <div className="p-6 space-y-4">
+          <p className="text-sm text-slate-600">
+            {t("admin.serverMaps.delete.confirmHint", {
+              name: deleteTarget?.name || "",
+            })}
+          </p>
+          <div className="flex items-center justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => setDeleteTarget(null)}
+              className="px-3 py-2 text-xs bg-slate-100 text-slate-700 rounded hover:bg-slate-200 transition-colors"
+            >
+              {t("admin.serverMaps.delete.cancel")}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                if (deleteTarget?.id) handleDelete(deleteTarget.id);
+              }}
+              disabled={deletingId === deleteTarget?.id}
+              className="px-3 py-2 text-xs bg-red-500 text-white rounded hover:bg-red-600 transition-colors disabled:opacity-50"
+            >
+              {deletingId === deleteTarget?.id
+                ? t("admin.serverInfoFields.delete.deleting")
+                : t("admin.serverMaps.delete.confirm")}
+            </button>
+          </div>
+        </div>
+      </Modal>
+
       {loading ? (
         <div className="flex flex-col items-center justify-center py-20 bg-white rounded-xl border border-slate-200">
           <Loader2 className="w-8 h-8 animate-spin text-slate-400 mb-4" />
-          <p className="text-sm text-slate-500">Loading...</p>
+          <p className="text-sm text-slate-500">{t("admin.serverMaps.loading")}</p>
         </div>
       ) : maps.length === 0 ? (
         <div className="bg-white rounded-xl border border-dashed border-slate-300 p-10 text-center">
@@ -320,10 +326,9 @@ export default function ServerMapManager() {
                 key={map.id}
                 draggable
                 onDragStart={() => handleDragStart(index)}
-                onDragOver={(e) => handleDragOver(e, index)}
+                onDragOver={(event) => handleDragOver(event, index)}
                 onDragEnd={handleDragEnd}
-                className={`p-4 hover:bg-slate-50 transition-colors ${draggedIndex === index ? "opacity-50" : ""
-                  }`}
+                className={`p-4 hover:bg-slate-50 transition-colors ${draggedIndex === index ? "opacity-50" : ""}`}
               >
                 <div className="flex items-center gap-4">
                   <GripVertical className="w-5 h-5 text-slate-400 cursor-move" />
@@ -340,31 +345,13 @@ export default function ServerMapManager() {
                     >
                       <Edit size={18} className="text-blue-600" />
                     </button>
-                    {deleteConfirmId === map.id ? (
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => handleDelete(map.id)}
-                          disabled={deletingId === map.id}
-                          className="px-3 py-1 text-xs bg-red-500 text-white rounded hover:bg-red-600 transition-colors disabled:opacity-50"
-                        >
-                          {deletingId === map.id ? t("admin.serverInfoFields.delete.deleting") : t("admin.serverMaps.delete.confirm")}
-                        </button>
-                        <button
-                          onClick={() => setDeleteConfirmId(null)}
-                          className="px-3 py-1 text-xs bg-slate-100 text-slate-700 rounded hover:bg-slate-200 transition-colors"
-                        >
-                          {t("admin.serverMaps.delete.cancel")}
-                        </button>
-                      </div>
-                    ) : (
-                      <button
-                        onClick={() => setDeleteConfirmId(map.id)}
-                        className="p-2 hover:bg-red-50 rounded-lg transition-colors"
-                        title={t("admin.serverMaps.delete.title")}
-                      >
-                        <Trash2 size={18} className="text-red-600" />
-                      </button>
-                    )}
+                    <button
+                      onClick={() => setDeleteTarget(map)}
+                      className="p-2 hover:bg-red-50 rounded-lg transition-colors"
+                      title={t("admin.serverMaps.delete.title")}
+                    >
+                      <Trash2 size={18} className="text-red-600" />
+                    </button>
                   </div>
                 </div>
               </div>

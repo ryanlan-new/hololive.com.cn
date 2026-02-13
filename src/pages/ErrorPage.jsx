@@ -5,23 +5,17 @@ import Navbar from "../components/layout/Navbar";
 import Footer from "../components/layout/Footer";
 import Button from "../components/ui/Button";
 
-const BUTTON_TEXT = {
-  zh: "返回首页",
-  ja: "ホームに戻る",
-  en: "Back to Home",
-};
-
 const FALLBACK_CODE = "E404";
 
 export default function ErrorPage({ code: propCode }) {
   const params = useParams();
   const navigate = useNavigate();
-  const { i18n } = useTranslation("common");
+  const { t } = useTranslation("common");
 
   const requestedCode = propCode || params?.code || FALLBACK_CODE;
   const assetKey = ASSETS.ERRORS?.[requestedCode] ? requestedCode : FALLBACK_CODE;
   const imageSrc = ASSETS.ERRORS?.[assetKey];
-  const buttonLabel = BUTTON_TEXT[i18n.language] || BUTTON_TEXT.zh;
+  const buttonLabel = t("errorPage.backHome");
 
   return (
     <div className="fixed inset-0 z-[999] w-screen h-screen overflow-y-auto overflow-x-hidden bg-gray-950 text-white error-page-scroll-container">
@@ -41,14 +35,14 @@ export default function ErrorPage({ code: propCode }) {
           {imageSrc && (
             <img
               src={imageSrc}
-              alt={`Error ${assetKey}`}
+              alt={t("errorPage.imageAlt", { code: assetKey })}
               className="w-full max-w-2xl object-contain drop-shadow-2xl animate-pulse px-4"
               draggable={false}
             />
           )}
 
           <Button
-            className="mt-12 px-8 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-bold transition-all shadow-[0_0_20px_rgba(37,99,235,0.5)] cursor-pointer hover:scale-105 active:scale-95"
+            className="mt-12 px-8 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-bold transition-[background-color,transform] shadow-[0_0_20px_rgba(37,99,235,0.5)] cursor-pointer hover:scale-105 active:scale-95"
             onClick={() => navigate("/")}
           >
             {buttonLabel}
@@ -62,4 +56,3 @@ export default function ErrorPage({ code: propCode }) {
     </div>
   );
 }
-

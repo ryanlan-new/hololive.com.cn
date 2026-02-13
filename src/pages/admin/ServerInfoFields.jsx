@@ -246,7 +246,7 @@ export default function ServerInfoFields() {
                 onChange={(e) =>
                   setFormData({ ...formData, icon: e.target.value })
                 }
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-blue)]"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[var(--color-brand-blue)]"
               >
                 {SERVER_INFO_ICON_NAMES.map((iconName) => {
                   return (
@@ -280,7 +280,7 @@ export default function ServerInfoFields() {
                         label: { ...formData.label, zh: e.target.value },
                       })
                     }
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-blue)]"
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[var(--color-brand-blue)]"
                     placeholder="例如：服务器地址"
                   />
                 </div>
@@ -297,7 +297,7 @@ export default function ServerInfoFields() {
                         label: { ...formData.label, en: e.target.value },
                       })
                     }
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-blue)]"
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[var(--color-brand-blue)]"
                     placeholder="例如：Server Address"
                   />
                 </div>
@@ -314,7 +314,7 @@ export default function ServerInfoFields() {
                         label: { ...formData.label, ja: e.target.value },
                       })
                     }
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-blue)]"
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[var(--color-brand-blue)]"
                     placeholder="例如：サーバーアドレス"
                   />
                 </div>
@@ -340,7 +340,7 @@ export default function ServerInfoFields() {
                         value: { ...formData.value, zh: e.target.value },
                       })
                     }
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-blue)]"
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[var(--color-brand-blue)]"
                     placeholder="例如：play.hololive.com.cn"
                   />
                 </div>
@@ -357,7 +357,7 @@ export default function ServerInfoFields() {
                         value: { ...formData.value, en: e.target.value },
                       })
                     }
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-blue)]"
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[var(--color-brand-blue)]"
                     placeholder="例如：play.hololive.com.cn"
                   />
                 </div>
@@ -374,7 +374,7 @@ export default function ServerInfoFields() {
                         value: { ...formData.value, ja: e.target.value },
                       })
                     }
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-blue)]"
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[var(--color-brand-blue)]"
                     placeholder="例如：play.hololive.com.cn"
                   />
                 </div>
@@ -393,7 +393,7 @@ export default function ServerInfoFields() {
                     sort_order: parseInt(e.target.value) || 0,
                   })
                 }
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-blue)]"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[var(--color-brand-blue)]"
                 placeholder="0"
               />
             </div>

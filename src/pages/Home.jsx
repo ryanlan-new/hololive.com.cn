@@ -2,6 +2,7 @@ import { useRef, useState, useEffect } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { Link } from "react-router-dom";
 import { ExternalLink } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { ASSETS } from "../config/assets";
 import { useCmsSections } from "../hooks/useCmsData";
 
@@ -18,14 +19,16 @@ function BackgroundImages({ contentRef, firstBg, lastBg }) {
       <img
         src={lastBg}
         className="absolute inset-0 w-full h-full object-cover"
-        alt="background-scroll"
+        alt=""
+        aria-hidden="true"
         draggable={false}
       />
       <motion.img
         src={firstBg}
         style={{ opacity: mainOpacity }}
         className="absolute inset-0 w-full h-full object-cover"
-        alt="background-main"
+        alt=""
+        aria-hidden="true"
         draggable={false}
       />
     </div>
@@ -69,13 +72,15 @@ function HomeContent({ sections }) {
           <img
             src={lastSectionBackground}
             className="absolute inset-0 w-full h-full object-cover"
-            alt="background-scroll"
+            alt=""
+            aria-hidden="true"
             draggable={false}
           />
           <img
             src={firstSectionBackground}
             className="absolute inset-0 w-full h-full object-cover"
-            alt="background-main"
+            alt=""
+            aria-hidden="true"
             draggable={false}
           />
         </div>
@@ -111,7 +116,7 @@ function HomeContent({ sections }) {
                         className="inline-flex items-center px-8 py-3 text-lg font-bold rounded-lg shadow-2xl transition-transform hover:scale-105 bg-[var(--color-brand-blue)] text-white cursor-pointer pointer-events-auto relative z-20"
                       >
                         {button.label}
-                        <ExternalLink className="w-5 h-5 ml-2 inline" />
+                        <ExternalLink className="w-5 h-5 ml-2 inline" aria-hidden="true" />
                       </a>
                     );
                   } else {
@@ -137,12 +142,13 @@ function HomeContent({ sections }) {
 }
 
 export default function Home() {
+  const { t } = useTranslation("home");
   const { sections, loading } = useCmsSections();
 
   if (loading) {
     return (
       <div className="relative w-full min-h-screen overflow-hidden flex items-center justify-center">
-        <div className="text-white text-xl">加载中...</div>
+        <div className="text-white text-xl">{t("common.loading")}</div>
       </div>
     );
   }
@@ -150,7 +156,7 @@ export default function Home() {
   if (sections.length === 0) {
     return (
       <div className="relative w-full min-h-screen overflow-hidden flex items-center justify-center">
-        <div className="text-white text-xl">暂无内容</div>
+        <div className="text-white text-xl">{t("common.empty")}</div>
       </div>
     );
   }

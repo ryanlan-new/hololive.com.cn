@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import { Search, X, Loader2, Image as ImageIcon } from "lucide-react";
+import { Search, Loader2, Image as ImageIcon } from "lucide-react";
 import pb from "../../lib/pocketbase";
 import { useTranslation } from "react-i18next";
 import { createAppLogger } from "../../lib/appLogger";
+import Modal from "./ui/Modal";
 
 const logger = createAppLogger("MediaLibraryModal");
 
@@ -86,87 +87,84 @@ export default function MediaLibraryModal({ isOpen, onClose, onSelect }) {
     }
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <div className="relative w-full max-w-6xl bg-white rounded-2xl shadow-xl overflow-hidden max-h-[90vh] flex flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
-          <h2 className="text-lg font-semibold text-slate-900">{t("admin.mediaLibraryModal.title")}</h2>
-          <button
-            type="button"
-            onClick={onClose}
-            className="p-2 rounded-lg hover:bg-slate-100 transition-colors"
-          >
-            <X className="w-5 h-5 text-slate-600" />
-          </button>
-        </div>
-
-        {/* Search */}
-        <div className="px-6 py-4 border-b border-slate-200">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={t("admin.mediaLibraryModal.search")}
-              className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6">
-          {loading ? (
-            <div className="flex items-center justify-center py-20">
-              <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
-            </div>
-          ) : filteredMedia.length === 0 ? (
-            <div className="text-center py-20 text-slate-500">
-              <ImageIcon className="w-12 h-12 mx-auto mb-3 opacity-50" />
-              <p className="text-sm">
-                {searchQuery ? t("admin.mediaLibraryModal.noResults") : t("admin.mediaLibraryModal.empty")}
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-              {filteredMedia.map((item) => {
-                const fileUrl = getFileUrl(item);
-                const thumbUrl = getFileUrl(item, true);
-
-                return (
-                  <div
-                    key={item.id}
-                    className="group relative aspect-square rounded-lg border border-slate-200 bg-slate-50 overflow-hidden cursor-pointer hover:border-blue-500 hover:shadow-md transition-all"
-                    onClick={() => handleSelect(item)}
-                  >
-                    <img
-                      src={thumbUrl}
-                      alt={item.file || t("admin.mediaLibraryModal.image")}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        e.target.src = fileUrl;
-                      }}
-                    />
-                    {/* Hover overlay */}
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
-                      <div className="opacity-0 group-hover:opacity-100 transition-opacity text-white text-xs px-2 py-1 bg-black/60 rounded">
-                        {t("admin.mediaLibraryModal.clickToSelect")}
-                      </div>
-                    </div>
-                    {/* Filename */}
-                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2">
-                      <p className="text-xs text-white truncate">{item.file || t("admin.mediaLibraryModal.unknown")}</p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={t("admin.mediaLibraryModal.title")}
+      size="xl"
+    >
+      {/* Search */}
+      <div className="px-6 py-4 border-b border-slate-200">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <input
+            type="text"
+            name="media_search"
+            autoComplete="off"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder={t("admin.mediaLibraryModal.search")}
+            className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
         </div>
       </div>
-    </div>
+
+      {/* Content */}
+      <div className="p-6">
+        {loading ? (
+          <div className="flex items-center justify-center py-20 gap-2 text-slate-500">
+            <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
+            <span className="text-sm">{t("admin.mediaLibraryModal.loading")}</span>
+          </div>
+        ) : filteredMedia.length === 0 ? (
+          <div className="text-center py-20 text-slate-500">
+            <ImageIcon className="w-12 h-12 mx-auto mb-3 opacity-50" />
+            <p className="text-sm">
+              {searchQuery ? t("admin.mediaLibraryModal.noResults") : t("admin.mediaLibraryModal.empty")}
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+            {filteredMedia.map((item) => {
+              const fileUrl = getFileUrl(item);
+              const thumbUrl = getFileUrl(item, true);
+
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  className="group relative aspect-square rounded-lg border border-slate-200 bg-slate-50 overflow-hidden hover:border-blue-500 hover:shadow-md transition-[border-color,box-shadow]"
+                  onClick={() => handleSelect(item)}
+                  aria-label={`${t("admin.mediaLibraryModal.clickToSelect")}: ${item.file || t("admin.mediaLibraryModal.unknown")}`}
+                >
+                  <img
+                    src={thumbUrl}
+                    alt={item.file || t("admin.mediaLibraryModal.image")}
+                    width={100}
+                    height={100}
+                    loading="lazy"
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.target.src = fileUrl;
+                    }}
+                  />
+                  {/* Hover overlay */}
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                    <div className="opacity-0 group-hover:opacity-100 transition-opacity text-white text-xs px-2 py-1 bg-black/60 rounded">
+                      {t("admin.mediaLibraryModal.clickToSelect")}
+                    </div>
+                  </div>
+                  {/* Filename */}
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2">
+                    <p className="text-xs text-white truncate">{item.file || t("admin.mediaLibraryModal.unknown")}</p>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </Modal>
   );
 }

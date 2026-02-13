@@ -6,6 +6,8 @@ import pb from "../../lib/pocketbase";
 import { getLocalizedContent } from "../../utils/postHelpers";
 import { logDelete } from "../../lib/logger";
 import { createAppLogger } from "../../lib/appLogger";
+import Modal from "../../components/admin/ui/Modal";
+import { formatLocalizedDate } from "../../utils/localeFormat";
 
 /**
  * 文章管理列表页面
@@ -67,15 +69,14 @@ export default function Posts() {
 
   // 格式化日期
   const formatDate = (dateString) => {
-    if (!dateString) return "-";
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat(i18n.language === 'zh' ? "zh-CN" : (i18n.language === 'ja' ? "ja-JP" : "en-US"), {
+    const value = formatLocalizedDate(dateString, i18n.language, {
       year: "numeric",
       month: "2-digit",
       day: "2-digit",
       hour: "2-digit",
       minute: "2-digit",
-    }).format(date);
+    });
+    return value || "-";
   };
 
   // 获取分类显示文本
@@ -177,7 +178,7 @@ export default function Posts() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder={t("admin.posts.searchPlaceholder")}
-              className="w-full sm:w-60 rounded-full border border-slate-200 bg-white pl-8 pr-3 py-1.5 text-xs md:text-sm text-slate-900 placeholder:text-slate-400 focus:border-[var(--color-brand-blue)] focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-blue)]/30"
+              className="w-full sm:w-60 rounded-full border border-slate-200 bg-white pl-8 pr-3 py-1.5 text-xs md:text-sm text-slate-900 placeholder:text-slate-400 focus:border-[var(--color-brand-blue)] focus:ring-2 focus:ring-[var(--color-brand-blue)]/30"
             />
           </div>
           <Link
@@ -194,7 +195,7 @@ export default function Posts() {
       {loading ? (
         <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center shadow-sm">
           <Loader2 className="w-7 h-7 animate-spin text-slate-400 mx-auto mb-3" />
-          <p className="text-sm text-slate-500">Loading...</p>
+          <p className="text-sm text-slate-500">{t("admin.posts.loading")}</p>
         </div>
       ) : filteredPosts.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-slate-300 bg-white/80 px-6 py-10 text-center shadow-sm flex flex-col items-center gap-3">
@@ -220,7 +221,7 @@ export default function Posts() {
           {filteredPosts.map((post) => (
             <article
               key={post.id}
-              className="group rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 shadow-sm flex flex-col gap-2 hover:border-[var(--color-brand-blue)]/70 hover:shadow-[0_10px_35px_rgba(15,23,42,0.14)] transition-all"
+              className="group rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 shadow-sm flex flex-col gap-2 hover:border-[var(--color-brand-blue)]/70 hover:shadow-[0_10px_35px_rgba(15,23,42,0.14)] transition-[border-color,box-shadow]"
             >
               <header className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0 space-y-1">
@@ -264,6 +265,7 @@ export default function Posts() {
                     }
                     className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white p-1.5 text-slate-500 hover:text-[var(--color-brand-blue)] hover:border-[var(--color-brand-blue)]/60 transition-colors"
                     title={t("admin.homeManager.actions.edit")}
+                    aria-label={t("admin.homeManager.actions.edit")}
                   >
                     <Edit className="w-3.5 h-3.5" />
                   </button>
@@ -273,6 +275,7 @@ export default function Posts() {
                     disabled={deletingId === post.id}
                     className="inline-flex items-center justify-center rounded-full border border-red-200 bg-white p-1.5 text-red-500 hover:bg-red-50 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
                     title={t("admin.homeManager.actions.delete")}
+                    aria-label={t("admin.homeManager.actions.delete")}
                   >
                     {deletingId === post.id ? (
                       <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -292,38 +295,38 @@ export default function Posts() {
       )}
 
       {/* 删除确认弹窗 */}
-      {deleteConfirmId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-          <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
-            <h3 className="text-base md:text-lg font-semibold text-slate-900 mb-2">
-              {t("admin.posts.delete.title")}
-            </h3>
-            <p className="text-xs md:text-sm text-slate-600 mb-5">
-              {t("admin.posts.delete.desc")}
-            </p>
-            <div className="flex items-center justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => setDeleteConfirmId(null)}
-                className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-100 transition-colors"
-              >
-                {t("admin.posts.delete.cancel")}
-              </button>
-              <button
-                type="button"
-                onClick={() => handleDelete(deleteConfirmId)}
-                disabled={deletingId === deleteConfirmId}
-                className="inline-flex items-center gap-1.5 rounded-full bg-red-600 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-red-700 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
-              >
-                {deletingId === deleteConfirmId && (
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                )}
-                {t("admin.posts.delete.confirm")}
-              </button>
-            </div>
+      <Modal
+        isOpen={Boolean(deleteConfirmId)}
+        onClose={() => setDeleteConfirmId(null)}
+        title={t("admin.posts.delete.title")}
+        size="sm"
+      >
+        <div className="space-y-5 px-6 py-5">
+          <p className="text-xs md:text-sm text-slate-600">
+            {t("admin.posts.delete.desc")}
+          </p>
+          <div className="flex items-center justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => setDeleteConfirmId(null)}
+              className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-100 transition-colors"
+            >
+              {t("admin.posts.delete.cancel")}
+            </button>
+            <button
+              type="button"
+              onClick={() => handleDelete(deleteConfirmId)}
+              disabled={deletingId === deleteConfirmId}
+              className="inline-flex items-center gap-1.5 rounded-full bg-red-600 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-red-700 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+            >
+              {deletingId === deleteConfirmId && (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              )}
+              {t("admin.posts.delete.confirm")}
+            </button>
           </div>
         </div>
-      )}
+      </Modal>
     </div>
   );
 }

@@ -6,6 +6,7 @@ import { logSystemSettings } from "../../lib/logger";
 import { useTranslation } from "react-i18next";
 import { useUIFeedback } from "../../hooks/useUIFeedback";
 import { createAppLogger } from "../../lib/appLogger";
+import Modal from "../../components/admin/ui/Modal";
 
 const SETTINGS_ID = "1"; // 单例模式，固定 ID
 
@@ -59,7 +60,10 @@ export default function SettingsPage() {
         });
       } else {
         setError(t("admin.settingsPage.error"));
-        notify("Error loading settings: " + (error?.message || "unknown error"), "error");
+        notify(
+          `${t("admin.settingsPage.errorLoadPrefix")}: ${error?.message || t("admin.settingsPage.unknownError")}`,
+          "error"
+        );
       }
     } finally {
       setLoading(false);
@@ -147,12 +151,12 @@ export default function SettingsPage() {
     const normalizedKey = formData.admin_entrance_key.trim();
 
     if (normalizedKey.length < 8) {
-      setError("后台入口 Key 长度至少 8 位");
+      setError(t("admin.settingsPage.validation.keyTooShort"));
       return;
     }
 
     if (normalizedKey === "secret-admin-entrance") {
-      setError("请勿使用默认后台入口 Key，请设置新的安全值");
+      setError(t("admin.settingsPage.validation.weakKey"));
       return;
     }
 
@@ -181,74 +185,77 @@ export default function SettingsPage() {
   return (
     <div className="space-y-4">
       {/* Key 修改警告模态框 */}
-      {showKeyWarning && pendingUpdate && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-          <div className="w-full max-w-lg rounded-2xl border border-red-200 bg-white px-6 py-5 shadow-2xl">
-            <div className="flex items-start gap-3 mb-3">
-              <AlertTriangle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
-              <div>
-                <h3 className="text-base md:text-lg font-semibold text-red-800 mb-1">
-                  {t("admin.settingsPage.modal.title")}
-                </h3>
-                <p className="text-xs md:text-sm text-red-700 mb-2">
-                  {t("admin.settingsPage.modal.desc")}
+      <Modal
+        isOpen={Boolean(showKeyWarning && pendingUpdate)}
+        onClose={() => {
+          setShowKeyWarning(false);
+          setPendingUpdate(null);
+        }}
+        title={t("admin.settingsPage.modal.title")}
+        size="md"
+      >
+        <div className="space-y-4 px-6 py-5">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+            <div className="min-w-0">
+              <p className="text-xs md:text-sm text-red-700 mb-2">
+                {t("admin.settingsPage.modal.desc")}
+              </p>
+              <div className="mt-2 rounded-lg bg-red-50 border border-red-100 px-3 py-2 text-[11px] md:text-xs text-red-800 space-y-1">
+                <p className="break-words">
+                  {t("admin.settingsPage.modal.currentKey")}
+                  <code className="px-1 rounded bg-white border border-red-100">
+                    {adminKey}
+                  </code>
                 </p>
-                <div className="mt-2 rounded-lg bg-red-50 border border-red-100 px-3 py-2 text-[11px] md:text-xs text-red-800 space-y-1">
-                  <p>
-                    {t("admin.settingsPage.modal.currentKey")}
+                {settings?.admin_entrance_key && (
+                  <p className="break-words">
+                    {t("admin.settingsPage.modal.dbKey")}
                     <code className="px-1 rounded bg-white border border-red-100">
-                      {adminKey}
+                      {settings.admin_entrance_key}
                     </code>
                   </p>
-                  {settings?.admin_entrance_key && (
-                    <p>
-                      {t("admin.settingsPage.modal.dbKey")}
-                      <code className="px-1 rounded bg-white border border-red-100">
-                        {settings.admin_entrance_key}
-                      </code>
-                    </p>
-                  )}
-                  <p>
-                    {t("admin.settingsPage.modal.newKey")}
-                    <code className="px-1 rounded bg-white border border-red-100">
-                      {pendingUpdate.admin_entrance_key}
-                    </code>
-                  </p>
-                  <p>
-                    {t("admin.settingsPage.modal.newUrl")}
-                    <code className="px-1 rounded bg-white border border-red-100">
-                      /{pendingUpdate.admin_entrance_key}/webadmin
-                    </code>
-                  </p>
-                </div>
+                )}
+                <p className="break-words">
+                  {t("admin.settingsPage.modal.newKey")}
+                  <code className="px-1 rounded bg-white border border-red-100">
+                    {pendingUpdate?.admin_entrance_key || ""}
+                  </code>
+                </p>
+                <p className="break-words">
+                  {t("admin.settingsPage.modal.newUrl")}
+                  <code className="px-1 rounded bg-white border border-red-100">
+                    /{pendingUpdate?.admin_entrance_key || ""}/webadmin
+                  </code>
+                </p>
               </div>
             </div>
-            <div className="flex items-center justify-end gap-2 mt-3">
-              <button
-                type="button"
-                onClick={() => {
-                  setShowKeyWarning(false);
-                  setPendingUpdate(null);
-                }}
-                className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-100 transition-colors"
-              >
-                {t("admin.settingsPage.modal.cancel")}
-              </button>
-              <button
-                type="button"
-                disabled={saving}
-                onClick={() => saveSettings(pendingUpdate, true)}
-                className="inline-flex items-center gap-1.5 rounded-full bg-red-600 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-red-700 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
-              >
-                {saving && (
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                )}
-                {t("admin.settingsPage.modal.confirm")}
-              </button>
-            </div>
+          </div>
+          <div className="flex items-center justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                setShowKeyWarning(false);
+                setPendingUpdate(null);
+              }}
+              className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-100 transition-colors"
+            >
+              {t("admin.settingsPage.modal.cancel")}
+            </button>
+            <button
+              type="button"
+              disabled={saving}
+              onClick={() => pendingUpdate && saveSettings(pendingUpdate, true)}
+              className="inline-flex items-center gap-1.5 rounded-full bg-red-600 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-red-700 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+            >
+              {saving && (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              )}
+              {t("admin.settingsPage.modal.confirm")}
+            </button>
           </div>
         </div>
-      )}
+      </Modal>
 
       {loading ? (
         <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center shadow-sm">
@@ -317,8 +324,8 @@ export default function SettingsPage() {
                         },
                       })
                     }
-                    className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-blue)]/40 focus:border-transparent"
-                    placeholder="G-XXXXXXXXXX"
+                    className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-[var(--color-brand-blue)]/40 focus:border-transparent"
+                    placeholder={t("admin.settingsPage.interface.googlePlaceholder")}
                   />
                   <p className="mt-1 text-xs text-slate-500">
                     {t("admin.settingsPage.interface.googleIdHint")}
@@ -362,29 +369,8 @@ export default function SettingsPage() {
                         });
                       }
                     }}
-                    onPaste={(e) => {
-                      // 获取粘贴的文本内容
-                      const pastedText = e.clipboardData.getData('text');
-                      const baiduIdPattern = /hm\.js\?([a-z0-9]{32})/i;
-                      const match = pastedText.match(baiduIdPattern);
-
-                      if (match && match[1]) {
-                        // 阻止默认粘贴行为，使用提取的 ID
-                        e.preventDefault();
-                        const extractedId = match[1];
-                        setFormData({
-                          ...formData,
-                          analytics_config: {
-                            ...formData.analytics_config,
-                            baidu: extractedId,
-                          },
-                        });
-                        setBaiduExtractToast(true);
-                        setTimeout(() => setBaiduExtractToast(false), 3000);
-                      }
-                    }}
-                    className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-blue)]/40 focus:border-transparent"
-                    placeholder="32-char ID or paste <script>"
+                    className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-[var(--color-brand-blue)]/40 focus:border-transparent"
+                    placeholder={t("admin.settingsPage.interface.baiduPlaceholder")}
                   />
                   <p className="mt-1 text-xs text-slate-500">
                     {t("admin.settingsPage.interface.baiduIdHint")}
@@ -435,8 +421,8 @@ export default function SettingsPage() {
                       admin_entrance_key: e.target.value,
                     })
                   }
-                  className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-blue)]/40 focus:border-transparent font-mono"
-                  placeholder="请输入新的后台入口 Key（至少 8 位）"
+                  className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-[var(--color-brand-blue)]/40 focus:border-transparent font-mono"
+                  placeholder={t("admin.settingsPage.access.keyPlaceholder")}
                   required
                 />
                 <p className="mt-1 text-xs text-slate-500">

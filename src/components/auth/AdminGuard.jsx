@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Outlet } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import ErrorPage from "../../pages/ErrorPage";
 import pb from "../../lib/pocketbase";
 import { createAppLogger } from "../../lib/appLogger";
@@ -13,6 +14,7 @@ const logger = createAppLogger("AdminGuard");
  * 如果密钥不匹配，显示 404 错误页面（起到迷惑作用）
  */
 export default function AdminGuard() {
+  const { t } = useTranslation("admin");
   const { adminKey } = useParams();
   const [isValidKey, setIsValidKey] = useState(null); // null = 加载中, true/false = 验证结果
   const [loading, setLoading] = useState(true);
@@ -49,7 +51,7 @@ export default function AdminGuard() {
   if (loading || isValidKey === null) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <div className="text-sm text-slate-500">验证中...</div>
+        <div className="text-sm text-slate-500">{t("guard.verifying")}</div>
       </div>
     );
   }

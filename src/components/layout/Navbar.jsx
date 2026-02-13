@@ -20,6 +20,12 @@ export default function Navbar() {
     { to: "/", label: t("navbar.home", { ns: 'common' }) },
     { to: "/docs", label: t("navbar.docs", { ns: 'common' }) }
   ];
+
+  const getLanguageName = (code) => {
+    if (code === "zh") return t("languageNames.zh");
+    if (code === "ja") return t("languageNames.ja");
+    return t("languageNames.en");
+  };
   // Determine page type: Standard pages (Docs) vs Custom Background (Home)
   const isStandardPage = location.pathname === "/docs" || 
                          location.pathname.startsWith("/docs/") ||
@@ -31,19 +37,25 @@ export default function Navbar() {
   
   return (
     <header className="fixed top-0 w-full z-50 select-none" key={i18n.language}>
-      <nav className={`flex items-center justify-between px-4 md:px-8 py-2 md:py-3 transition-all duration-300 ${
+      <nav className={`flex items-center justify-between px-4 md:px-8 py-2 md:py-3 transition-[background-color,box-shadow] duration-300 ${
         isStandardPage 
           ? "bg-white/80 backdrop-blur-md shadow-sm" 
           : "bg-transparent"
       }`}>
         {/* logo区 */}
         <Link to="/" className="flex items-center gap-2 shrink-0">
-          <img src={ASSETS.IMAGES.NAV_ICON} alt="nav-icon" width={30} height={30} className={isStandardPage ? "" : "drop-shadow-md"} />
+          <img
+            src={ASSETS.IMAGES.NAV_ICON}
+            alt={t("navbar.logoAlt", { ns: "common" })}
+            width={30}
+            height={30}
+            className={isStandardPage ? "" : "drop-shadow-md"}
+          />
           <span className={`font-extrabold text-xl tracking-wider hidden md:inline-block ${
             isStandardPage 
               ? "text-slate-900" 
               : "text-white drop-shadow-md"
-          }`}>莱恩的MC笔记</span>
+          }`}>{t("navbar.siteTitle", { ns: "common" })}</span>
         </Link>
         {/* PC菜单区 */}
         <div className="hidden md:flex gap-5 items-center">
@@ -60,8 +72,10 @@ export default function Navbar() {
           <div className="flex gap-2 ml-5 select-none">
             {LANGS.map((l) => (
               <button
+                type="button"
                 key={l.code}
                 onClick={() => i18n.changeLanguage(l.code)}
+                aria-label={getLanguageName(l.code)}
                 className={
                   "transition-colors text-sm font-bold px-2 py-1 rounded-md " +
                   (i18n.language === l.code ?
@@ -77,7 +91,12 @@ export default function Navbar() {
           </div>
         </div>
         {/* 移动端菜单按钮 */}
-        <button className="md:hidden p-2 rounded focus:outline-none" onClick={()=>setShowMenu(v=>!v)} aria-label="Menu">
+        <button
+          type="button"
+          className="md:hidden p-2 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-blue)]/30"
+          onClick={()=>setShowMenu(v=>!v)}
+          aria-label={showMenu ? t("navbar.closeMenu", { ns: "common" }) : t("navbar.openMenu", { ns: "common" })}
+        >
           {showMenu ? <X size={28} className={isStandardPage ? "text-slate-900" : "text-white drop-shadow-md"} /> : <Menu size={28} className={isStandardPage ? "text-slate-900" : "text-white drop-shadow-md"} />}
         </button>
       </nav>
@@ -98,8 +117,10 @@ export default function Navbar() {
               <div className="flex gap-2 mt-4">
                 {LANGS.map((l) => (
               <button
+                    type="button"
                     key={l.code}
                     onClick={() => {i18n.changeLanguage(l.code);setShowMenu(false);}}
+                    aria-label={getLanguageName(l.code)}
                     className={
                       "transition-colors text-base font-extrabold px-3 py-2 rounded-md " +
                       (i18n.language === l.code ?

@@ -1,5 +1,7 @@
 import { X } from "lucide-react";
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
+import { createPortal } from "react-dom";
 
 /**
  * 通用模态框组件
@@ -11,6 +13,7 @@ import { useEffect } from "react";
  * @param {string} size - 尺寸：'sm', 'md', 'lg', 'xl' (默认 'md')
  */
 export default function Modal({ isOpen, onClose, title, children, size = "md" }) {
+  const { t } = useTranslation("common");
   // 阻止背景滚动
   useEffect(() => {
     if (isOpen) {
@@ -35,6 +38,7 @@ export default function Modal({ isOpen, onClose, title, children, size = "md" })
   }, [isOpen, onClose]);
 
   if (!isOpen) return null;
+  if (typeof document === "undefined") return null;
 
   const sizeClasses = {
     sm: "max-w-md",
@@ -43,9 +47,9 @@ export default function Modal({ isOpen, onClose, title, children, size = "md" })
     xl: "max-w-6xl",
   };
 
-  return (
+  const modalNode = (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-[110] flex items-center justify-center p-4"
       onClick={(e) => {
         // 点击背景关闭
         if (e.target === e.currentTarget) {
@@ -65,23 +69,24 @@ export default function Modal({ isOpen, onClose, title, children, size = "md" })
         {title && (
           <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
             <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
-            <button
-              type="button"
-              onClick={onClose}
-              className="p-2 rounded-lg hover:bg-slate-100 transition-colors"
-              aria-label="关闭"
-            >
+              <button
+                type="button"
+                onClick={onClose}
+                className="p-2 rounded-lg hover:bg-slate-100 transition-colors"
+                aria-label={t("actions.close")}
+              >
               <X className="w-5 h-5 text-slate-600" />
             </button>
           </div>
         )}
 
         {/* 内容 */}
-        <div className="overflow-y-auto max-h-[calc(100vh-8rem)]">
+        <div className="overflow-y-auto overscroll-contain max-h-[calc(100vh-8rem)]">
           {children}
         </div>
       </div>
     </div>
   );
-}
 
+  return createPortal(modalNode, document.body);
+}

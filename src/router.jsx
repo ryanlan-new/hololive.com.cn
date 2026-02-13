@@ -1,5 +1,6 @@
 import { Suspense, lazy } from "react";
 import { createBrowserRouter, Navigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 const Home = lazy(() => import("./pages/Home"));
 const Docs = lazy(() => import("./pages/Docs"));
@@ -29,9 +30,10 @@ const ArticleDetail = lazy(() => import("./pages/ArticleDetail"));
 const VelocityManager = lazy(() => import("./pages/admin/VelocityManager"));
 
 function RouteFallback() {
+  const { t } = useTranslation("common");
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-slate-50 text-slate-500">
-      Loading...
+      {t("routeLoading")}
     </div>
   );
 }

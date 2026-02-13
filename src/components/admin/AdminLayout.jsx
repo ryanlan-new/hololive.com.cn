@@ -330,7 +330,7 @@ export default function AdminLayout() {
             <div className="flex items-center gap-2">
               <LanguageSwitcher />
               <span className="text-[11px] text-slate-500">
-                {user?.email || "Admin"}
+                {user?.email || t("admin.header.notLoggedIn")}
               </span>
             </div>
           </header>
@@ -346,4 +346,3 @@ export default function AdminLayout() {
     </div>
   );
 }
-

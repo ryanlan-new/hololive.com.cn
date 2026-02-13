@@ -5,10 +5,32 @@ const resources = {
   zh: {
     common: {
       serverInfo: '服务器信息',
+      pinned: '置顶',
       icp: '粤ICP备2023071182号-1',
+      routeLoading: '加载中...',
+      actions: {
+        close: '关闭',
+      },
+      banner: {
+        details: '(查看详情)',
+        close: '关闭公告',
+      },
+      feedback: {
+        confirmTitle: '请确认操作',
+        confirm: '确认',
+        cancel: '取消',
+      },
+      errorPage: {
+        backHome: '返回首页',
+        imageAlt: '错误 {{code}}',
+      },
       navbar: {
         home: '首页',
         docs: '文档',
+        siteTitle: '月球厨师莱恩的MC笔记',
+        logoAlt: '站点图标',
+        openMenu: '打开菜单',
+        closeMenu: '关闭菜单',
       },
       languageNames: {
         en: 'English',
@@ -22,13 +44,27 @@ const resources = {
         contactAdmin: '联系网站管理员',
         specialThanks: '特别鸣谢&一些有用的信息',
         holoCNProject: '（旧）hololive China Project',
+        brandName: 'hololive',
         officialSite: '官方网站',
+        social: {
+          youtube: 'YouTube',
+          x: 'X',
+          tiktok: 'TikTok',
+        },
         coverDisclaimer: 'hololive™/hololive production™是日本COVER株式会社旗下的经纪公司品牌。本网站为个人运营非官方站点，请仔细甄别内容。',
         usadaKensetsu: '兔田重工',
         thanksStaff: 'Usada_kidd 等所有帮助过该网站的原字幕组成员',
+        personalSpace: '月球厨师莱恩的个人空间',
+        oldFansub: '（旧）幻夜字幕组',
+        oldTalents: '（旧）hololive China Talents',
+        copyrightOwner: 'Copyright © 2025 月球厨师莱恩',
       },
     },
     home: {
+      common: {
+        loading: '加载中...',
+        empty: '暂无内容',
+      },
       hero1: {
         title: 'HololiveCN MC Server',
         subtitle: '欢迎访问 HololiveCN MC 服务器。请勿泄露您的密码/凭据，也不要向任何人支付费用，谨防诈骗。',
@@ -42,6 +78,10 @@ const resources = {
     docs: {
       title: '文档',
       subtitle: '服务器使用指南与相关信息',
+      common: {
+        loading: '加载中...',
+        backToDocs: '返回文档中心',
+      },
       cards: {
         announcements: {
           title: '网站公告',
@@ -71,6 +111,8 @@ const resources = {
         },
       },
       serverInfo: {
+        empty: '暂无服务器信息',
+        unnamed: '未命名',
         status: {
           title: '实时状态',
           online: '运行中',
@@ -79,9 +121,43 @@ const resources = {
           latency: '在线/延迟',
           latencyOnline: '在线',
           latencyOffline: '离线/未知状态',
+          fetching: '正在获取服务器状态...',
+          fetchFailed: '获取服务器状态失败，请稍后重试',
+          offlineDesc: '服务器当前不可用或无法连接',
           version: '服务端版本',
           motd: '服务器标语',
         },
+        map: {
+          loadError: '加载地图列表失败，请稍后重试',
+          empty: '暂无地图',
+          list: '地图列表',
+          selectOne: '请选择一个地图',
+          fullscreenDialog: '地图全屏视图',
+          enterFullscreen: '网页全屏',
+          exitFullscreen: '退出全屏',
+          mixedContent: {
+            fullscreenTitle: '当前页面为 HTTPS，浏览器会拦截 HTTP iframe',
+            inlineTitle: '浏览器已拦截 HTTP 地图内嵌（HTTPS 页面限制）',
+            mapUrl: '地图地址：{{url}}',
+            notSet: '未设置',
+            openInNewWindow: '新窗口打开地图',
+            openInNewWindowShort: '新窗口打开',
+          },
+        },
+      },
+      websiteAnnouncements: {
+        loadError: '加载公告失败，请稍后重试',
+        empty: '暂无公告',
+      },
+      otherDocuments: {
+        loadError: '加载文档失败，请稍后重试',
+        empty: '暂无文档',
+      },
+      articleDetail: {
+        loadError: '加载文章失败，请稍后重试',
+        notFound: '文章不存在',
+        back: '返回',
+        updatedAt: '更新于 {{date}}',
       },
     },
     admin: {
@@ -133,6 +209,12 @@ const resources = {
         title: "系统设置",
         description: "管理系统全局配置，包括统计与后台入口 Key。",
         loading: "加载系统设置中...",
+        errorLoadPrefix: "加载设置失败",
+        unknownError: "未知错误",
+        validation: {
+          keyTooShort: "后台入口 Key 长度至少 8 位",
+          weakKey: "请勿使用默认后台入口 Key，请设置新的安全值",
+        },
         interface: {
           title: "接口设置",
           sso: "SSO 配置 (Microsoft OAuth)",
@@ -143,6 +225,8 @@ const resources = {
           baiduId: "百度统计 ID (Baidu Analytics)",
           baiduIdHint: "请输入 32 位 ID，支持直接粘贴完整 <script> 代码自动提取",
           baiduExtracted: "✓ 已自动从代码中提取 ID",
+          googlePlaceholder: "G-XXXXXXXXXX",
+          baiduPlaceholder: "32位ID，或粘贴<script>代码",
         },
         access: {
           title: "后台入口设置",
@@ -150,6 +234,7 @@ const resources = {
           warningDesc: "修改此 Key 后，您访问后台的 URL 将立即改变。请确保您记住了新的入口 Key，否则您将无法访问后台管理系统。",
           keyLabel: "后台入口 Key *",
           currentUrl: "当前访问 URL:",
+          keyPlaceholder: "请输入新的后台入口 Key（至少 8 位）",
         },
         modal: {
           title: "确认修改后台入口 Key？",
@@ -174,6 +259,8 @@ const resources = {
         orDev: "或（开发模式）",
         email: "邮箱",
         password: "密码",
+        emailPlaceholder: "your-admin@example.com",
+        passwordPlaceholder: "请输入密码",
         verifying: "验证中...",
         passwordBtn: "使用密码登录",
         footer: "只有授权的管理员才能访问此系统",
@@ -183,12 +270,15 @@ const resources = {
           configError: "OAuth2 配置错误",
           networkError: "网络连接失败",
           failed: "登录失败，请检查邮箱和密码",
+          unknownError: "未知错误",
+          missingEmail: "无法获取用户邮箱信息",
         },
       },
       users: {
         title: "本地管理员管理",
         subtitle: "管理本地管理员账号",
         add: "添加管理员",
+        loading: "加载中…",
         toggle: {
           title: "允许本地账号密码登录",
           desc: "关闭此功能后，后台登录页将仅显示 Microsoft SSO 登录按钮，完全隐藏账号密码输入框。只有通过 Microsoft OAuth2 认证的用户才能登录系统。",
@@ -210,6 +300,7 @@ const resources = {
         modal: {
           addTitle: "添加管理员",
           email: "邮箱地址 *",
+          emailPlaceholder: "admin@example.com",
           password: "密码 *",
           passwordHint: "至少 8 位",
           confirmPassword: "确认密码 *",
@@ -228,7 +319,15 @@ const resources = {
         },
         actions: {
           disable: "禁用",
+          delete: "删除",
           deleted: "账号已禁用",
+        },
+        error: {
+          fetchUsers: "获取管理员列表失败：",
+          updateLoginSetting: "更新本地登录设置失败：",
+          createUser: "创建管理员账号失败：",
+          disableUser: "禁用管理员账号失败：",
+          deleteUser: "删除管理员账号失败：",
         },
       },
       homeManager: {
@@ -263,6 +362,7 @@ const resources = {
         subtitle: "管理公告、文档及更新日志内容。",
         searchPlaceholder: "搜索标题、分类或 slug...",
         new: "新建文章",
+        loading: "加载中…",
         empty: "当前还没有文章",
         emptyDesc: "点击下面的按钮开始创建你的第一篇文章。",
         noResults: "没有符合搜索条件的文章",
@@ -313,6 +413,9 @@ const resources = {
         publicHint: "文章将对所有访客可见",
         draftHint: "仅在后台可见，不对外公开",
         contentLabel: "内容（富文本）*",
+        contentPlaceholder: "在此输入内容...",
+        editorLoading: "加载编辑器中...",
+        imageUploadError: "图片上传失败，请重试",
         slugLabel: "URL 标识 (Slug)",
         slugHint: "用于生成文章 URL，留空将自动根据中文标题生成。",
         toast: {
@@ -329,15 +432,56 @@ const resources = {
       media: {
         title: "资源库",
         subtitle: "管理所有上传的图片、视频和其他文件",
+        manager: {
+          searchPlaceholder: "搜索文件…",
+          tabs: {
+            all: "全部",
+            images: "图片",
+            videos: "视频",
+            files: "其他",
+          },
+          upload: "上传文件",
+          uploading: "上传中…",
+          empty: {
+            noResults: "没有找到符合条件的文件",
+            default: "还没有上传任何文件",
+          },
+          delete: {
+            title: "确认删除",
+            desc: "确定要删除这个文件吗？此操作不可恢复。",
+            confirm: "删除",
+            cancel: "取消",
+          },
+          details: {
+            title: "文件详情",
+            fileName: "文件名：",
+            uploadedAt: "上传时间：",
+            fileUrl: "文件 URL：",
+            unknown: "未知",
+          },
+          actions: {
+            copyUrl: "复制 URL",
+            deleteFile: "删除文件",
+          },
+          toast: {
+            fetchError: "获取媒体列表失败，请重试",
+            uploadError: "上传失败，请重试",
+            deleteError: "删除失败，请重试",
+            copySuccess: "URL 已复制到剪贴板",
+            copyError: "复制失败，请手动复制",
+          },
+        },
       },
       announcements: {
         title: "公告管理",
         subtitle: "管理站点顶部的全局横幅公告，支持多语言与时间范围。",
         new: "新建公告",
+        loading: "加载中…",
         empty: "暂无公告",
         emptyDesc: "创建公告以在网站顶部显示横幅",
         table: {
           content: "内容预览",
+          noContent: "暂无内容",
           link: "链接",
           time: "时间范围",
           status: "状态",
@@ -358,15 +502,20 @@ const resources = {
           editTitle: "编辑公告",
           contentLabel: "多语言内容 *",
           zh: "中文内容 (ZH) *",
+          zhPlaceholder: "输入中文公告内容…",
           en: "英文内容 (EN)",
+          enPlaceholder: "Enter English announcement content…",
           ja: "日文内容 (JA)",
+          jaPlaceholder: "日本語のアナウンス内容を入力…",
           link: "跳转链接（可选）",
+          linkPlaceholder: "https://example.com",
           type: "公告类型",
           typeInfo: "普通 (蓝色)",
           typeUrgent: "紧急 (红色)",
           startTime: "开始时间（可选）",
           endTime: "结束时间（可选）",
           preview: "预览",
+          previewEmpty: "（暂无预览内容）",
           details: "(查看详情) →",
           active: "启用此公告",
           cancel: "取消",
@@ -387,17 +536,26 @@ const resources = {
         empty: "当前还没有地图",
         emptyDesc: "点击上面的按钮开始创建",
         sort: "排序",
+        loading: "加载中...",
+        validation: {
+          invalidUrl: "地图地址格式不正确，请使用 http(s)://host:port/path",
+        },
         form: {
           createTitle: "新建地图",
           editTitle: "编辑地图",
           name: "地图名称 *",
           url: "地图 URL *",
           sort: "排序顺序",
+          namePlaceholder: "例如：主世界地图",
+          urlPlaceholder: "http://127.0.0.1:8123/map (支持非标端口)",
+          urlHint: "支持 `http://` / `https://`，并支持自定义端口（如 `:8123`）。",
+          sortPlaceholder: "0",
           save: "保存",
           cancel: "取消",
         },
         delete: {
           title: "确认删除",
+          confirmHint: "确认删除地图「{{name}}」吗？此操作不可撤销。",
           confirm: "确认",
           cancel: "取消",
         },
@@ -714,6 +872,7 @@ const resources = {
       whitelist: {
         title: "SSO 白名单管理",
         subtitle: "管理允许通过 SSO 登录的邮箱地址",
+        loading: "加载中…",
         buttons: {
           add: "添加白名单",
           edit: "编辑",
@@ -731,6 +890,7 @@ const resources = {
         },
         form: {
           email: "邮箱地址",
+          emailPlaceholder: "user@example.com",
           desc: "备注",
           descPlaceholder: "可选备注信息",
           emailDisabled: "邮箱地址不可修改",
@@ -752,6 +912,7 @@ const resources = {
           fetchError: "获取白名单失败。",
         },
         error: {
+          title: "错误",
           login: "用户未登录",
           permission: "权限不足",
           notFound: "Collection 不存在",
@@ -769,6 +930,7 @@ const resources = {
       },
       mediaLibraryModal: {
         title: "从媒体库选择图片",
+        loading: "加载中…",
         search: "搜索图片...",
         noResults: "没有找到符合条件的图片",
         empty: "媒体库中还没有图片",
@@ -777,15 +939,60 @@ const resources = {
         unknown: "未知",
         fetchError: "获取媒体列表失败",
       },
+      menuBar: {
+        bold: "加粗 (Ctrl+B)",
+        italic: "斜体 (Ctrl+I)",
+        heading1: "标题 1",
+        heading2: "标题 2",
+        heading3: "标题 3",
+        bulletList: "无序列表",
+        orderedList: "有序列表",
+        quote: "引用",
+        link: "插入链接",
+        uploadImage: "上传图片",
+        selectFromLibrary: "从媒体库选择",
+        linkDialog: {
+          title: "插入链接",
+          label: "链接地址",
+          placeholder: "https://example.com",
+          cancel: "取消",
+          confirm: "确认",
+        },
+      },
+      guard: {
+        verifying: "验证中...",
+      },
     },
   },
   en: {
     common: {
       serverInfo: 'Server Info',
+      pinned: 'Pinned',
       icp: '粤ICP备2023071182号-1',
+      routeLoading: 'Loading...',
+      actions: {
+        close: 'Close',
+      },
+      banner: {
+        details: '(View Details)',
+        close: 'Close announcement',
+      },
+      feedback: {
+        confirmTitle: 'Please confirm this action',
+        confirm: 'Confirm',
+        cancel: 'Cancel',
+      },
+      errorPage: {
+        backHome: 'Back to Home',
+        imageAlt: 'Error {{code}}',
+      },
       navbar: {
         home: 'Home',
         docs: 'Docs',
+        siteTitle: "TPMOONCHEFRYAN's MC Notes",
+        logoAlt: 'Site Logo',
+        openMenu: 'Open Menu',
+        closeMenu: 'Close Menu',
       },
       languageNames: {
         en: 'English',
@@ -799,13 +1006,27 @@ const resources = {
         contactAdmin: 'Contact Admin',
         specialThanks: 'Special Thanks & Info',
         holoCNProject: '（旧）hololive China Project',
+        brandName: 'hololive',
         officialSite: 'Official Website',
+        social: {
+          youtube: 'YouTube',
+          x: 'X',
+          tiktok: 'TikTok',
+        },
         coverDisclaimer: 'hololive™ & hololive production™ are trademarks of COVER Corporation. This is a personally operated unofficial site; please verify content independently.',
         usadaKensetsu: 'Usada Kensetsu',
         thanksStaff: 'Usada_kidd and all former sub-members who helped',
+        personalSpace: "TPMOONCHEFRYAN's Bilibili Space",
+        oldFansub: 'Former Phantom Night Fansub',
+        oldTalents: 'Former hololive China Talents',
+        copyrightOwner: 'Copyright © 2025 TPMOONCHEFRYAN',
       },
     },
     home: {
+      common: {
+        loading: 'Loading...',
+        empty: 'No Content',
+      },
       hero1: {
         title: 'HololiveCN MC Server',
         subtitle: 'Welcome to the HololiveCN MC Server. Please do not reveal your password credentials or pay any fees to anyone, and beware of scams.',
@@ -819,6 +1040,10 @@ const resources = {
     docs: {
       title: 'Documentation',
       subtitle: 'Server Guide and Related Information',
+      common: {
+        loading: 'Loading...',
+        backToDocs: 'Back to Docs',
+      },
       cards: {
         announcements: {
           title: 'Website Announcements',
@@ -848,6 +1073,8 @@ const resources = {
         },
       },
       serverInfo: {
+        empty: 'No Server Info',
+        unnamed: 'Unnamed',
         status: {
           title: 'Live Status',
           online: 'Online',
@@ -856,9 +1083,43 @@ const resources = {
           latency: 'Online/Latency',
           latencyOnline: 'Online',
           latencyOffline: 'Offline/Unknown',
+          fetching: 'Fetching server status...',
+          fetchFailed: 'Failed to fetch server status. Please retry later.',
+          offlineDesc: 'Server is currently unavailable or unreachable',
           version: 'Version',
           motd: 'MOTD',
         },
+        map: {
+          loadError: 'Failed to load map list, please retry later',
+          empty: 'No Maps',
+          list: 'Map List',
+          selectOne: 'Please select a map',
+          fullscreenDialog: 'Map fullscreen view',
+          enterFullscreen: 'Fullscreen',
+          exitFullscreen: 'Exit Fullscreen',
+          mixedContent: {
+            fullscreenTitle: 'This page is HTTPS, browser blocks HTTP iframe content',
+            inlineTitle: 'Browser blocked embedded HTTP map due to HTTPS restrictions',
+            mapUrl: 'Map URL: {{url}}',
+            notSet: 'Not set',
+            openInNewWindow: 'Open Map in New Window',
+            openInNewWindowShort: 'Open in New Window',
+          },
+        },
+      },
+      websiteAnnouncements: {
+        loadError: 'Failed to load announcements, please retry later',
+        empty: 'No Announcements',
+      },
+      otherDocuments: {
+        loadError: 'Failed to load documents, please retry later',
+        empty: 'No Documents',
+      },
+      articleDetail: {
+        loadError: 'Failed to load article, please retry later',
+        notFound: 'Article Not Found',
+        back: 'Back',
+        updatedAt: 'Updated at {{date}}',
       },
     },
     admin: {
@@ -910,6 +1171,12 @@ const resources = {
         title: "System Settings",
         description: "Manage global system configurations, including analytics and admin entry key.",
         loading: "Loading system settings...",
+        errorLoadPrefix: "Failed to load settings",
+        unknownError: "Unknown error",
+        validation: {
+          keyTooShort: "Admin Entry Key must be at least 8 characters",
+          weakKey: "Do not use the default admin key. Please set a secure value.",
+        },
         interface: {
           title: "Interface Settings",
           sso: "SSO Config (Microsoft OAuth)",
@@ -920,6 +1187,8 @@ const resources = {
           baiduId: "Baidu Analytics ID",
           baiduIdHint: "Enter 32-digit ID, or paste the full <script> code to auto-extract",
           baiduExtracted: "✓ ID auto-extracted from code",
+          googlePlaceholder: "G-XXXXXXXXXX",
+          baiduPlaceholder: "32-char ID, or paste <script> snippet",
         },
         access: {
           title: "Admin Entry Settings",
@@ -927,6 +1196,7 @@ const resources = {
           warningDesc: "Changing this Key will immediately change your admin access URL. Ensure you remember the new Key, otherwise you may lose access to the admin panel.",
           keyLabel: "Admin Entry Key *",
           currentUrl: "Current URL:",
+          keyPlaceholder: "Enter a new admin key (minimum 8 characters)",
         },
         modal: {
           title: "Confirm Admin Key Change?",
@@ -951,6 +1221,8 @@ const resources = {
         orDev: "OR (Dev Mode)",
         email: "Email",
         password: "Password",
+        emailPlaceholder: "your-admin@example.com",
+        passwordPlaceholder: "Enter password",
         verifying: "Verifying...",
         passwordBtn: "Login with Password",
         footer: "Only authorized administrators can access this system",
@@ -960,12 +1232,15 @@ const resources = {
           configError: "OAuth2 Config Error",
           networkError: "Network Connection Failed",
           failed: "Login failed, check email and password",
+          unknownError: "Unknown error",
+          missingEmail: "Unable to retrieve user email",
         },
       },
       users: {
         title: "Local Admin Management",
         subtitle: "Manage local administrator accounts",
         add: "Add Admin",
+        loading: "Loading…",
         toggle: {
           title: "Allow Local Password Login",
           desc: "Disabling this will hide the password login form, leaving only Microsoft SSO. Only users authenticated via Microsoft OAuth2 will be able to login.",
@@ -987,6 +1262,7 @@ const resources = {
         modal: {
           addTitle: "Add Admin",
           email: "Email *",
+          emailPlaceholder: "admin@example.com",
           password: "Password *",
           passwordHint: "At least 8 chars",
           confirmPassword: "Confirm Password *",
@@ -1005,7 +1281,15 @@ const resources = {
         },
         actions: {
           disable: "Disable",
+          delete: "Delete",
           deleted: "Account disabled",
+        },
+        error: {
+          fetchUsers: "Failed to fetch users:",
+          updateLoginSetting: "Failed to update local login setting:",
+          createUser: "Failed to create user:",
+          disableUser: "Failed to disable user:",
+          deleteUser: "Failed to delete user:",
         },
       },
       homeManager: {
@@ -1040,6 +1324,7 @@ const resources = {
         subtitle: "Manage announcements, documents, and changelogs.",
         searchPlaceholder: "Search title, category or slug...",
         new: "New Post",
+        loading: "Loading…",
         empty: "No posts yet",
         emptyDesc: "Click the button below to create your first post.",
         noResults: "No posts found",
@@ -1090,6 +1375,9 @@ const resources = {
         publicHint: "Visible to all visitors",
         draftHint: "Visible only in admin panel",
         contentLabel: "Content (Rich Text) *",
+        contentPlaceholder: "Type content here...",
+        editorLoading: "Loading editor...",
+        imageUploadError: "Image upload failed, please retry",
         slugLabel: "URL Slug",
         slugHint: "Used for URL. Leave empty to auto-generate from title.",
         toast: {
@@ -1106,15 +1394,56 @@ const resources = {
       media: {
         title: "Media Library",
         subtitle: "Manage all uploaded images, videos, and files",
+        manager: {
+          searchPlaceholder: "Search files…",
+          tabs: {
+            all: "All",
+            images: "Images",
+            videos: "Videos",
+            files: "Other",
+          },
+          upload: "Upload File",
+          uploading: "Uploading…",
+          empty: {
+            noResults: "No matching files found",
+            default: "No files uploaded yet",
+          },
+          delete: {
+            title: "Confirm Delete",
+            desc: "Are you sure you want to delete this file? This action cannot be undone.",
+            confirm: "Delete",
+            cancel: "Cancel",
+          },
+          details: {
+            title: "File Details",
+            fileName: "File Name:",
+            uploadedAt: "Uploaded At:",
+            fileUrl: "File URL:",
+            unknown: "Unknown",
+          },
+          actions: {
+            copyUrl: "Copy URL",
+            deleteFile: "Delete File",
+          },
+          toast: {
+            fetchError: "Failed to fetch media list. Please retry.",
+            uploadError: "Upload failed. Please retry.",
+            deleteError: "Delete failed. Please retry.",
+            copySuccess: "URL copied to clipboard.",
+            copyError: "Copy failed. Please copy manually.",
+          },
+        },
       },
       announcements: {
         title: "Announcements",
         subtitle: "Manage global banner announcements at the top of the site.",
         new: "New Announcement",
+        loading: "Loading…",
         empty: "No announcements yet",
         emptyDesc: "Create announcements to display banners at the top of the site",
         table: {
           content: "Content Preview",
+          noContent: "No content",
           link: "Link",
           time: "Time Range",
           status: "Status",
@@ -1135,15 +1464,20 @@ const resources = {
           editTitle: "Edit Announcement",
           contentLabel: "Multilingual Content *",
           zh: "Chinese Content (ZH) *",
+          zhPlaceholder: "Enter Chinese announcement content…",
           en: "English Content (EN)",
+          enPlaceholder: "Enter English announcement content…",
           ja: "Japanese Content (JA)",
+          jaPlaceholder: "Enter Japanese announcement content…",
           link: "Link (Optional)",
+          linkPlaceholder: "https://example.com",
           type: "Type",
           typeInfo: "Info (Blue)",
           typeUrgent: "Urgent (Red)",
           startTime: "Start Time (Optional)",
           endTime: "End Time (Optional)",
           preview: "Preview",
+          previewEmpty: "(No preview content)",
           details: "(View Details) →",
           active: "Enable Announcement",
           cancel: "Cancel",
@@ -1164,17 +1498,26 @@ const resources = {
         empty: "No maps yet",
         emptyDesc: "Click the button above to create one",
         sort: "Sort",
+        loading: "Loading...",
+        validation: {
+          invalidUrl: "Invalid map URL. Use http(s)://host:port/path",
+        },
         form: {
           createTitle: "New Map",
           editTitle: "Edit Map",
           name: "Map Name *",
           url: "Map URL *",
           sort: "Sort Order",
+          namePlaceholder: "Example: Overworld Map",
+          urlPlaceholder: "http://127.0.0.1:8123/map (custom port supported)",
+          urlHint: "Supports `http://` / `https://` and custom ports such as `:8123`.",
+          sortPlaceholder: "0",
           save: "Save",
           cancel: "Cancel",
         },
         delete: {
           title: "Confirm Delete",
+          confirmHint: "Delete map \"{{name}}\"? This action cannot be undone.",
           confirm: "Confirm",
           cancel: "Cancel",
         },
@@ -1476,6 +1819,7 @@ const resources = {
         whitelist: {
           title: "SSO Whitelist",
           subtitle: "Manage email addresses allowed to login via SSO",
+          loading: "Loading…",
           buttons: {
             add: "Add Whitelist",
             edit: "Edit",
@@ -1493,6 +1837,7 @@ const resources = {
           },
           form: {
             email: "Email Address",
+            emailPlaceholder: "user@example.com",
             desc: "Description",
             descPlaceholder: "Optional description",
             emailDisabled: "Email cannot be modified",
@@ -1514,6 +1859,7 @@ const resources = {
             fetchError: "Failed to fetch whitelist.",
           },
           error: {
+            title: "Error",
             login: "User not logged in",
             permission: "Insufficient permissions",
             notFound: "Collection not found",
@@ -1531,6 +1877,7 @@ const resources = {
         },
         mediaLibraryModal: {
           title: "Select Image from Library",
+          loading: "Loading…",
           search: "Search images...",
           noResults: "No matching images found",
           empty: "No images in media library",
@@ -1539,16 +1886,61 @@ const resources = {
           unknown: "Unknown",
           fetchError: "Failed to fetch media list",
         },
+        menuBar: {
+          bold: "Bold (Ctrl+B)",
+          italic: "Italic (Ctrl+I)",
+          heading1: "Heading 1",
+          heading2: "Heading 2",
+          heading3: "Heading 3",
+          bulletList: "Bullet List",
+          orderedList: "Ordered List",
+          quote: "Quote",
+          link: "Insert Link",
+          uploadImage: "Upload Image",
+          selectFromLibrary: "Select from Media Library",
+          linkDialog: {
+            title: "Insert Link",
+            label: "Link URL",
+            placeholder: "https://example.com",
+            cancel: "Cancel",
+            confirm: "Confirm",
+          },
+        },
+        guard: {
+          verifying: "Verifying...",
+        },
       },
     },
   },
   ja: {
     common: {
       serverInfo: 'サーバー情報',
+      pinned: '固定',
       icp: '粤ICP备2023071182号-1',
+      routeLoading: '読み込み中...',
+      actions: {
+        close: '閉じる',
+      },
+      banner: {
+        details: '(詳細を見る)',
+        close: 'お知らせを閉じる',
+      },
+      feedback: {
+        confirmTitle: '操作を確認してください',
+        confirm: '確認',
+        cancel: 'キャンセル',
+      },
+      errorPage: {
+        backHome: 'ホームに戻る',
+        imageAlt: 'エラー {{code}}',
+      },
       navbar: {
         home: 'ホーム',
         docs: 'ドキュメント',
+        siteTitle: 'TPMOONCHEFRYANのMCノート',
+        logoAlt: 'サイトロゴ',
+        openMenu: 'メニューを開く',
+        closeMenu: 'メニューを閉じる',
       },
       languageNames: {
         en: 'English',
@@ -1562,13 +1954,27 @@ const resources = {
         contactAdmin: '管理者に連絡',
         specialThanks: 'スペシャルサンクス & 情報',
         holoCNProject: '（旧）hololive China Project',
+        brandName: 'hololive',
         officialSite: '公式サイト',
+        social: {
+          youtube: 'YouTube',
+          x: 'X',
+          tiktok: 'TikTok',
+        },
         coverDisclaimer: 'hololive™/hololive production™はカバー株式会社の商標です。当サイトは個人運営の非公式サイトであり、内容の真偽については各自でご判断ください。',
         usadaKensetsu: '兎田建設',
         thanksStaff: 'Usada_kiddをはじめ、協力してくれた旧字幕組の全メンバー',
+        personalSpace: 'TPMOONCHEFRYANのBilibili個人ページ',
+        oldFansub: '旧・幻夜字幕組',
+        oldTalents: '旧・hololive China Talents',
+        copyrightOwner: 'Copyright © 2025 TPMOONCHEFRYAN',
       },
     },
     home: {
+      common: {
+        loading: '読み込み中...',
+        empty: 'コンテンツはありません',
+      },
       hero1: {
         title: 'HololiveCN MC Server',
         subtitle: 'HololiveCN MC サーバーへようこそ。パスワードや認証情報を漏らしたり、金銭を支払ったりしないようご注意ください。詐欺にご注意ください。',
@@ -1582,6 +1988,10 @@ const resources = {
     docs: {
       title: 'ドキュメント',
       subtitle: 'サーバーガイドと関連情報',
+      common: {
+        loading: '読み込み中...',
+        backToDocs: 'ドキュメントに戻る',
+      },
       cards: {
         announcements: {
           title: 'ウェブサイトのお知らせ',
@@ -1611,6 +2021,8 @@ const resources = {
         },
       },
       serverInfo: {
+        empty: 'サーバー情報がありません',
+        unnamed: '未命名',
         status: {
           title: 'リアルタイムステータス',
           online: 'オンライン',
@@ -1619,9 +2031,43 @@ const resources = {
           latency: 'オンライン/レイテンシ',
           latencyOnline: 'オンライン',
           latencyOffline: 'オフライン/不明',
+          fetching: 'サーバーステータスを取得中...',
+          fetchFailed: 'サーバーステータスの取得に失敗しました。後でもう一度お試しください',
+          offlineDesc: 'サーバーは現在利用できないか、接続できません',
           version: 'バージョン',
           motd: 'MOTD',
         },
+        map: {
+          loadError: 'マップ一覧の読み込みに失敗しました。後でもう一度お試しください',
+          empty: 'マップがありません',
+          list: 'マップ一覧',
+          selectOne: 'マップを選択してください',
+          fullscreenDialog: 'マップ全画面表示',
+          enterFullscreen: '全画面',
+          exitFullscreen: '全画面を終了',
+          mixedContent: {
+            fullscreenTitle: 'このページはHTTPSのため、ブラウザがHTTP iframeをブロックします',
+            inlineTitle: 'HTTPS制限により、HTTPマップの埋め込みがブロックされました',
+            mapUrl: 'マップURL：{{url}}',
+            notSet: '未設定',
+            openInNewWindow: 'マップを新しいウィンドウで開く',
+            openInNewWindowShort: '新しいウィンドウで開く',
+          },
+        },
+      },
+      websiteAnnouncements: {
+        loadError: 'お知らせの読み込みに失敗しました。後でもう一度お試しください',
+        empty: 'お知らせはありません',
+      },
+      otherDocuments: {
+        loadError: 'ドキュメントの読み込みに失敗しました。後でもう一度お試しください',
+        empty: 'ドキュメントはありません',
+      },
+      articleDetail: {
+        loadError: '記事の読み込みに失敗しました。後でもう一度お試しください',
+        notFound: '記事が見つかりません',
+        back: '戻る',
+        updatedAt: '{{date}} に更新',
       },
     },
     admin: {
@@ -1673,6 +2119,12 @@ const resources = {
         title: "システム設定",
         description: "統計や管理入口キーを含む、システム全体の構成を管理します。",
         loading: "システム設定を読み込み中...",
+        errorLoadPrefix: "設定の読み込みに失敗しました",
+        unknownError: "不明なエラー",
+        validation: {
+          keyTooShort: "管理入口キーは8文字以上である必要があります",
+          weakKey: "既定の管理キーは使用しないでください。安全な値を設定してください。",
+        },
         interface: {
           title: "インターフェース設定",
           sso: "SSO設定 (Microsoft OAuth)",
@@ -1683,6 +2135,8 @@ const resources = {
           baiduId: "Baidu Analytics ID",
           baiduIdHint: "32桁のIDを入力、または <script> コード全体を貼り付けて自動抽出",
           baiduExtracted: "✓ コードからIDを自動抽出しました",
+          googlePlaceholder: "G-XXXXXXXXXX",
+          baiduPlaceholder: "32文字ID、または<script>コードを貼り付け",
         },
         access: {
           title: "管理アクセス設定",
@@ -1690,6 +2144,7 @@ const resources = {
           warningDesc: "このキーを変更すると、管理画面のURLが即座に変更されます。新しいキーを忘れるとアクセスできなくなる可能性があります。",
           keyLabel: "管理入口キー *",
           currentUrl: "現在のURL:",
+          keyPlaceholder: "新しい管理入口キーを入力（8文字以上）",
         },
         modal: {
           title: "管理キーの変更を確認？",
@@ -1714,6 +2169,8 @@ const resources = {
         orDev: "または（開発モード）",
         email: "メールアドレス",
         password: "パスワード",
+        emailPlaceholder: "your-admin@example.com",
+        passwordPlaceholder: "パスワードを入力",
         verifying: "確認中...",
         passwordBtn: "パスワードでログイン",
         footer: "許可された管理者のみがこのシステムにアクセスできます",
@@ -1723,12 +2180,15 @@ const resources = {
           configError: "OAuth2 設定エラー",
           networkError: "ネットワーク接続失敗",
           failed: "ログインに失敗しました。メールアドレスとパスワードを確認してください",
+          unknownError: "不明なエラー",
+          missingEmail: "ユーザーメールを取得できませんでした",
         },
       },
       users: {
         title: "ローカル管理者管理",
         subtitle: "ローカル管理者アカウントを管理します",
         add: "管理者を追加",
+        loading: "読み込み中…",
         toggle: {
           title: "ローカルパスワードログインを許可",
           desc: "この機能を無効にすると、パスワードログインフォームが非表示になり、Microsoft SSO のみが利用可能になります。",
@@ -1750,6 +2210,7 @@ const resources = {
         modal: {
           addTitle: "管理者を追加",
           email: "メールアドレス *",
+          emailPlaceholder: "admin@example.com",
           password: "パスワード *",
           passwordHint: "8文字以上",
           confirmPassword: "パスワード確認 *",
@@ -1768,7 +2229,15 @@ const resources = {
         },
         actions: {
           disable: "無効化",
+          delete: "削除",
           deleted: "アカウントが無効化されました",
+        },
+        error: {
+          fetchUsers: "管理者一覧の取得に失敗しました：",
+          updateLoginSetting: "ローカルログイン設定の更新に失敗しました：",
+          createUser: "管理者アカウントの作成に失敗しました：",
+          disableUser: "管理者アカウントの無効化に失敗しました：",
+          deleteUser: "管理者アカウントの削除に失敗しました：",
         },
       },
       homeManager: {
@@ -1803,6 +2272,7 @@ const resources = {
         subtitle: "お知らせ、ドキュメント、更新履歴を管理します。",
         searchPlaceholder: "タイトル、カテゴリ、slugで検索...",
         new: "新規記事",
+        loading: "読み込み中…",
         empty: "記事はまだありません",
         emptyDesc: "下のボタンをクリックして最初の記事を作成してください。",
         noResults: "該当する記事が見つかりません",
@@ -1853,6 +2323,9 @@ const resources = {
         publicHint: "すべての訪問者に表示されます",
         draftHint: "管理画面でのみ表示されます",
         contentLabel: "本文 (リッチテキスト) *",
+        contentPlaceholder: "ここに内容を入力...",
+        editorLoading: "エディターを読み込み中...",
+        imageUploadError: "画像のアップロードに失敗しました。再試行してください",
         slugLabel: "URLスラグ",
         slugHint: "URLに使用されます。空欄の場合、自動生成されます。",
         toast: {
@@ -1869,15 +2342,56 @@ const resources = {
       media: {
         title: "メディアライブラリ",
         subtitle: "アップロードされた画像、動画、ファイルを管理します",
+        manager: {
+          searchPlaceholder: "ファイルを検索…",
+          tabs: {
+            all: "すべて",
+            images: "画像",
+            videos: "動画",
+            files: "その他",
+          },
+          upload: "ファイルをアップロード",
+          uploading: "アップロード中…",
+          empty: {
+            noResults: "条件に一致するファイルが見つかりません",
+            default: "まだファイルがアップロードされていません",
+          },
+          delete: {
+            title: "削除確認",
+            desc: "このファイルを削除してもよろしいですか？この操作は元に戻せません。",
+            confirm: "削除",
+            cancel: "キャンセル",
+          },
+          details: {
+            title: "ファイル詳細",
+            fileName: "ファイル名：",
+            uploadedAt: "アップロード日時：",
+            fileUrl: "ファイル URL：",
+            unknown: "不明",
+          },
+          actions: {
+            copyUrl: "URL をコピー",
+            deleteFile: "ファイルを削除",
+          },
+          toast: {
+            fetchError: "メディア一覧の取得に失敗しました。再試行してください。",
+            uploadError: "アップロードに失敗しました。再試行してください。",
+            deleteError: "削除に失敗しました。再試行してください。",
+            copySuccess: "URL をクリップボードにコピーしました。",
+            copyError: "コピーに失敗しました。手動でコピーしてください。",
+          },
+        },
       },
       announcements: {
         title: "お知らせ管理",
         subtitle: "サイト上部のグローバルバナーお知らせを管理します。",
         new: "新規お知らせ",
+        loading: "読み込み中…",
         empty: "お知らせはありません",
         emptyDesc: "お知らせを作成してサイト上部にバナーを表示します",
         table: {
           content: "内容プレビュー",
+          noContent: "内容なし",
           link: "リンク",
           time: "期間",
           status: "ステータス",
@@ -1898,15 +2412,20 @@ const resources = {
           editTitle: "お知らせ編集",
           contentLabel: "多言語コンテンツ *",
           zh: "中国語内容 (ZH) *",
+          zhPlaceholder: "中国語のお知らせ内容を入力…",
           en: "英語内容 (EN)",
+          enPlaceholder: "英語のお知らせ内容を入力…",
           ja: "日本語内容 (JA)",
+          jaPlaceholder: "日本語のアナウンス内容を入力…",
           link: "リンク（任意）",
+          linkPlaceholder: "https://example.com",
           type: "タイプ",
           typeInfo: "情報 (青)",
           typeUrgent: "緊急 (赤)",
           startTime: "開始日時（任意）",
           endTime: "終了日時（任意）",
           preview: "プレビュー",
+          previewEmpty: "（プレビュー内容がありません）",
           details: "(詳細を見る) →",
           active: "このお知らせを有効にする",
           cancel: "キャンセル",
@@ -1927,17 +2446,26 @@ const resources = {
         empty: "マップはまだありません",
         emptyDesc: "上のボタンをクリックして作成してください",
         sort: "順序",
+        loading: "読み込み中...",
+        validation: {
+          invalidUrl: "マップURLの形式が正しくありません。http(s)://host:port/path を使用してください",
+        },
         form: {
           createTitle: "新規マップ",
           editTitle: "マップ編集",
           name: "マップ名 *",
           url: "マップ URL *",
           sort: "表示順",
+          namePlaceholder: "例：メインワールドマップ",
+          urlPlaceholder: "http://127.0.0.1:8123/map（カスタムポート対応）",
+          urlHint: "`http://` / `https://` と、`:8123` のようなカスタムポートをサポートします。",
+          sortPlaceholder: "0",
           save: "保存",
           cancel: "キャンセル",
         },
         delete: {
           title: "削除確認",
+          confirmHint: "マップ「{{name}}」を削除しますか？この操作は取り消せません。",
           confirm: "確認",
           cancel: "キャンセル",
         },
@@ -2261,6 +2789,7 @@ const resources = {
     whitelist: {
       title: "SSOホワイトリスト",
       subtitle: "SSOログインを許可するメールアドレスを管理",
+      loading: "読み込み中…",
       buttons: {
         add: "追加",
         edit: "編集",
@@ -2278,6 +2807,7 @@ const resources = {
       },
       form: {
         email: "メールアドレス",
+        emailPlaceholder: "user@example.com",
         desc: "備考",
         descPlaceholder: "任意の備考",
         emailDisabled: "メールアドレスは変更できません",
@@ -2299,6 +2829,7 @@ const resources = {
         fetchError: "取得に失敗しました。",
       },
       error: {
+        title: "エラー",
         login: "ログインしていません",
         permission: "権限が不足しています",
         notFound: "コレクションが見つかりません",
@@ -2316,6 +2847,7 @@ const resources = {
     },
     mediaLibraryModal: {
       title: "ライブラリから画像を選択",
+      loading: "読み込み中…",
       search: "画像を検索...",
       noResults: "条件に一致する画像が見つかりません",
       empty: "メディアライブラリに画像がありません",
@@ -2323,6 +2855,29 @@ const resources = {
       clickToSelect: "クリックして選択",
       unknown: "不明",
       fetchError: "メディアリストの取得に失敗しました",
+    },
+    menuBar: {
+      bold: "太字 (Ctrl+B)",
+      italic: "斜体 (Ctrl+I)",
+      heading1: "見出し 1",
+      heading2: "見出し 2",
+      heading3: "見出し 3",
+      bulletList: "箇条書き",
+      orderedList: "番号付きリスト",
+      quote: "引用",
+      link: "リンクを挿入",
+      uploadImage: "画像をアップロード",
+      selectFromLibrary: "メディアライブラリから選択",
+      linkDialog: {
+        title: "リンクを挿入",
+        label: "リンクURL",
+        placeholder: "https://example.com",
+        cancel: "キャンセル",
+        confirm: "確認",
+      },
+    },
+    guard: {
+      verifying: "確認中...",
     },
   },
 };

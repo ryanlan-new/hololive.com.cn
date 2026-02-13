@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Server, ArrowLeft, Loader2, Map, Maximize, Minimize, X, Activity, Users, Zap, Info } from "lucide-react";
+import { Server, ArrowLeft, Loader2, Map, Maximize, Minimize, Activity, Users, Zap, Info } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import pb from "../lib/pocketbase";
 import { getServerInfoIcon } from "../lib/serverInfoIcons";
@@ -104,14 +104,14 @@ export default function ServerInfo() {
         setServerStatus({
           data: data.online ? data : null,
           loading: false,
-          error: data.online ? null : "服务器离线",
+          error: data.online ? null : t("serverInfo.status.offline"),
         });
       } catch (err) {
         logger.error("Failed to fetch server status:", err);
         setServerStatus({
           data: null,
           loading: false,
-          error: err.message || "获取服务器状态失败",
+          error: t("serverInfo.status.fetchFailed"),
         });
       }
     };
@@ -121,7 +121,7 @@ export default function ServerInfo() {
     // 每 30 秒刷新一次
     const interval = setInterval(fetchServerStatus, 30000);
     return () => clearInterval(interval);
-  }, [serverHostname]);
+  }, [serverHostname, t]);
 
   useEffect(() => {
     const fetchMaps = async () => {
@@ -151,14 +151,14 @@ export default function ServerInfo() {
         }
       } catch (err) {
         logger.error("Failed to fetch maps:", err);
-        setError("加载地图列表失败，请稍后重试");
+        setError(t("serverInfo.map.loadError"));
       } finally {
         setLoading(false);
       }
     };
 
     fetchMaps();
-  }, [searchParams]);
+  }, [searchParams, t]);
 
   // Get icon component by name
   const getIconComponent = (iconName) => {
@@ -234,12 +234,25 @@ export default function ServerInfo() {
     return () => window.removeEventListener("keydown", handleEsc);
   }, [isMapFullscreen]);
 
+  useEffect(() => {
+    if (!isMapFullscreen) return undefined;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isMapFullscreen]);
 
   return (
     <>
       {/* Fullscreen Map Overlay */}
       {isMapFullscreen && selectedMap && (
-        <div className="fixed inset-0 z-50 w-screen h-screen bg-background flex flex-col">
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={t("serverInfo.map.fullscreenDialog")}
+          className="fixed inset-0 z-[110] w-screen h-screen bg-background flex flex-col"
+        >
           {/* Header with title */}
           <div className="flex items-center justify-between px-6 py-4 bg-slate-50 border-b border-slate-200">
             <h3 className="text-xl font-bold text-slate-900">
@@ -252,10 +265,12 @@ export default function ServerInfo() {
               <div className="w-full h-full flex items-center justify-center bg-slate-100 px-6">
                 <div className="max-w-2xl bg-white border border-amber-200 rounded-xl p-6 shadow-sm">
                   <h4 className="text-lg font-semibold text-amber-900 mb-2">
-                    当前页面为 HTTPS，浏览器会拦截 HTTP iframe
+                    {t("serverInfo.map.mixedContent.fullscreenTitle")}
                   </h4>
                   <p className="text-sm text-amber-800 mb-4 break-all">
-                    地图地址：{selectedMapUrl || "未设置"}
+                    {t("serverInfo.map.mixedContent.mapUrl", {
+                      url: selectedMapUrl || t("serverInfo.map.mixedContent.notSet"),
+                    })}
                   </p>
                   {selectedMapUrl && (
                     <a
@@ -264,7 +279,7 @@ export default function ServerInfo() {
                       rel="noopener noreferrer"
                       className="inline-flex items-center px-4 py-2 rounded-lg bg-amber-500 text-white hover:bg-amber-600 transition-colors"
                     >
-                      新窗口打开地图
+                      {t("serverInfo.map.mixedContent.openInNewWindow")}
                     </a>
                   )}
                 </div>
@@ -279,9 +294,11 @@ export default function ServerInfo() {
             )}
             {/* Exit Fullscreen Button - visible in fullscreen mode */}
             <button
+              type="button"
               onClick={toggleMapFullscreen}
-              className="absolute top-4 right-4 p-3 bg-white/90 hover:bg-white rounded-lg shadow-lg transition-all z-[60] group border border-slate-200"
-              title="退出全屏"
+              className="absolute top-4 right-4 p-3 bg-white/90 hover:bg-white rounded-lg shadow-lg transition-[background-color,color,box-shadow] z-[120] group border border-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-blue)]/30"
+              title={t("serverInfo.map.exitFullscreen")}
+              aria-label={t("serverInfo.map.exitFullscreen")}
             >
               <Minimize size={20} className="text-slate-700 group-hover:text-slate-900" />
             </button>
@@ -303,13 +320,13 @@ export default function ServerInfo() {
             className="inline-flex items-center gap-2 text-slate-600 hover:text-slate-900 mb-4 transition-colors"
           >
             <ArrowLeft size={20} />
-            <span>返回文档中心</span>
+            <span>{t("common.backToDocs")}</span>
           </Link>
           <div className="mb-4">
             <div className="flex items-center gap-3">
               <Server size={32} className="text-green-500" />
               <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900">
-                服务器信息
+                {t("cards.serverInfo.title")}
               </h1>
             </div>
           </div>
@@ -323,20 +340,20 @@ export default function ServerInfo() {
           className="bg-white rounded-xl p-6 mb-6 border border-slate-200 shadow-lg"
         >
           <h2 className="text-xl font-bold text-slate-900 mb-4">
-            服务器信息
+            {t("cards.serverInfo.title")}
           </h2>
           {fieldsLoading ? (
             <div className="flex items-center gap-2 text-slate-600">
               <Loader2 className="w-4 h-4 animate-spin" />
-              <span>加载中...</span>
+              <span>{t("common.loading")}</span>
             </div>
           ) : serverInfoFields.length === 0 ? (
-            <p className="text-slate-500">暂无服务器信息</p>
+            <p className="text-slate-500">{t("serverInfo.empty")}</p>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-slate-900">
               {serverInfoFields.map((field) => {
                 const IconComponent = getIconComponent(field.icon);
-                const label = getText(field.label) || "未命名";
+                const label = getText(field.label) || t("serverInfo.unnamed");
                 const value = getText(field.value) || "";
                 const isUrl = value.startsWith("http://") || value.startsWith("https://");
 
@@ -398,7 +415,7 @@ export default function ServerInfo() {
             {serverStatus.loading ? (
               <div className="flex items-center gap-2 text-slate-600 py-4">
                 <Loader2 className="w-5 h-5 animate-spin" />
-                <span>正在获取服务器状态...</span>
+                <span>{t("serverInfo.status.fetching")}</span>
               </div>
             ) : serverStatus.error || !serverStatus.data ? (
               <div className="flex items-center gap-3 p-4 rounded-lg bg-red-50 border border-red-200">
@@ -408,12 +425,12 @@ export default function ServerInfo() {
                     {t("serverInfo.status.offline")}
                   </p>
                   <p className="text-sm text-red-700 mt-1">
-                    服务器当前不可用或无法连接
+                    {serverStatus.error || t("serverInfo.status.offlineDesc")}
                   </p>
                 </div>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div aria-live="polite" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {/* 在线人数 */}
                 <div className="flex items-start gap-3 p-4 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors">
                   <Users className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
@@ -488,7 +505,7 @@ export default function ServerInfo() {
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20">
             <Loader2 className="w-8 h-8 animate-spin text-slate-400 mb-4" />
-            <p className="text-slate-600">加载中...</p>
+            <p className="text-slate-600">{t("common.loading")}</p>
           </div>
         ) : error ? (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
@@ -497,7 +514,7 @@ export default function ServerInfo() {
         ) : maps.length === 0 ? (
           <div className="bg-white rounded-xl p-8 text-center border border-slate-200">
             <Map size={48} className="text-slate-300 mx-auto mb-4" />
-            <p className="text-slate-900">暂无地图</p>
+            <p className="text-slate-900">{t("serverInfo.map.empty")}</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -511,14 +528,16 @@ export default function ServerInfo() {
               <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-lg">
                 <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
                   <Map size={20} />
-                  地图列表
+                  {t("serverInfo.map.list")}
                 </h3>
                 <div className="space-y-2">
                   {maps.map((map) => (
                     <button
+                      type="button"
                       key={map.id}
                       onClick={() => handleMapSelect(map)}
-                      className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-300 ${
+                      aria-pressed={selectedMap?.id === map.id}
+                      className={`w-full text-left px-4 py-3 rounded-lg transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-blue)]/30 ${
                         selectedMap?.id === map.id
                           ? "bg-blue-500 text-white shadow-lg"
                           : "bg-slate-100 text-slate-900 hover:bg-slate-200"
@@ -547,10 +566,12 @@ export default function ServerInfo() {
                     {mapBlockedByMixedContent ? (
                       <div className="absolute top-0 left-0 w-full h-full rounded-lg border border-amber-200 bg-amber-50 p-4 overflow-auto">
                         <h4 className="text-sm font-semibold text-amber-900 mb-2">
-                          浏览器已拦截 HTTP 地图内嵌（HTTPS 页面限制）
+                          {t("serverInfo.map.mixedContent.inlineTitle")}
                         </h4>
                         <p className="text-xs text-amber-800 mb-3 break-all">
-                          地图地址：{selectedMapUrl || "未设置"}
+                          {t("serverInfo.map.mixedContent.mapUrl", {
+                            url: selectedMapUrl || t("serverInfo.map.mixedContent.notSet"),
+                          })}
                         </p>
                         {selectedMapUrl && (
                           <a
@@ -559,7 +580,7 @@ export default function ServerInfo() {
                             rel="noopener noreferrer"
                             className="inline-flex items-center px-3 py-2 rounded-lg bg-amber-500 text-white hover:bg-amber-600 transition-colors text-sm"
                           >
-                            新窗口打开
+                            {t("serverInfo.map.mixedContent.openInNewWindowShort")}
                           </a>
                         )}
                       </div>
@@ -574,9 +595,11 @@ export default function ServerInfo() {
                     {/* Enter Fullscreen Button - only visible in normal mode */}
                     {!isMapFullscreen && (
                       <button
+                        type="button"
                         onClick={toggleMapFullscreen}
-                        className="absolute top-4 right-4 p-3 bg-white/90 hover:bg-white rounded-lg shadow-lg transition-all z-[60] group"
-                        title="网页全屏"
+                        className="absolute top-4 right-4 p-3 bg-white/90 hover:bg-white rounded-lg shadow-lg transition-[background-color,color,box-shadow] z-[60] group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-blue)]/30"
+                        title={t("serverInfo.map.enterFullscreen")}
+                        aria-label={t("serverInfo.map.enterFullscreen")}
                       >
                         <Maximize size={20} className="text-slate-700 group-hover:text-slate-900" />
                       </button>
@@ -586,7 +609,7 @@ export default function ServerInfo() {
               ) : (
                 <div className="bg-white rounded-xl p-8 text-center border border-slate-200">
                   <Map size={48} className="text-slate-300 mx-auto mb-4" />
-                  <p className="text-slate-900">请选择一个地图</p>
+                  <p className="text-slate-900">{t("serverInfo.map.selectOne")}</p>
                 </div>
               )}
             </motion.div>

@@ -123,7 +123,7 @@ export default function AuditLogs() {
               setFilterActionType(e.target.value);
               setPage(1); // 重置到第一页
             }}
-            className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs md:text-sm text-slate-900 focus:border-[var(--color-brand-blue)] focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-blue)]/30"
+            className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs md:text-sm text-slate-900 focus:border-[var(--color-brand-blue)] focus:ring-2 focus:ring-[var(--color-brand-blue)]/30"
           >
             {actionTypes.map((type) => (
               <option key={type.value} value={type.value}>

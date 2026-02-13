@@ -19,12 +19,12 @@ function AdvancedSettings({ settings, setSettings, t }) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                 <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">{t("admin.velocity.settings.connectionTimeout")}</label>
-                    <input type="number" value={settings.connection_timeout || 5000} onChange={(e) => setSettings({ ...settings, connection_timeout: parseInt(e.target.value) || 5000 })} className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none text-sm" />
+                    <input type="number" value={settings.connection_timeout || 5000} onChange={(e) => setSettings({ ...settings, connection_timeout: parseInt(e.target.value) || 5000 })} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[var(--color-brand-blue)]/20 focus:border-[var(--color-brand-blue)] text-sm" />
                     <p className="mt-1 text-xs text-slate-400">{t("admin.velocity.settings.connectionTimeoutHint")}</p>
                 </div>
                 <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">{t("admin.velocity.settings.readTimeout")}</label>
-                    <input type="number" value={settings.read_timeout || 30000} onChange={(e) => setSettings({ ...settings, read_timeout: parseInt(e.target.value) || 30000 })} className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none text-sm" />
+                    <input type="number" value={settings.read_timeout || 30000} onChange={(e) => setSettings({ ...settings, read_timeout: parseInt(e.target.value) || 30000 })} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[var(--color-brand-blue)]/20 focus:border-[var(--color-brand-blue)] text-sm" />
                     <p className="mt-1 text-xs text-slate-400">{t("admin.velocity.settings.readTimeoutHint")}</p>
                 </div>
             </div>
@@ -33,17 +33,17 @@ function AdvancedSettings({ settings, setSettings, t }) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">{t("admin.velocity.settings.compressionThreshold")}</label>
-                    <input type="number" value={settings.compression_threshold !== undefined ? settings.compression_threshold : 256} onChange={(e) => setSettings({ ...settings, compression_threshold: parseInt(e.target.value) })} className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none text-sm" />
+                    <input type="number" value={settings.compression_threshold !== undefined ? settings.compression_threshold : 256} onChange={(e) => setSettings({ ...settings, compression_threshold: parseInt(e.target.value) })} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[var(--color-brand-blue)]/20 focus:border-[var(--color-brand-blue)] text-sm" />
                     <p className="mt-1 text-xs text-slate-400">{t("admin.velocity.settings.compressionThresholdHint")}</p>
                 </div>
                 <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">{t("admin.velocity.settings.compressionLevel")}</label>
-                    <input type="number" value={settings.compression_level !== undefined ? settings.compression_level : -1} onChange={(e) => setSettings({ ...settings, compression_level: parseInt(e.target.value) })} className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none text-sm" />
+                    <input type="number" value={settings.compression_level !== undefined ? settings.compression_level : -1} onChange={(e) => setSettings({ ...settings, compression_level: parseInt(e.target.value) })} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[var(--color-brand-blue)]/20 focus:border-[var(--color-brand-blue)] text-sm" />
                     <p className="mt-1 text-xs text-slate-400">{t("admin.velocity.settings.compressionLevelHint")}</p>
                 </div>
                 <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">{t("admin.velocity.settings.loginRatelimit")}</label>
-                    <input type="number" value={settings.login_ratelimit || 3000} onChange={(e) => setSettings({ ...settings, login_ratelimit: parseInt(e.target.value) || 3000 })} className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none text-sm" />
+                    <input type="number" value={settings.login_ratelimit || 3000} onChange={(e) => setSettings({ ...settings, login_ratelimit: parseInt(e.target.value) || 3000 })} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[var(--color-brand-blue)]/20 focus:border-[var(--color-brand-blue)] text-sm" />
                     <p className="mt-1 text-xs text-slate-400">{t("admin.velocity.settings.loginRatelimitHint")}</p>
                 </div>
             </div>
@@ -65,11 +65,11 @@ function AdvancedSettings({ settings, setSettings, t }) {
                 </div>
                 <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">{t("admin.velocity.settings.queryPort")}</label>
-                    <input type="number" value={settings.query_port || 25577} onChange={(e) => setSettings({ ...settings, query_port: parseInt(e.target.value) || 25577 })} className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none text-sm" />
+                    <input type="number" value={settings.query_port || 25577} onChange={(e) => setSettings({ ...settings, query_port: parseInt(e.target.value) || 25577 })} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[var(--color-brand-blue)]/20 focus:border-[var(--color-brand-blue)] text-sm" />
                 </div>
                 <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">{t("admin.velocity.settings.queryMap")}</label>
-                    <input type="text" value={settings.query_map || "Velocity"} onChange={(e) => setSettings({ ...settings, query_map: e.target.value })} className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none text-sm" />
+                    <input type="text" value={settings.query_map || "Velocity"} onChange={(e) => setSettings({ ...settings, query_map: e.target.value })} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[var(--color-brand-blue)]/20 focus:border-[var(--color-brand-blue)] text-sm" />
                 </div>
                 <div className="md:col-span-2">
                     <CheckboxField id="query_show_plugins" checked={settings.query_show_plugins || false} onChange={(v) => setSettings({ ...settings, query_show_plugins: v })} label={t("admin.velocity.settings.queryShowPlugins")} />
@@ -93,7 +93,7 @@ export default function SettingsTab({ settings, setSettings, saving, onSave }) {
                         type="text"
                         value={settings.bind_port}
                         onChange={(e) => setSettings({ ...settings, bind_port: e.target.value })}
-                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[var(--color-brand-blue)]/20 focus:border-[var(--color-brand-blue)] outline-none transition-all"
+                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[var(--color-brand-blue)]/20 focus:border-[var(--color-brand-blue)] transition-colors"
                         placeholder="25577"
                     />
                     <p className="mt-1 text-xs text-slate-400">{t("admin.velocity.settings.defaultPort")}</p>
@@ -106,7 +106,7 @@ export default function SettingsTab({ settings, setSettings, saving, onSave }) {
                         type="number"
                         value={settings.max_players}
                         onChange={(e) => setSettings({ ...settings, max_players: parseInt(e.target.value) || 0 })}
-                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[var(--color-brand-blue)]/20 focus:border-[var(--color-brand-blue)] outline-none transition-all"
+                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[var(--color-brand-blue)]/20 focus:border-[var(--color-brand-blue)] transition-colors"
                     />
                 </div>
             </div>
@@ -118,7 +118,7 @@ export default function SettingsTab({ settings, setSettings, saving, onSave }) {
                 <textarea
                     value={settings.motd}
                     onChange={(e) => setSettings({ ...settings, motd: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[var(--color-brand-blue)]/20 focus:border-[var(--color-brand-blue)] outline-none transition-all font-mono text-sm"
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[var(--color-brand-blue)]/20 focus:border-[var(--color-brand-blue)] transition-colors font-mono text-sm"
                     rows="2"
                 />
                 <p className="mt-1 text-xs text-slate-400">{t("admin.velocity.settings.motdHint")}</p>
@@ -132,7 +132,7 @@ export default function SettingsTab({ settings, setSettings, saving, onSave }) {
                     type="text"
                     value={settings.forwarding_secret}
                     onChange={(e) => setSettings({ ...settings, forwarding_secret: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[var(--color-brand-blue)]/20 focus:border-[var(--color-brand-blue)] outline-none transition-all font-mono text-sm bg-slate-50"
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[var(--color-brand-blue)]/20 focus:border-[var(--color-brand-blue)] transition-colors font-mono text-sm bg-slate-50"
                 />
                 <p className="mt-1 text-xs text-slate-400">{t("admin.velocity.settings.secretHint")}</p>
             </div>
@@ -147,7 +147,7 @@ export default function SettingsTab({ settings, setSettings, saving, onSave }) {
                         <select
                             value={settings.player_info_forwarding_mode}
                             onChange={(e) => setSettings({ ...settings, player_info_forwarding_mode: e.target.value })}
-                            className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none text-sm"
+                            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[var(--color-brand-blue)]/20 focus:border-[var(--color-brand-blue)] text-sm"
                         >
                             <option value="modern">{t("admin.velocity.settings.forwardingModeOptions.modern")}</option>
                             <option value="legacy">{t("admin.velocity.settings.forwardingModeOptions.legacy")}</option>
@@ -161,7 +161,7 @@ export default function SettingsTab({ settings, setSettings, saving, onSave }) {
                         <select
                             value={settings.ping_passthrough || "DISABLED"}
                             onChange={(e) => setSettings({ ...settings, ping_passthrough: e.target.value })}
-                            className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none text-sm"
+                            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[var(--color-brand-blue)]/20 focus:border-[var(--color-brand-blue)] text-sm"
                         >
                             <option value="DISABLED">DISABLED</option>
                             <option value="MODS">MODS</option>
@@ -192,19 +192,19 @@ export default function SettingsTab({ settings, setSettings, saving, onSave }) {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label className="block text-sm font-medium text-slate-700 mb-1">{t("admin.velocity.settings.commandRateLimit")}</label>
-                        <input type="number" value={settings.command_rate_limit || 0} onChange={(e) => setSettings({ ...settings, command_rate_limit: parseInt(e.target.value, 10) || 0 })} className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none text-sm" />
+                        <input type="number" value={settings.command_rate_limit || 0} onChange={(e) => setSettings({ ...settings, command_rate_limit: parseInt(e.target.value, 10) || 0 })} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[var(--color-brand-blue)]/20 focus:border-[var(--color-brand-blue)] text-sm" />
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-slate-700 mb-1">{t("admin.velocity.settings.kickAfterRateLimitedCommands")}</label>
-                        <input type="number" value={settings.kick_after_rate_limited_commands || 5} onChange={(e) => setSettings({ ...settings, kick_after_rate_limited_commands: parseInt(e.target.value, 10) || 0 })} className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none text-sm" />
+                        <input type="number" value={settings.kick_after_rate_limited_commands || 5} onChange={(e) => setSettings({ ...settings, kick_after_rate_limited_commands: parseInt(e.target.value, 10) || 0 })} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[var(--color-brand-blue)]/20 focus:border-[var(--color-brand-blue)] text-sm" />
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-slate-700 mb-1">{t("admin.velocity.settings.tabCompleteRateLimit")}</label>
-                        <input type="number" value={settings.tab_complete_rate_limit || 0} onChange={(e) => setSettings({ ...settings, tab_complete_rate_limit: parseInt(e.target.value, 10) || 0 })} className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none text-sm" />
+                        <input type="number" value={settings.tab_complete_rate_limit || 0} onChange={(e) => setSettings({ ...settings, tab_complete_rate_limit: parseInt(e.target.value, 10) || 0 })} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[var(--color-brand-blue)]/20 focus:border-[var(--color-brand-blue)] text-sm" />
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-slate-700 mb-1">{t("admin.velocity.settings.kickAfterRateLimitedTabCompletes")}</label>
-                        <input type="number" value={settings.kick_after_rate_limited_tab_completes || 5} onChange={(e) => setSettings({ ...settings, kick_after_rate_limited_tab_completes: parseInt(e.target.value, 10) || 0 })} className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none text-sm" />
+                        <input type="number" value={settings.kick_after_rate_limited_tab_completes || 5} onChange={(e) => setSettings({ ...settings, kick_after_rate_limited_tab_completes: parseInt(e.target.value, 10) || 0 })} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[var(--color-brand-blue)]/20 focus:border-[var(--color-brand-blue)] text-sm" />
                     </div>
                     <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
                         <CheckboxField id="forward_commands_if_rate_limited" checked={settings.forward_commands_if_rate_limited !== undefined ? settings.forward_commands_if_rate_limited : true} onChange={(v) => setSettings({ ...settings, forward_commands_if_rate_limited: v })} label={t("admin.velocity.settings.forwardCommandsIfRateLimited")} />
@@ -216,7 +216,7 @@ export default function SettingsTab({ settings, setSettings, saving, onSave }) {
                 <button
                     onClick={onSave}
                     disabled={saving}
-                    className="px-6 py-2.5 bg-[var(--color-brand-blue)] text-white font-medium rounded-lg hover:bg-blue-500 hover:shadow-lg hover:shadow-blue-500/30 transition-all disabled:opacity-70 flex items-center gap-2"
+                    className="px-6 py-2.5 bg-[var(--color-brand-blue)] text-white font-medium rounded-lg hover:bg-blue-500 hover:shadow-lg hover:shadow-blue-500/30 transition-[background-color,color,border-color,box-shadow,transform] disabled:opacity-70 flex items-center gap-2"
                 >
                     {saving && <RefreshCw className="w-4 h-4 animate-spin" />}
                     {saving ? t("admin.velocity.settings.saving") : t("admin.velocity.settings.save")}

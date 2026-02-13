@@ -10,6 +10,7 @@ import Modal from "../ui/Modal";
 import MediaManager from "../media/MediaManager";
 import { useUIFeedback } from "../../../hooks/useUIFeedback";
 import { createAppLogger } from "../../../lib/appLogger";
+import { useTranslation } from "react-i18next";
 
 const logger = createAppLogger("RichTextEditor");
 
@@ -17,7 +18,8 @@ const logger = createAppLogger("RichTextEditor");
  * 富文本编辑器组件
  * 基于 Tiptap，支持所见即所得编辑、图片上传等功能
  */
-export default function RichTextEditor({ content, onChange, placeholder = "在此输入内容..." }) {
+export default function RichTextEditor({ content, onChange, placeholder }) {
+  const { t } = useTranslation("admin");
   const fileInputRef = useRef(null);
   const [isMediaLibraryOpen, setIsMediaLibraryOpen] = useState(false);
   const { notify } = useUIFeedback();
@@ -41,7 +43,7 @@ export default function RichTextEditor({ content, onChange, placeholder = "在�
         },
       }),
       Placeholder.configure({
-        placeholder,
+        placeholder: placeholder || t("postEditor.contentPlaceholder"),
       }),
     ],
     content,
@@ -52,7 +54,7 @@ export default function RichTextEditor({ content, onChange, placeholder = "在�
     },
     editorProps: {
       attributes: {
-        class: "prose prose-slate prose-lg max-w-none prose-headings:font-bold prose-headings:text-slate-900 prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline prose-img:rounded-xl prose-img:w-full prose-img:max-w-full prose-blockquote:border-l-slate-300 prose-blockquote:text-slate-700 prose-strong:text-slate-900 focus:outline-none min-h-[300px] px-4 py-3",
+        class: "prose prose-slate prose-lg max-w-none prose-headings:font-bold prose-headings:text-slate-900 prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline prose-img:rounded-xl prose-img:w-full prose-img:max-w-full prose-blockquote:border-l-slate-300 prose-blockquote:text-slate-700 prose-strong:text-slate-900 min-h-[300px] px-4 py-3",
       },
       handlePaste: (view, event) => {
         // 处理粘贴图片
@@ -105,10 +107,10 @@ export default function RichTextEditor({ content, onChange, placeholder = "在�
         editor.chain().focus().setImage({ src: fileUrl }).run();
       } catch (error) {
         logger.error("图片上传失败:", error);
-        notify("图片上传失败，请重试", "error");
+        notify(t("postEditor.imageUploadError"), "error");
       }
     },
-    [editor, notify]
+    [editor, notify, t]
   );
 
   // 处理图片按钮点击
@@ -156,7 +158,7 @@ export default function RichTextEditor({ content, onChange, placeholder = "在�
   if (!editor) {
     return (
       <div className="rounded-2xl border border-slate-200 bg-white shadow-sm min-h-[300px] flex items-center justify-center">
-        <p className="text-sm text-slate-500">加载编辑器中...</p>
+        <p className="text-sm text-slate-500">{t("postEditor.editorLoading")}</p>
       </div>
     );
   }
@@ -183,13 +185,14 @@ export default function RichTextEditor({ content, onChange, placeholder = "在�
       {/* 编辑器内容区 */}
       <EditorContent
         editor={editor}
-        className="prose prose-slate prose-lg max-w-none prose-headings:font-bold prose-headings:text-slate-900 prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline prose-img:rounded-xl prose-img:w-full prose-img:max-w-full prose-blockquote:border-l-slate-300 prose-blockquote:text-slate-700 prose-strong:text-slate-900 focus-within:outline-none"
+        className="prose prose-slate prose-lg max-w-none prose-headings:font-bold prose-headings:text-slate-900 prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline prose-img:rounded-xl prose-img:w-full prose-img:max-w-full prose-blockquote:border-l-slate-300 prose-blockquote:text-slate-700 prose-strong:text-slate-900 focus-within:ring-2 focus-within:ring-[var(--color-brand-blue)]/30 rounded-lg"
       />
 
       {/* 编辑器样式 */}
       <style>{`
         .ProseMirror {
-          outline: none;
+          outline: 2px solid transparent;
+          outline-offset: 2px;
           min-height: 300px;
           padding: 1rem;
         }
@@ -272,7 +275,7 @@ export default function RichTextEditor({ content, onChange, placeholder = "在�
         }
 
         .ProseMirror:focus {
-          outline: none;
+          outline-color: var(--color-brand-blue);
         }
       `}</style>
       </div>
@@ -281,7 +284,7 @@ export default function RichTextEditor({ content, onChange, placeholder = "在�
       <Modal
         isOpen={isMediaLibraryOpen}
         onClose={() => setIsMediaLibraryOpen(false)}
-        title="从媒体库选择图片"
+        title={t("mediaLibraryModal.title")}
         size="xl"
       >
         <div className="p-6">

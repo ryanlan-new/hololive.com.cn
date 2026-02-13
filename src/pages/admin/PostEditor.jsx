@@ -1,10 +1,8 @@
-import { useState, useEffect } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { Save, ArrowLeft, Loader2, Pin, Languages } from "lucide-react";
 import pb from "../../lib/pocketbase";
-import RichTextEditor from "../../components/admin/editor/RichTextEditor";
 import ImagePicker from "../../components/admin/ImagePicker";
-import { detectSourceLanguage, translateFields } from "../../lib/translation";
 import { logCreate, logUpdate } from "../../lib/logger";
 import { useTranslation } from "react-i18next";
 import { createAppLogger } from "../../lib/appLogger";
@@ -14,6 +12,7 @@ import { createAppLogger } from "../../lib/appLogger";
  * 支持新建 (Create) 和编辑 (Edit) 两种模式
  */
 const logger = createAppLogger("PostEditor");
+const RichTextEditor = lazy(() => import("../../components/admin/editor/RichTextEditor"));
 
 export default function PostEditor() {
   const { adminKey, id } = useParams();
@@ -136,6 +135,7 @@ export default function PostEditor() {
       const fieldsToTranslate = ["title", "summary", "content"];
       const updatedFormData = { ...formData };
       let translatedCount = 0;
+      const { detectSourceLanguage, translateFields } = await import("../../lib/translation");
 
       for (let i = 0; i < fieldsToTranslate.length; i++) {
         const fieldName = fieldsToTranslate[i];
@@ -272,7 +272,7 @@ export default function PostEditor() {
       {loading ? (
         <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center shadow-sm">
           <Loader2 className="w-7 h-7 animate-spin text-slate-400 mx-auto mb-3" />
-          <p className="text-sm text-slate-500">Loading...</p>
+          <p className="text-sm text-slate-500">{t("admin.posts.loading")}</p>
         </div>
       ) : (
         <div className="space-y-5">
@@ -361,7 +361,7 @@ export default function PostEditor() {
                       type="text"
                       value={formData.title[activeLang] || ""}
                       onChange={(e) => handleTitleChange(e.target.value)}
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50/60 px-3.5 py-2.5 text-base md:text-lg font-semibold text-slate-900 focus:border-[var(--color-brand-blue)] focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-blue)]/30"
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50/60 px-3.5 py-2.5 text-base md:text-lg font-semibold text-slate-900 focus:border-[var(--color-brand-blue)] focus:ring-2 focus:ring-[var(--color-brand-blue)]/30"
                       placeholder={t("admin.postEditor.titlePlaceholder")}
                       required
                     />
@@ -385,7 +385,7 @@ export default function PostEditor() {
                       }
                       rows={3}
                       maxLength={500}
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50/60 px-3.5 py-2.5 text-sm text-slate-900 focus:border-[var(--color-brand-blue)] focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-blue)]/30 resize-none"
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50/60 px-3.5 py-2.5 text-sm text-slate-900 focus:border-[var(--color-brand-blue)] focus:ring-2 focus:ring-[var(--color-brand-blue)]/30 resize-none"
                       placeholder={t("admin.postEditor.summaryPlaceholder")}
                     />
                     <p className="text-[11px] text-slate-500">
@@ -450,7 +450,7 @@ export default function PostEditor() {
                             category: e.target.value,
                           }))
                         }
-                        className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-[var(--color-brand-blue)] focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-blue)]/30"
+                        className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-[var(--color-brand-blue)] focus:ring-2 focus:ring-[var(--color-brand-blue)]/30"
                       >
                         {categories.map((cat) => (
                           <option key={cat} value={cat}>
@@ -495,20 +495,28 @@ export default function PostEditor() {
                   <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide">
                     {t("admin.postEditor.contentLabel")} ({languages.find((l) => l.code === activeLang)?.label})
                   </label>
-                  <RichTextEditor
-                    key={activeLang} // 使用 key 强制重新渲染编辑器
-                    content={formData.content[activeLang] || ""}
-                    onChange={(html) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        content: {
-                          ...prev.content,
-                          [activeLang]: html,
-                        },
-                      }))
-                    }
-                    placeholder={`...`}
-                  />
+                  <Suspense
+                    fallback={(
+                      <div className="rounded-2xl border border-slate-200 bg-white shadow-sm min-h-[300px] flex items-center justify-center">
+                        <p className="text-sm text-slate-500">{t("admin.postEditor.editorLoading")}</p>
+                      </div>
+                    )}
+                  >
+                    <RichTextEditor
+                      key={activeLang} // 使用 key 强制重新渲染编辑器
+                      content={formData.content[activeLang] || ""}
+                      onChange={(html) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          content: {
+                            ...prev.content,
+                            [activeLang]: html,
+                          },
+                        }))
+                      }
+                      placeholder={t("admin.postEditor.contentPlaceholder")}
+                    />
+                  </Suspense>
                 </div>
               </div>
 
@@ -527,7 +535,7 @@ export default function PostEditor() {
                         slug: e.target.value,
                       }))
                     }
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs md:text-sm font-mono text-slate-900 focus:border-[var(--color-brand-blue)] focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-blue)]/30"
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs md:text-sm font-mono text-slate-900 focus:border-[var(--color-brand-blue)] focus:ring-2 focus:ring-[var(--color-brand-blue)]/30"
                     placeholder="article-slug"
                   />
                   <p className="text-[11px] text-slate-500">

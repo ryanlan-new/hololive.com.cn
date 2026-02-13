@@ -7,6 +7,8 @@ import parse from "html-react-parser";
 import pb from "../lib/pocketbase";
 import { getLocalizedContent } from "../utils/postHelpers";
 import { createAppLogger } from "../lib/appLogger";
+import { formatLocalizedDate } from "../utils/localeFormat";
+import { POST_CATEGORIES } from "../constants/postCategories";
 
 const logger = createAppLogger("ArticleDetail");
 
@@ -44,7 +46,7 @@ const sanitizeRichText = (html) => {
 
 export default function ArticleDetail() {
   const { id } = useParams();
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation("docs");
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -61,7 +63,7 @@ export default function ArticleDetail() {
         setError(null);
       } catch (err) {
         logger.error("Failed to fetch article:", err);
-        setError("加载文章失败，请稍后重试");
+        setError(t("articleDetail.loadError"));
       } finally {
         setLoading(false);
       }
@@ -70,23 +72,13 @@ export default function ArticleDetail() {
     if (id) {
       fetchPost();
     }
-  }, [id]);
-
-  const formatDate = (dateString) => {
-    if (!dateString) return "";
-    const date = new Date(dateString);
-    return date.toLocaleDateString("zh-CN", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  };
+  }, [id, t]);
 
   // Determine back link based on category
   const getBackLink = () => {
     if (!post) return "/docs";
-    if (post.category === "公告") return "/docs/announcements";
-    if (post.category === "文档") return "/docs/documents";
+    if (post.category === POST_CATEGORIES.ANNOUNCEMENT) return "/docs/announcements";
+    if (post.category === POST_CATEGORIES.DOCUMENT) return "/docs/documents";
     return "/docs";
   };
 
@@ -104,7 +96,7 @@ export default function ArticleDetail() {
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20">
             <Loader2 className="w-8 h-8 animate-spin text-slate-400 mb-4" />
-            <p className="text-slate-600">加载中...</p>
+            <p className="text-slate-600">{t("common.loading")}</p>
           </div>
         ) : error ? (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
@@ -112,13 +104,13 @@ export default function ArticleDetail() {
           </div>
         ) : !post ? (
           <div className="bg-white rounded-xl p-8 text-center border border-slate-200">
-            <p className="text-slate-900">文章不存在</p>
+            <p className="text-slate-900">{t("articleDetail.notFound")}</p>
             <Link
               to="/docs"
               className="mt-4 inline-flex items-center gap-2 text-blue-600 hover:text-blue-800"
             >
               <ArrowLeft size={16} />
-              返回文档中心
+              {t("common.backToDocs")}
             </Link>
           </div>
         ) : (
@@ -135,7 +127,7 @@ export default function ArticleDetail() {
                 className="inline-flex items-center gap-2 text-slate-600 hover:text-slate-900 mb-4 transition-colors"
               >
                 <ArrowLeft size={20} />
-                <span>返回</span>
+                <span>{t("articleDetail.back")}</span>
               </Link>
             </motion.div>
 
@@ -164,7 +156,11 @@ export default function ArticleDetail() {
                 </h1>
                 <div className="flex items-center gap-2 text-sm text-slate-600">
                   <Calendar size={16} />
-                  <span>更新于 {formatDate(post.updated)}</span>
+                  <span>
+                    {t("articleDetail.updatedAt", {
+                      date: formatLocalizedDate(post.updated, i18n.language),
+                    })}
+                  </span>
                 </div>
               </header>
 
