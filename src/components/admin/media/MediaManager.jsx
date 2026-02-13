@@ -10,6 +10,7 @@ import {
   Loader2,
 } from "lucide-react";
 import pb from "../../../lib/pocketbase";
+import { useUIFeedback } from "../../../hooks/useUIFeedback";
 
 /**
  * 通用资源管理组件
@@ -19,6 +20,7 @@ import pb from "../../../lib/pocketbase";
  * @param {Function} closeModal - 可选，关闭模态框的函数
  */
 export default function MediaManager({ onSelect, closeModal }) {
+  const { notify, confirm } = useUIFeedback();
   const [mediaList, setMediaList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -38,7 +40,7 @@ export default function MediaManager({ onSelect, closeModal }) {
       setMediaList(result.items);
     } catch (error) {
       console.error("获取媒体列表失败:", error);
-      alert("获取媒体列表失败，请重试");
+      notify("获取媒体列表失败，请重试", "error");
     } finally {
       setLoading(false);
     }
@@ -61,7 +63,7 @@ export default function MediaManager({ onSelect, closeModal }) {
       await fetchMedia(); // 刷新列表
     } catch (error) {
       console.error("上传失败:", error);
-      alert("上传失败，请重试");
+      notify("上传失败，请重试", "error");
     } finally {
       setUploading(false);
       if (fileInputRef.current) {
@@ -72,7 +74,14 @@ export default function MediaManager({ onSelect, closeModal }) {
 
   // 删除文件
   const handleDelete = async (id) => {
-    if (!window.confirm("确定要删除这个文件吗？此操作不可恢复。")) {
+    const accepted = await confirm({
+      title: "确认删除",
+      message: "确定要删除这个文件吗？此操作不可恢复。",
+      danger: true,
+      confirmText: "删除",
+      cancelText: "取消",
+    });
+    if (!accepted) {
       return;
     }
 
@@ -82,7 +91,7 @@ export default function MediaManager({ onSelect, closeModal }) {
       setSelectedMedia(null);
     } catch (error) {
       console.error("删除失败:", error);
-      alert("删除失败，请重试");
+      notify("删除失败，请重试", "error");
     }
   };
 
@@ -367,9 +376,14 @@ export default function MediaManager({ onSelect, closeModal }) {
               <div className="mt-6 flex items-center justify-end gap-3">
                 <button
                   type="button"
-                  onClick={() => {
-                    navigator.clipboard.writeText(getFileUrl(selectedMedia));
-                    alert("URL 已复制到剪贴板");
+                  onClick={async () => {
+                    try {
+                      await navigator.clipboard.writeText(getFileUrl(selectedMedia));
+                      notify("URL 已复制到剪贴板", "success");
+                    } catch (error) {
+                      console.error("复制 URL 失败:", error);
+                      notify("复制失败，请手动复制", "error");
+                    }
                   }}
                   className="px-4 py-2 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 transition-colors text-sm font-medium"
                 >
@@ -390,4 +404,3 @@ export default function MediaManager({ onSelect, closeModal }) {
     </div>
   );
 }
-

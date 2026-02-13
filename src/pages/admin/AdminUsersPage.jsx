@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Plus, Trash2, Loader2, User, UserX, X, Save, AlertTriangle } from "lucide-react";
 import pb from "../../lib/pocketbase";
 import { useTranslation } from "react-i18next";
+import { useUIFeedback } from "../../hooks/useUIFeedback";
 
 /**
  * 本地管理员账号管理页面
@@ -9,6 +10,7 @@ import { useTranslation } from "react-i18next";
  */
 export default function AdminUsersPage() {
   const { t } = useTranslation();
+  const { notify } = useUIFeedback();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState(null);
@@ -38,7 +40,7 @@ export default function AdminUsersPage() {
         error?.response ||
         error?.message ||
         error;
-      alert("Error fetching users: " + JSON.stringify(detail));
+      notify("Error fetching users: " + JSON.stringify(detail), "error");
     } finally {
       setLoading(false);
     }
@@ -72,7 +74,7 @@ export default function AdminUsersPage() {
         error?.response ||
         error?.message ||
         error;
-      alert("Error updating login setting: " + JSON.stringify(detail));
+      notify("Error updating login setting: " + JSON.stringify(detail), "error");
     } finally {
       setUpdatingLoginSetting(false);
     }
@@ -108,12 +110,12 @@ export default function AdminUsersPage() {
 
     // 验证密码
     if (formData.password !== formData.passwordConfirm) {
-      alert(t("admin.users.modal.passwordMismatch"));
+      notify(t("admin.users.modal.passwordMismatch"), "warning");
       return;
     }
 
     if (formData.password.length < 8) {
-      alert(t("admin.users.modal.passwordTooShort"));
+      notify(t("admin.users.modal.passwordTooShort"), "warning");
       return;
     }
 
@@ -125,7 +127,7 @@ export default function AdminUsersPage() {
         emailVisibility: true,
       };
       await pb.collection("users").create(payload);
-      alert(t("admin.users.modal.success"));
+      notify(t("admin.users.modal.success"), "success");
       setShowForm(false);
       setFormData({ email: "", password: "", passwordConfirm: "" });
       await fetchUsers();
@@ -137,7 +139,7 @@ export default function AdminUsersPage() {
         error?.response ||
         error?.message ||
         error;
-      alert("Error creating user: " + JSON.stringify(detail));
+      notify("Error creating user: " + JSON.stringify(detail), "error");
     }
   };
 
@@ -147,7 +149,7 @@ export default function AdminUsersPage() {
       await pb.collection("users").update(userId, {
         verified: false,
       });
-      alert(t("admin.users.actions.deleted"));
+      notify(t("admin.users.actions.deleted"), "success");
       await fetchUsers();
     } catch (error) {
       console.error("Failed to disable user:", error);
@@ -157,7 +159,7 @@ export default function AdminUsersPage() {
         error?.response ||
         error?.message ||
         error;
-      alert("Error disabling user: " + JSON.stringify(detail));
+      notify("Error disabling user: " + JSON.stringify(detail), "error");
     }
   };
 
@@ -176,7 +178,7 @@ export default function AdminUsersPage() {
         error?.response ||
         error?.message ||
         error;
-      alert("Error deleting user: " + JSON.stringify(detail));
+      notify("Error deleting user: " + JSON.stringify(detail), "error");
     } finally {
       setDeletingId(null);
     }

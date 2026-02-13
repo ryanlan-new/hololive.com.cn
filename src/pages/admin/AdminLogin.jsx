@@ -5,6 +5,7 @@ import pb from "../../lib/pocketbase";
 import { ALLOWED_ADMINS } from "../../config/auth_whitelist";
 import { logLogin } from "../../lib/logger";
 import { useTranslation } from "react-i18next";
+import { useUIFeedback } from "../../hooks/useUIFeedback";
 
 /**
  * Microsoft 四色方块 Logo SVG 组件
@@ -29,6 +30,7 @@ const MicrosoftLogo = ({ className = "w-5 h-5" }) => (
  */
 export default function AdminLogin() {
   const { t } = useTranslation();
+  const { notify } = useUIFeedback();
   const [microsoftLoading, setMicrosoftLoading] = useState(false);
   const [localLoading, setLocalLoading] = useState(false);
   const [email, setEmail] = useState("");
@@ -164,7 +166,7 @@ export default function AdminLogin() {
 
       // 白名单验证失败
       if (errorMessage === "Email not whitelisted" || errorMessage?.includes("白名单")) {
-        alert(t("admin.login.alerts.notWhitelisted"));
+        notify(t("admin.login.alerts.notWhitelisted"), "error");
         return;
       }
 
@@ -173,19 +175,20 @@ export default function AdminLogin() {
         errorMessage?.includes("cancel") ||
         errorMessage?.includes("aborted")
       ) {
-        alert(t("admin.login.alerts.cancelled"));
+        notify(t("admin.login.alerts.cancelled"), "info");
         return;
       }
 
       // 网络错误
       if (errorMessage?.includes("network")) {
-        alert(t("admin.login.alerts.networkError"));
+        notify(t("admin.login.alerts.networkError"), "error");
         return;
       }
 
-      alert(
+      notify(
         `${t("admin.login.alerts.failed")}\n\n` +
-        `Error: ${errorMessage}`
+        `Error: ${errorMessage}`,
+        "error"
       );
     } finally {
       setMicrosoftLoading(false);
@@ -224,7 +227,7 @@ export default function AdminLogin() {
       ) {
         errorMessage = t("admin.login.alerts.notWhitelisted");
       }
-      alert(errorMessage);
+      notify(errorMessage, "error");
     } finally {
       setLocalLoading(false);
     }

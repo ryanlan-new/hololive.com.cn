@@ -8,6 +8,7 @@ import pb from "../../../lib/pocketbase";
 import MenuBar from "./MenuBar";
 import Modal from "../ui/Modal";
 import MediaManager from "../media/MediaManager";
+import { useUIFeedback } from "../../../hooks/useUIFeedback";
 
 /**
  * 富文本编辑器组件
@@ -16,6 +17,7 @@ import MediaManager from "../media/MediaManager";
 export default function RichTextEditor({ content, onChange, placeholder = "在此输入内容..." }) {
   const fileInputRef = useRef(null);
   const [isMediaLibraryOpen, setIsMediaLibraryOpen] = useState(false);
+  const { notify } = useUIFeedback();
 
   // 初始化编辑器
   const editor = useEditor({
@@ -100,10 +102,10 @@ export default function RichTextEditor({ content, onChange, placeholder = "在�
         editor.chain().focus().setImage({ src: fileUrl }).run();
       } catch (error) {
         console.error("图片上传失败:", error);
-        alert("图片上传失败，请重试");
+        notify("图片上传失败，请重试", "error");
       }
     },
-    [editor]
+    [editor, notify]
   );
 
   // 处理图片按钮点击
@@ -289,4 +291,3 @@ export default function RichTextEditor({ content, onChange, placeholder = "在�
     </>
   );
 }
-

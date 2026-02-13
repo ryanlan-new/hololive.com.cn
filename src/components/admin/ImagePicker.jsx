@@ -3,6 +3,7 @@ import { Upload, Image as ImageIcon, X, Loader2 } from "lucide-react";
 import pb from "../../lib/pocketbase";
 import MediaLibraryModal from "./MediaLibraryModal";
 import { useTranslation } from "react-i18next";
+import { useUIFeedback } from "../../hooks/useUIFeedback";
 
 /**
  * ImagePicker Component
@@ -15,6 +16,7 @@ import { useTranslation } from "react-i18next";
  */
 export default function ImagePicker({ value, onChange, previewUrl, label }) {
   const { t } = useTranslation();
+  const { notify } = useUIFeedback();
   const [uploading, setUploading] = useState(false);
   const [showMediaLibrary, setShowMediaLibrary] = useState(false);
   const [preview, setPreview] = useState(null);
@@ -71,7 +73,7 @@ export default function ImagePicker({ value, onChange, previewUrl, label }) {
       }
     } catch (error) {
       console.error("上传失败:", error);
-      alert(t("admin.imagePicker.uploadError") + ", " + t("admin.imagePicker.retry"));
+      notify(`${t("admin.imagePicker.uploadError")}, ${t("admin.imagePicker.retry")}`, "error");
     } finally {
       setUploading(false);
       if (fileInputRef.current) {

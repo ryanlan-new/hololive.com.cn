@@ -1,9 +1,11 @@
 import { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import pb from "../lib/pocketbase";
+import { useUIFeedback } from "./useUIFeedback";
 
 export default function useVelocityData() {
     const { t } = useTranslation();
+    const { notify, confirm } = useUIFeedback();
     const [activeTab, setActiveTab] = useState("dashboard");
     const [settings, setSettings] = useState(null);
     const [servers, setServers] = useState([]);
@@ -48,11 +50,11 @@ export default function useVelocityData() {
             }
         } catch (err) {
             console.error("Failed to fetch Velocity data:", err);
-            alert(t("admin.dashboard.error.loadFailed"));
+            notify(t("admin.dashboard.error.loadFailed"), "error");
         } finally {
             setLoading(false);
         }
-    }, [t, isMissingCollectionError]);
+    }, [t, isMissingCollectionError, notify]);
 
     useEffect(() => {
         fetchData();
@@ -130,12 +132,12 @@ export default function useVelocityData() {
     };
 
     const handleDeleteServer = async (id) => {
-        if (!window.confirm(t("admin.velocity.modal.deleteConfirm"))) return;
+        if (!(await confirm({ message: t("admin.velocity.modal.deleteConfirm"), danger: true }))) return;
         try {
             await pb.collection('velocity_servers').delete(id);
         } catch (err) {
             console.error(err);
-            alert(t("admin.velocity.actions.deleteServerError"));
+            notify(t("admin.velocity.actions.deleteServerError"), "error");
         }
     };
 
@@ -153,7 +155,7 @@ export default function useVelocityData() {
             setNewServer({ name: "", address: "", try_order: 0, is_try_server: false });
         } catch (err) {
             console.error(err);
-            alert(t("admin.velocity.actions.addServerError"));
+            notify(t("admin.velocity.actions.addServerError"), "error");
         } finally {
             setSaving(false);
         }
@@ -164,10 +166,10 @@ export default function useVelocityData() {
         setSaving(true);
         try {
             await pb.collection("velocity_settings").update(settingsId, settings);
-            alert(t("admin.velocity.settings.success"));
+            notify(t("admin.velocity.settings.success"), "success");
         } catch (err) {
             console.error("Failed to save settings:", err);
-            alert(t("admin.velocity.settings.error"));
+            notify(t("admin.velocity.settings.error"), "error");
         } finally {
             setSaving(false);
         }
@@ -175,7 +177,7 @@ export default function useVelocityData() {
 
     const handleRestartProxy = async () => {
         if (!settingsId) return;
-        if (!window.confirm(t("admin.velocity.actions.confirmRestart"))) return;
+        if (!(await confirm({ message: t("admin.velocity.actions.confirmRestart"), danger: true }))) return;
         setRestarting(true);
         try {
             await pb.collection("velocity_settings").update(settingsId, {
@@ -184,7 +186,7 @@ export default function useVelocityData() {
         } catch (err) {
             console.error("Failed to restart:", err);
             setRestarting(false);
-            alert(t("admin.velocity.actions.restartError"));
+            notify(t("admin.velocity.actions.restartError"), "error");
         }
     };
 
@@ -211,18 +213,18 @@ export default function useVelocityData() {
             setForcedHosts(list);
         } catch (err) {
             console.error(err);
-            alert(t("admin.velocity.actions.addError"));
+            notify(t("admin.velocity.actions.addError"), "error");
         }
     };
 
     const handleDeleteForcedHost = async (id) => {
-        if (!window.confirm(t("admin.velocity.actions.confirmDelete"))) return;
+        if (!(await confirm({ message: t("admin.velocity.actions.confirmDelete"), danger: true }))) return;
         try {
             await pb.collection("velocity_forced_hosts").delete(id);
             setForcedHosts(prev => prev.filter(h => h.id !== id));
         } catch (err) {
             console.error(err);
-            alert(t("admin.velocity.actions.deleteError"));
+            notify(t("admin.velocity.actions.deleteError"), "error");
         }
     };
 
@@ -235,11 +237,11 @@ export default function useVelocityData() {
             formData.append("velocity_jar", file);
             formData.append("jar_version", file.name);
             await pb.collection("velocity_settings").update(settingsId, formData);
-            alert(t("admin.velocity.update.success"));
+            notify(t("admin.velocity.update.success"), "success");
             fetchData();
         } catch (err) {
             console.error("Upload failed:", err);
-            alert(t("admin.velocity.update.error"));
+            notify(t("admin.velocity.update.error"), "error");
         } finally {
             setUploading(false);
         }

@@ -4,6 +4,7 @@ import { Save, Loader2, Settings, AlertTriangle } from "lucide-react";
 import pb from "../../lib/pocketbase";
 import { logSystemSettings } from "../../lib/logger";
 import { useTranslation } from "react-i18next";
+import { useUIFeedback } from "../../hooks/useUIFeedback";
 
 const SETTINGS_ID = "1"; // 单例模式，固定 ID
 
@@ -13,6 +14,7 @@ const SETTINGS_ID = "1"; // 单例模式，固定 ID
  */
 export default function SettingsPage() {
   const { t } = useTranslation();
+  const { notify, confirm } = useUIFeedback();
   const { adminKey } = useParams();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -54,12 +56,12 @@ export default function SettingsPage() {
         });
       } else {
         setError(t("admin.settingsPage.error"));
-        alert("Error loading settings: " + (error?.message || "unknown error"));
+        notify("Error loading settings: " + (error?.message || "unknown error"), "error");
       }
     } finally {
       setLoading(false);
     }
-  }, [t]);
+  }, [t, notify]);
 
   useEffect(() => {
     fetchSettings();
@@ -67,22 +69,28 @@ export default function SettingsPage() {
 
   // 检查当前 URL 中的 Key 是否与数据库中的 Key 一致
   useEffect(() => {
-    if (settings && settings.admin_entrance_key) {
-      const dbKey = settings.admin_entrance_key;
-      if (adminKey !== dbKey) {
-        // Key 不匹配，显示警告
-        const currentUrl = window.location.href;
-        const newUrl = currentUrl.replace(`/${adminKey}/`, `/${dbKey}/`);
-        if (
-          confirm(
-            `${t("admin.settingsPage.modal.title")}\n\n${t("admin.settingsPage.modal.desc")}\n\n${t("admin.settingsPage.modal.dbKey")} ${dbKey}\n${t("admin.settingsPage.modal.currentKey")} ${adminKey}\n\n${t("admin.settingsPage.modal.newUrl")} ${newUrl}`
-          )
-        ) {
-          window.location.href = newUrl;
-        }
+    if (!settings || !settings.admin_entrance_key) return;
+
+    const dbKey = settings.admin_entrance_key;
+    if (adminKey === dbKey) return;
+
+    const currentUrl = window.location.href;
+    const newUrl = currentUrl.replace(`/${adminKey}/`, `/${dbKey}/`);
+
+    const checkMismatch = async () => {
+      const accepted = await confirm({
+        title: t("admin.settingsPage.modal.title"),
+        message: `${t("admin.settingsPage.modal.desc")}\n\n${t("admin.settingsPage.modal.dbKey")} ${dbKey}\n${t("admin.settingsPage.modal.currentKey")} ${adminKey}\n\n${t("admin.settingsPage.modal.newUrl")} ${newUrl}`,
+        confirmText: t("admin.settingsPage.modal.confirm"),
+        cancelText: t("admin.settingsPage.modal.cancel"),
+      });
+      if (accepted) {
+        window.location.href = newUrl;
       }
-    }
-  }, [settings, adminKey, t]);
+    };
+
+    checkMismatch();
+  }, [settings, adminKey, t, confirm]);
 
   const saveSettings = async (updateData, keyChanged) => {
     setSaving(true);
@@ -118,13 +126,13 @@ export default function SettingsPage() {
       }
 
       await fetchSettings();
-      alert(t("admin.settingsPage.success"));
+      notify(t("admin.settingsPage.success"), "success");
     } catch (error) {
       console.error("Failed to save settings:", error);
       const errorMsg =
         error?.response?.message || error?.message || t("admin.settingsPage.error");
       setError(errorMsg);
-      alert(t("admin.settingsPage.error") + ": " + errorMsg);
+      notify(`${t("admin.settingsPage.error")}: ${errorMsg}`, "error");
     } finally {
       setSaving(false);
     }
