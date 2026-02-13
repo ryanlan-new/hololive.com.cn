@@ -3,11 +3,14 @@ import { Plus, Edit, Trash2, Loader2, Mail, X, Save } from "lucide-react";
 import pb from "../../lib/pocketbase";
 import { logCreate, logUpdate, logDelete } from "../../lib/logger";
 import { useTranslation } from "react-i18next";
+import { createAppLogger } from "../../lib/appLogger";
 
 /**
  * SSO 白名单管理页面
  * 管理允许通过 SSO 登录的邮箱地址
  */
+const logger = createAppLogger("WhitelistPage");
+
 export default function WhitelistPage() {
   const { t } = useTranslation("admin");
   const [whitelists, setWhitelists] = useState([]);
@@ -39,9 +42,9 @@ export default function WhitelistPage() {
       setWhitelists(result.items);
       setError(null);
     } catch (error) {
-      console.error("Failed to fetch whitelists:", error);
+      logger.error("Failed to fetch whitelists:", error);
       if (import.meta.env.DEV) {
-        console.error("Error details:", {
+        logger.error("Error details:", {
           status: error?.status,
           response: error?.response,
           data: error?.data,
@@ -127,7 +130,7 @@ export default function WhitelistPage() {
       setFormData({ email: "", description: "" });
       await fetchWhitelists();
     } catch (error) {
-      console.error("Failed to save whitelist:", error);
+      logger.error("Failed to save whitelist:", error);
       const errorMsg =
         error?.response?.message || error?.message || t("whitelist.toast.saveError");
       setToast({ type: "error", message: errorMsg });
@@ -145,7 +148,7 @@ export default function WhitelistPage() {
         const item = await pb.collection("whitelists").getOne(id);
         email = item.email || "Unknown";
       } catch {
-        console.warn("Failed to fetch whitelist info for log");
+        logger.warn("Failed to fetch whitelist info for log");
       }
 
       await pb.collection("whitelists").delete(id);
@@ -157,7 +160,7 @@ export default function WhitelistPage() {
       setDeleteConfirmId(null);
       setToast({ type: "success", message: t("whitelist.toast.deleted", { email }) });
     } catch (error) {
-      console.error("Failed to delete whitelist:", error);
+      logger.error("Failed to delete whitelist:", error);
       setToast({ type: "error", message: t("whitelist.toast.deleteError") });
     } finally {
       setDeletingId(null);

@@ -3,11 +3,14 @@ import { useParams, Link } from "react-router-dom";
 import { Plus, Edit, Trash2, Loader2, ArrowUp, ArrowDown } from "lucide-react";
 import pb from "../../lib/pocketbase";
 import { useTranslation } from "react-i18next";
+import { createAppLogger } from "../../lib/appLogger";
 
 /**
  * 首页分段管理页面
  * 列表展示当前的 Sections，支持新建、编辑、删除和排序
  */
+const logger = createAppLogger("HomeManager");
+
 export default function HomeManager() {
   const { t, i18n } = useTranslation();
   const { adminKey } = useParams();
@@ -27,7 +30,7 @@ export default function HomeManager() {
       });
       setSections(result.items);
     } catch (error) {
-      console.error("Failed to fetch sections:", error);
+      logger.error("Failed to fetch sections:", error);
       setToast({
         type: "error",
         message: t("admin.homeManager.toast.fetchError"),
@@ -50,7 +53,7 @@ export default function HomeManager() {
       setDeleteConfirmId(null);
       setToast({ type: "success", message: t("admin.homeManager.toast.deleteSuccess") });
     } catch (error) {
-      console.error("Failed to delete section:", error);
+      logger.error("Failed to delete section:", error);
       setToast({
         type: "error",
         message: t("admin.homeManager.toast.deleteError"),
@@ -86,7 +89,7 @@ export default function HomeManager() {
       await fetchSections();
       setToast({ type: "success", message: t("admin.homeManager.toast.orderSuccess") });
     } catch (error) {
-      console.error("Failed to update order:", error);
+      logger.error("Failed to update order:", error);
       setToast({
         type: "error",
         message: t("admin.homeManager.toast.orderError"),

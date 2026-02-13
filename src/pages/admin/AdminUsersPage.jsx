@@ -3,11 +3,14 @@ import { Plus, Trash2, Loader2, User, UserX, X, Save, AlertTriangle } from "luci
 import pb from "../../lib/pocketbase";
 import { useTranslation } from "react-i18next";
 import { useUIFeedback } from "../../hooks/useUIFeedback";
+import { createAppLogger } from "../../lib/appLogger";
 
 /**
  * 本地管理员账号管理页面
  * 管理 users 集合中的管理员账号
  */
+const logger = createAppLogger("AdminUsersPage");
+
 export default function AdminUsersPage() {
   const { t } = useTranslation();
   const { notify } = useUIFeedback();
@@ -33,7 +36,7 @@ export default function AdminUsersPage() {
       });
       setUsers(result.items);
     } catch (error) {
-      console.error("Failed to fetch users:", error);
+      logger.error("Failed to fetch users:", error);
       const detail =
         error?.response?.data ||
         error?.data ||
@@ -52,7 +55,7 @@ export default function AdminUsersPage() {
       const settings = await pb.collection("system_settings").getOne("1");
       setEnableLocalLogin(settings?.enable_local_login ?? true);
     } catch (error) {
-      console.error("Failed to fetch login setting:", error);
+      logger.error("Failed to fetch login setting:", error);
       // 如果读取失败，默认开启（安全回退）
       setEnableLocalLogin(true);
     }
@@ -67,7 +70,7 @@ export default function AdminUsersPage() {
       });
       setEnableLocalLogin(newValue);
     } catch (error) {
-      console.error("Failed to update login setting:", error);
+      logger.error("Failed to update login setting:", error);
       const detail =
         error?.response?.data ||
         error?.data ||
@@ -132,7 +135,7 @@ export default function AdminUsersPage() {
       setFormData({ email: "", password: "", passwordConfirm: "" });
       await fetchUsers();
     } catch (error) {
-      console.error("Failed to create user:", error);
+      logger.error("Failed to create user:", error);
       const detail =
         error?.response?.data ||
         error?.data ||
@@ -152,7 +155,7 @@ export default function AdminUsersPage() {
       notify(t("admin.users.actions.deleted"), "success");
       await fetchUsers();
     } catch (error) {
-      console.error("Failed to disable user:", error);
+      logger.error("Failed to disable user:", error);
       const detail =
         error?.response?.data ||
         error?.data ||
@@ -171,7 +174,7 @@ export default function AdminUsersPage() {
       await fetchUsers();
       setDeleteConfirmId(null);
     } catch (error) {
-      console.error("Failed to delete user:", error);
+      logger.error("Failed to delete user:", error);
       const detail =
         error?.response?.data ||
         error?.data ||

@@ -79,6 +79,18 @@ export default defineConfig([
     },
   },
   {
+    files: ['src/lib/appLogger.js'],
+    rules: {
+      'no-console': 'off',
+    },
+  },
+  {
+    files: ['src/pages/admin/**/*.jsx'],
+    rules: {
+      'no-console': 'error',
+    },
+  },
+  {
     files: ['src/router.jsx'],
     rules: {
       'react-refresh/only-export-components': 'off',

@@ -5,11 +5,14 @@ import { useTranslation } from "react-i18next";
 import pb from "../../lib/pocketbase";
 import { getLocalizedContent } from "../../utils/postHelpers";
 import { logDelete } from "../../lib/logger";
+import { createAppLogger } from "../../lib/appLogger";
 
 /**
  * 文章管理列表页面
  * 使用卡片视图展示文章列表
  */
+const logger = createAppLogger("Posts");
+
 export default function Posts() {
   const { adminKey } = useParams();
   const navigate = useNavigate();
@@ -30,7 +33,7 @@ export default function Posts() {
       });
       setPosts(result.items);
     } catch (error) {
-      console.error("Failed to fetch posts:", error);
+      logger.error("Failed to fetch posts:", error);
       setToast({
         type: "error",
         message: t("admin.posts.toast.fetchError"),
@@ -103,7 +106,7 @@ export default function Posts() {
           }
         }
       } catch {
-        console.warn("Failed to fetch post info for logging");
+        logger.warn("Failed to fetch post info for logging");
       }
 
       await pb.collection("posts").delete(postId);
@@ -115,7 +118,7 @@ export default function Posts() {
       setDeleteConfirmId(null);
       setToast({ type: "success", message: t("admin.posts.toast.deleteSuccess") });
     } catch (error) {
-      console.error("Failed to delete post:", error);
+      logger.error("Failed to delete post:", error);
       setToast({
         type: "error",
         message: t("admin.posts.toast.deleteError"),

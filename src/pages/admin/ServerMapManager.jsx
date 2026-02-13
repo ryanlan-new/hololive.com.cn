@@ -2,11 +2,14 @@ import { useCallback, useEffect, useState } from "react";
 import { Plus, Edit, Trash2, Loader2, Map, GripVertical, X, Save } from "lucide-react";
 import pb from "../../lib/pocketbase";
 import { useTranslation } from "react-i18next";
+import { createAppLogger } from "../../lib/appLogger";
 
 /**
  * Server Map Manager Page
  * Manage external links for server maps
  */
+const logger = createAppLogger("ServerMapManager");
+
 export default function ServerMapManager() {
   const { t } = useTranslation();
   const [maps, setMaps] = useState([]);
@@ -53,7 +56,7 @@ export default function ServerMapManager() {
       });
       setMaps(result.items);
     } catch (error) {
-      console.error("Failed to fetch maps:", error);
+      logger.error("Failed to fetch maps:", error);
       showToast("error", t("admin.serverMaps.toast.saveError")); // Fallback/reuse
     } finally {
       setLoading(false);
@@ -106,7 +109,7 @@ export default function ServerMapManager() {
       resetForm();
       await fetchMaps();
     } catch (error) {
-      console.error("Failed to save map:", error);
+      logger.error("Failed to save map:", error);
       showToast("error", t("admin.serverMaps.toast.saveError"));
     }
   };
@@ -120,7 +123,7 @@ export default function ServerMapManager() {
       showToast("success", t("admin.serverMaps.toast.deleteSuccess"));
       await fetchMaps();
     } catch (error) {
-      console.error("Failed to delete map:", error);
+      logger.error("Failed to delete map:", error);
       showToast("error", t("admin.serverMaps.toast.saveError")); // Reuse error
     } finally {
       setDeletingId(null);
@@ -177,7 +180,7 @@ export default function ServerMapManager() {
       showToast("success", t("admin.homeManager.toast.orderSuccess")); // Reuse homeManager key which says "Order updated."
       await fetchMaps();
     } catch (error) {
-      console.error("Failed to update sort order:", error);
+      logger.error("Failed to update sort order:", error);
       showToast("error", t("admin.homeManager.toast.orderError")); // Reuse
       await fetchMaps(); // Revert to server state
     } finally {

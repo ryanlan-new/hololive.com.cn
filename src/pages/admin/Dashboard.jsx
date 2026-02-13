@@ -2,11 +2,14 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Calendar, Clock, FileText, Bell, Activity } from "lucide-react";
 import pb from "../../lib/pocketbase";
 import { useTranslation } from "react-i18next";
+import { createAppLogger } from "../../lib/appLogger";
 
 /**
  * 后台仪表板页面
  * 展示关键统计数据与系统状态
  */
+const logger = createAppLogger("Dashboard");
+
 export default function Dashboard() {
   const { t, i18n } = useTranslation();
   const [now, setNow] = useState(() => new Date());
@@ -81,7 +84,7 @@ export default function Dashboard() {
         analyticsConfigured,
       });
     } catch (err) {
-      console.error("Failed to load dashboard stats:", err);
+      logger.error("Failed to load dashboard stats:", err);
       setError(
         err?.response?.message || err?.message || t("admin.dashboard.error.loadFailed"),
       );

@@ -5,11 +5,14 @@ import pb from "../../lib/pocketbase";
 import { detectSourceLanguage, translateFields } from "../../lib/translation";
 import ImagePicker from "../../components/admin/ImagePicker";
 import { useTranslation } from "react-i18next";
+import { createAppLogger } from "../../lib/appLogger";
 
 /**
  * 首页分段编辑器组件
  * 支持新建和编辑两种模式
  */
+const logger = createAppLogger("SectionEditor");
+
 export default function SectionEditor() {
   const { adminKey, id } = useParams();
   const navigate = useNavigate();
@@ -55,7 +58,7 @@ export default function SectionEditor() {
           const maxOrder = result.items.length > 0 ? result.items[0].sort_order : 0;
           setFormData((prev) => ({ ...prev, sort_order: maxOrder + 1 }));
         } catch (err) {
-          console.error("Failed to fetch max order:", err);
+          logger.error("Failed to fetch max order:", err);
         }
       };
       fetchMaxOrder();
@@ -112,7 +115,7 @@ export default function SectionEditor() {
 
         setError(null);
       } catch (err) {
-        console.error("Failed to fetch section:", err);
+        logger.error("Failed to fetch section:", err);
         setError("Failed to load section.");
       } finally {
         setLoading(false);
@@ -286,7 +289,7 @@ export default function SectionEditor() {
         setToast({ type: "success", message: t("sectionEditor.toast.translateSuccess") });
       }
     } catch (err) {
-      console.error("Translation error:", err);
+      logger.error("Translation error:", err);
       setToast({
         type: "error",
         message: err.message || t("sectionEditor.toast.translateError")
@@ -331,7 +334,7 @@ export default function SectionEditor() {
         navigate(`/${adminKey}/webadmin/home`);
       }, 900);
     } catch (err) {
-      console.error("Failed to save section:", err);
+      logger.error("Failed to save section:", err);
       const errorMsg = err?.response?.message || err?.message || t("sectionEditor.toast.saveError");
       setError(errorMsg);
       setToast({

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { createAppLogger } from "../../lib/appLogger";
 import {
   Plus,
   Edit,
@@ -18,6 +19,8 @@ import { useTranslation } from "react-i18next";
  * Announcement Management Page
  * Manage site-wide banner announcements
  */
+const logger = createAppLogger("AnnouncementPage");
+
 export default function AnnouncementPage() {
   const { t, i18n } = useTranslation();
   const [announcements, setAnnouncements] = useState([]);
@@ -45,7 +48,7 @@ export default function AnnouncementPage() {
       });
       setAnnouncements(result.items);
     } catch (error) {
-      console.error("Failed to fetch announcements:", error);
+      logger.error("Failed to fetch announcements:", error);
       setToast({
         type: "error",
         message: t("admin.announcements.toast.deleteError"), // Reuse error message or add generic fetch error later
@@ -116,7 +119,7 @@ export default function AnnouncementPage() {
         message: t("admin.announcements.toast.updateSuccess"),
       });
     } catch (error) {
-      console.error("Failed to toggle announcement:", error);
+      logger.error("Failed to toggle announcement:", error);
       setToast({
         type: "error",
         message:
@@ -164,7 +167,7 @@ export default function AnnouncementPage() {
       setShowForm(false);
       setEditingId(null);
     } catch (error) {
-      console.error("Failed to save announcement:", error);
+      logger.error("Failed to save announcement:", error);
       const errorMsg =
         error?.response?.message || error?.message || t("admin.announcements.toast.deleteError"); // Fallback
       setToast({ type: "error", message: errorMsg });
@@ -180,7 +183,7 @@ export default function AnnouncementPage() {
       setDeleteConfirmId(null);
       setToast({ type: "success", message: t("admin.announcements.toast.deleteSuccess") });
     } catch (error) {
-      console.error("Failed to delete announcement:", error);
+      logger.error("Failed to delete announcement:", error);
       setToast({ type: "error", message: t("admin.announcements.toast.deleteError") });
     } finally {
       setDeletingId(null);

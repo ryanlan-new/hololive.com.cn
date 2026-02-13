@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { createAppLogger } from "../../lib/appLogger";
 import {
   Plus,
   Edit,
@@ -17,6 +18,8 @@ import { getServerInfoIcon, SERVER_INFO_ICON_NAMES } from "../../lib/serverInfoI
  * Server Info Fields Management Page
  * Support CRUD and Drag-and-Drop Sort
  */
+const logger = createAppLogger("ServerInfoFields");
+
 export default function ServerInfoFields() {
   const { t } = useTranslation();
   const [fields, setFields] = useState([]);
@@ -45,7 +48,7 @@ export default function ServerInfoFields() {
       });
       setFields(result.items);
     } catch (error) {
-      console.error("Failed to fetch fields:", error);
+      logger.error("Failed to fetch fields:", error);
       showToast("error", t("admin.serverInfoFields.toast.saveError")); // Reuse error
     } finally {
       setLoading(false);
@@ -95,7 +98,7 @@ export default function ServerInfoFields() {
       resetForm();
       await fetchFields();
     } catch (error) {
-      console.error("Failed to save field:", error);
+      logger.error("Failed to save field:", error);
       showToast("error", t("admin.serverInfoFields.toast.saveError"));
     }
   };
@@ -109,7 +112,7 @@ export default function ServerInfoFields() {
       showToast("success", t("admin.serverInfoFields.toast.deleteSuccess"));
       await fetchFields();
     } catch (error) {
-      console.error("Failed to delete field:", error);
+      logger.error("Failed to delete field:", error);
       showToast("error", t("admin.serverInfoFields.toast.saveError")); // Reuse error
     } finally {
       setDeletingId(null);
@@ -169,7 +172,7 @@ export default function ServerInfoFields() {
       showToast("success", t("admin.homeManager.toast.orderSuccess")); // Reuse
       await fetchFields();
     } catch (error) {
-      console.error("Failed to update sort order:", error);
+      logger.error("Failed to update sort order:", error);
       showToast("error", t("admin.homeManager.toast.orderError")); // Reuse
       await fetchFields(); // Revert to server state
     } finally {

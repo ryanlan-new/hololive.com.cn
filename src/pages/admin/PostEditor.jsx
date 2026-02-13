@@ -7,11 +7,14 @@ import ImagePicker from "../../components/admin/ImagePicker";
 import { detectSourceLanguage, translateFields } from "../../lib/translation";
 import { logCreate, logUpdate } from "../../lib/logger";
 import { useTranslation } from "react-i18next";
+import { createAppLogger } from "../../lib/appLogger";
 
 /**
  * 文章编辑器组件（支持三语言）
  * 支持新建 (Create) 和编辑 (Edit) 两种模式
  */
+const logger = createAppLogger("PostEditor");
+
 export default function PostEditor() {
   const { adminKey, id } = useParams();
   const navigate = useNavigate();
@@ -114,7 +117,7 @@ export default function PostEditor() {
         });
         setError(null);
       } catch (err) {
-        console.error("Failed to fetch post:", err);
+        logger.error("Failed to fetch post:", err);
         setError(t("admin.postEditor.toast.loadError"));
       } finally {
         setLoading(false);
@@ -175,7 +178,7 @@ export default function PostEditor() {
         setToast({ type: "success", message: t("admin.postEditor.toast.translateSuccess") });
       }
     } catch (err) {
-      console.error("Translation error:", err);
+      logger.error("Translation error:", err);
       setToast({
         type: "error",
         message: t("admin.postEditor.toast.translateError"),
@@ -229,7 +232,7 @@ export default function PostEditor() {
         navigate(`/${adminKey}/webadmin/posts`);
       }, 900);
     } catch (err) {
-      console.error("Failed to save post:", err);
+      logger.error("Failed to save post:", err);
       const errorMsg = err?.response?.message || err?.message || t("admin.postEditor.toast.saveError");
       setError(errorMsg);
       setToast({

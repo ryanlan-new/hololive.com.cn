@@ -5,6 +5,7 @@ import pb from "../../lib/pocketbase";
 import { logSystemSettings } from "../../lib/logger";
 import { useTranslation } from "react-i18next";
 import { useUIFeedback } from "../../hooks/useUIFeedback";
+import { createAppLogger } from "../../lib/appLogger";
 
 const SETTINGS_ID = "1"; // 单例模式，固定 ID
 
@@ -12,6 +13,8 @@ const SETTINGS_ID = "1"; // 单例模式，固定 ID
  * 系统设置页面
  * 管理全局系统配置
  */
+const logger = createAppLogger("SettingsPage");
+
 export default function SettingsPage() {
   const { t } = useTranslation();
   const { notify, confirm } = useUIFeedback();
@@ -46,7 +49,7 @@ export default function SettingsPage() {
         admin_entrance_key: settingsData.admin_entrance_key || "",
       });
     } catch (error) {
-      console.error("Failed to fetch settings:", error);
+      logger.error("Failed to fetch settings:", error);
       // 如果记录不存在，使用默认值
       if (error?.status === 404) {
         setFormData({
@@ -128,7 +131,7 @@ export default function SettingsPage() {
       await fetchSettings();
       notify(t("admin.settingsPage.success"), "success");
     } catch (error) {
-      console.error("Failed to save settings:", error);
+      logger.error("Failed to save settings:", error);
       const errorMsg =
         error?.response?.message || error?.message || t("admin.settingsPage.error");
       setError(errorMsg);

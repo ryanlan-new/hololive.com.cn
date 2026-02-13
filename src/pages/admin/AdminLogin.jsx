@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import pb from "../../lib/pocketbase";
+import { createAppLogger } from "../../lib/appLogger";
 // 注意：ALLOWED_ADMINS 仅用于开发环境的显式回退白名单
 import { ALLOWED_ADMINS } from "../../config/auth_whitelist";
 import { logLogin } from "../../lib/logger";
@@ -28,6 +29,8 @@ const MicrosoftLogo = ({ className = "w-5 h-5" }) => (
  * 后台登录页面
  * 支持 Microsoft OAuth2 登录和本地开发密码登录
  */
+const logger = createAppLogger("AdminLogin");
+
 export default function AdminLogin() {
   const { t } = useTranslation();
   const { notify } = useUIFeedback();
@@ -50,7 +53,7 @@ export default function AdminLogin() {
         const settings = await pb.collection("system_settings").getFirstListItem("");
         setEnableLocalLogin(settings?.enable_local_login ?? true);
       } catch (error) {
-        console.error("Failed to fetch login setting:", error);
+        logger.error("Failed to fetch login setting:", error);
         // 如果读取失败，默认开启（安全回退，避免管理员被锁在外面）
         setEnableLocalLogin(true);
       } finally {
@@ -81,7 +84,7 @@ export default function AdminLogin() {
         return true;
       } catch (error) {
         if (allowLocalWhitelistFallback) {
-          console.warn(
+          logger.warn(
             "Whitelist DB check failed; using local fallback list in DEV mode."
           );
           if (ALLOWED_ADMINS.includes(userEmail)) {
@@ -105,7 +108,7 @@ export default function AdminLogin() {
       return true;
     } catch {
       // 未找到白名单记录，强制登出
-      console.error("Email not whitelisted");
+      logger.error("Email not whitelisted");
       pb.authStore.clear();
       throw new Error("Email not whitelisted");
     }
@@ -124,10 +127,10 @@ export default function AdminLogin() {
         );
 
         if (!microsoftProvider) {
-          console.warn("Microsoft OAuth2 provider not found in listAuthMethods()");
+          logger.warn("Microsoft OAuth2 provider not found in listAuthMethods()");
         }
       } catch (checkError) {
-        console.warn("OAuth2 provider check failed (continuing anyway):", checkError);
+        logger.warn("OAuth2 provider check failed (continuing anyway):", checkError);
       }
 
       // 执行 Microsoft OAuth2 认证
@@ -151,7 +154,7 @@ export default function AdminLogin() {
       }
     } catch (error) {
       // 处理认证失败
-      console.error("Microsoft login error:", error);
+      logger.error("Microsoft login error:", error);
 
       // 确保清除可能的认证状态
       pb.authStore.clear();
@@ -214,7 +217,7 @@ export default function AdminLogin() {
       }
     } catch (error) {
       // 处理认证失败
-      console.error("Local login error:", error);
+      logger.error("Local login error:", error);
 
       // 确保清除可能的认证状态
       pb.authStore.clear();

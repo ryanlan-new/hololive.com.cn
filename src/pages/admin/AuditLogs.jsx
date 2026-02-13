@@ -2,11 +2,14 @@ import { useState, useEffect, useCallback } from "react";
 import { Loader2, Filter, ClipboardList } from "lucide-react";
 import pb from "../../lib/pocketbase";
 import { useTranslation } from "react-i18next";
+import { createAppLogger } from "../../lib/appLogger";
 
 /**
  * 操作日志审计页面
  * 显示管理员和 SSO 用户的操作记录
  */
+const logger = createAppLogger("AuditLogs");
+
 export default function AuditLogs() {
   const { t } = useTranslation("admin");
   const [logs, setLogs] = useState([]);
@@ -52,7 +55,7 @@ export default function AuditLogs() {
       setLogs(result.items);
       setTotalPages(result.totalPages);
     } catch (err) {
-      console.error("Failed to fetch audit logs:", err);
+      logger.error("Failed to fetch audit logs:", err);
       setError(t("auditLogs.error.fetch"));
     } finally {
       setLoading(false);
