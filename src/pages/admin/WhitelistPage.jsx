@@ -40,12 +40,14 @@ export default function WhitelistPage() {
       setError(null);
     } catch (error) {
       console.error("Failed to fetch whitelists:", error);
-      console.error("Error details:", {
-        status: error?.status,
-        response: error?.response,
-        data: error?.data,
-        message: error?.message,
-      });
+      if (import.meta.env.DEV) {
+        console.error("Error details:", {
+          status: error?.status,
+          response: error?.response,
+          data: error?.data,
+          message: error?.message,
+        });
+      }
 
       // 提供更详细的错误信息 - 支持 PocketBase 错误格式
       let errorMessage = t("whitelist.toast.fetchError");

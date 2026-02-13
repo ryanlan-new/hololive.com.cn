@@ -107,26 +107,23 @@ export default function AnnouncementPage() {
   // Toggle active status
   const handleToggleActive = async (id, currentStatus) => {
     try {
-      console.log("Toggling announcement active:", {
-        id,
-        currentStatus,
-        nextStatus: !currentStatus,
-      });
       await pb.collection("announcements").update(id, {
         is_active: !currentStatus,
       });
       await fetchAnnouncements();
+      setToast({
+        type: "success",
+        message: t("admin.announcements.toast.updateSuccess"),
+      });
     } catch (error) {
       console.error("Failed to toggle announcement:", error);
-      const detail =
-        error?.response?.data ||
-        error?.data ||
-        error?.response ||
-        error?.message ||
-        error;
-      alert(
-        "Error updating announcement status: " + JSON.stringify(detail),
-      );
+      setToast({
+        type: "error",
+        message:
+          error?.response?.message ||
+          error?.message ||
+          t("admin.announcements.toast.deleteError"),
+      });
     }
   };
 
@@ -142,11 +139,6 @@ export default function AnnouncementPage() {
         end_time: formData.end_time || null,
         type: formData.type || "info",
       };
-
-      console.log("Submitting announcement data:", {
-        editingId,
-        saveData,
-      });
 
       let saved;
       if (editingId) {
@@ -173,23 +165,15 @@ export default function AnnouncementPage() {
       setEditingId(null);
     } catch (error) {
       console.error("Failed to save announcement:", error);
-      const detail =
-        error?.response?.data ||
-        error?.data ||
-        error?.response ||
-        error?.message ||
-        error;
       const errorMsg =
         error?.response?.message || error?.message || t("admin.announcements.toast.deleteError"); // Fallback
       setToast({ type: "error", message: errorMsg });
-      alert("Error saving announcement: " + JSON.stringify(detail));
     }
   };
 
   // Delete announcement
   const handleDelete = async (id) => {
     try {
-      console.log("Deleting announcement:", { id });
       setDeletingId(id);
       await pb.collection("announcements").delete(id);
       await fetchAnnouncements();
@@ -198,7 +182,6 @@ export default function AnnouncementPage() {
     } catch (error) {
       console.error("Failed to delete announcement:", error);
       setToast({ type: "error", message: t("admin.announcements.toast.deleteError") });
-      alert("Error deleting announcement: " + (error?.message || "unknown error"));
     } finally {
       setDeletingId(null);
     }

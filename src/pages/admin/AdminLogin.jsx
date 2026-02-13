@@ -103,7 +103,7 @@ export default function AdminLogin() {
       return true;
     } catch {
       // 未找到白名单记录，强制登出
-      console.error("Email not whitelisted:", userEmail);
+      console.error("Email not whitelisted");
       pb.authStore.clear();
       throw new Error("Email not whitelisted");
     }

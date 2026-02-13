@@ -89,7 +89,6 @@ export default function Posts() {
   // 删除文章
   const handleDelete = async (postId) => {
     try {
-      console.log("Deleting post:", { postId });
       setDeletingId(postId);
 
       // 先获取文章信息用于日志记录
