@@ -1,0 +1,18 @@
+[Unit]
+Description=Map Proxy Service
+After=network.target pocketbase.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/var/www/hololive.com.cn/backend/scripts
+ExecStart=/usr/bin/node map_proxy.js
+Restart=always
+RestartSec=5
+Environment=PB_URL=http://127.0.0.1:8090
+Environment=MAP_PROXY_PORT=18090
+Environment=MAP_PROXY_ALLOWED_CACHE_TTL_MS=30000
+Environment=MAP_PROXY_REQUEST_TIMEOUT_MS=20000
+
+[Install]
+WantedBy=multi-user.target

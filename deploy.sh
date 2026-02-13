@@ -117,6 +117,15 @@ systemctl daemon-reload
 systemctl enable pocketbase
 systemctl restart pocketbase
 
+# Setup map-proxy service if script exists
+if [ -f "$INSTALL_DIR/backend/scripts/map-proxy.service" ]; then
+    log "Installing map-proxy service..."
+    cp "$INSTALL_DIR/backend/scripts/map-proxy.service" /etc/systemd/system/map-proxy.service
+    systemctl daemon-reload
+    systemctl enable map-proxy
+    systemctl restart map-proxy
+fi
+
 # Wait for PB to start
 sleep 5
 
@@ -166,6 +175,16 @@ server {
         proxy_set_header Connection 'upgrade';
         proxy_set_header Host \$host;
         proxy_cache_bypass \$http_upgrade;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+    }
+
+    # Map Proxy for embedding http maps under https page
+    location /map-proxy/ {
+        proxy_pass http://127.0.0.1:18090/;
+        proxy_http_version 1.1;
+        proxy_set_header Host \$host;
         proxy_set_header X-Real-IP \$remote_addr;
         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto \$scheme;

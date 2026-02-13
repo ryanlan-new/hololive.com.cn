@@ -25,6 +25,25 @@ export default function ServerMapManager() {
     sort_order: 0,
   });
 
+  const normalizeMapUrl = (rawUrl) => {
+    const trimmed = `${rawUrl || ""}`.trim();
+    if (!trimmed) return "";
+
+    const withProtocol = /^[a-zA-Z][a-zA-Z\d+.-]*:\/\//.test(trimmed)
+      ? trimmed
+      : `http://${trimmed}`;
+
+    try {
+      const parsed = new URL(withProtocol);
+      if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+        return "";
+      }
+      return parsed.toString();
+    } catch {
+      return "";
+    }
+  };
+
   // Fetch maps
   const fetchMaps = useCallback(async () => {
     try {
@@ -60,16 +79,27 @@ export default function ServerMapManager() {
   // Handle create/edit
   const handleSave = async (e) => {
     e.preventDefault();
+    const normalizedUrl = normalizeMapUrl(formData.url);
+    if (!normalizedUrl) {
+      showToast("error", "地图地址格式不正确，请使用 http(s)://host:port/path");
+      return;
+    }
+
+    const payload = {
+      ...formData,
+      url: normalizedUrl,
+    };
+
     try {
       if (editingId) {
-        await pb.collection("server_maps").update(editingId, formData);
+        await pb.collection("server_maps").update(editingId, payload);
         showToast("success", t("admin.serverMaps.toast.updateSuccess"));
       } else {
         // Set sort_order to max + 1 if not provided
         const maxSort = maps.length > 0 ? Math.max(...maps.map((m) => m.sort_order || 0)) : 0;
         await pb.collection("server_maps").create({
-          ...formData,
-          sort_order: formData.sort_order || maxSort + 1,
+          ...payload,
+          sort_order: payload.sort_order || maxSort + 1,
         });
         showToast("success", t("admin.serverMaps.toast.createSuccess"));
       }
@@ -220,13 +250,18 @@ export default function ServerMapManager() {
                 {t("admin.serverMaps.form.url")}
               </label>
               <input
-                type="url"
+                type="text"
                 required
                 value={formData.url}
                 onChange={(e) => setFormData({ ...formData, url: e.target.value })}
                 className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-blue)]"
-                placeholder="https://example.com/map"
+                placeholder="http://127.0.0.1:8123/map (支持非标端口)"
+                inputMode="url"
+                spellCheck={false}
               />
+              <p className="text-xs text-slate-500 mt-1">
+                支持 `http://` / `https://`，并支持自定义端口（如 `:8123`）。
+              </p>
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">

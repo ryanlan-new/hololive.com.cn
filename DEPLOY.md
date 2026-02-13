@@ -69,11 +69,28 @@
    - 自动安装依赖并执行 `npm run build`
    - 通过 `rsync` 将最新的 `dist/` 目录同步到服务器 `/var/www/hololive.com.cn/dist/`
    - 通过 `rsync` 将最新的迁移脚本同步到服务器 `/var/www/hololive.com.cn/backend/pb_migrations/`
-   - 远程重启 PocketBase 服务 (`systemctl restart pocketbase`) 以应用新的迁移。
+   - 通过 `rsync` 将最新的后端脚本同步到服务器 `/var/www/hololive.com.cn/backend/scripts/`
+   - 自动执行 `backend/scripts/setup_map_proxy.sh`，确保 `/map-proxy/` 路由和 `map-proxy` 服务存在
+   - 远程重启 PocketBase、Velocity Sync、Map Proxy 服务。
 
 ---
 
-## 3. 管理员白名单说明
+## 3. 地图代理说明（HTTP 地图 + 非标端口）
+
+为兼容 HTTPS 页面内嵌 HTTP 地图（如 `http://127.0.0.1:8123`），项目增加了同源代理：
+
+- 前端入口：`/map-proxy/{protocol}/{host:port}/{path}`
+- 后端服务：`map-proxy`（`backend/scripts/map_proxy.js`）
+- Nginx 路由：`location /map-proxy/ { proxy_pass http://127.0.0.1:18090/; }`
+
+安全策略：
+
+- 代理仅允许转发到 `server_maps` 集合里已配置的地图源站（按 origin 校验）。
+- 不允许任意目标转发，避免开放代理风险。
+
+---
+
+## 4. 管理员白名单说明
 
 系统已预置以下管理员邮箱到白名单（`whitelists` 集合）：
 

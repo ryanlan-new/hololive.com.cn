@@ -22,6 +22,16 @@ export default function ServerInfo() {
     error: null,
   });
   const [serverHostname, setServerHostname] = useState(null);
+  const mapProxyPrefix = `${import.meta.env.VITE_MAP_PROXY_PREFIX || (
+    typeof window !== "undefined" && window.location.hostname !== "localhost"
+      ? "/map-proxy/"
+      : ""
+  )}`.trim();
+  const mapProxyBase = mapProxyPrefix
+    ? mapProxyPrefix.endsWith("/")
+      ? mapProxyPrefix
+      : `${mapProxyPrefix}/`
+    : "";
 
   // 获取当前语言的文本（带 fallback）
   const getText = useCallback((content) => {
@@ -152,6 +162,54 @@ export default function ServerInfo() {
     return getServerInfoIcon(iconName);
   };
 
+  const normalizeMapUrl = useCallback((rawUrl) => {
+    const trimmed = `${rawUrl || ""}`.trim();
+    if (!trimmed) return "";
+
+    const withProtocol = /^[a-zA-Z][a-zA-Z\d+.-]*:\/\//.test(trimmed)
+      ? trimmed
+      : `http://${trimmed}`;
+
+    try {
+      const parsed = new URL(withProtocol);
+      if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+        return "";
+      }
+      return parsed.toString();
+    } catch {
+      return "";
+    }
+  }, []);
+
+  const isHttpMixedContent = useCallback(
+    (rawUrl) => {
+      const normalized = normalizeMapUrl(rawUrl);
+      const isHttpsPage =
+        typeof window !== "undefined" && window.location.protocol === "https:";
+      return Boolean(normalized) && isHttpsPage && normalized.startsWith("http://");
+    },
+    [normalizeMapUrl]
+  );
+
+  const getMapEmbedUrl = useCallback(
+    (rawUrl) => {
+      const normalized = normalizeMapUrl(rawUrl);
+      if (!normalized) return "";
+      if (isHttpMixedContent(normalized) && mapProxyBase) {
+        const parsed = new URL(normalized);
+        const protocol = parsed.protocol.replace(":", "");
+        return `${mapProxyBase}${protocol}/${parsed.host}${parsed.pathname}${parsed.search}${parsed.hash}`;
+      }
+      return normalized;
+    },
+    [isHttpMixedContent, mapProxyBase, normalizeMapUrl]
+  );
+
+  const selectedMapUrl = normalizeMapUrl(selectedMap?.url);
+  const selectedMapEmbedUrl = getMapEmbedUrl(selectedMap?.url);
+  const mapBlockedByMixedContent =
+    isHttpMixedContent(selectedMap?.url) && !mapProxyBase;
+
   const handleMapSelect = (map) => {
     setSelectedMap(map);
     setSearchParams({ mapId: map.id });
@@ -187,12 +245,35 @@ export default function ServerInfo() {
           </div>
           {/* Fullscreen iframe */}
           <div className="flex-1 relative w-full h-full">
-            <iframe
-              src={selectedMap.url}
-              className="w-full h-full border-0"
-              title={selectedMap.name}
-              allowFullScreen
-            />
+            {mapBlockedByMixedContent ? (
+              <div className="w-full h-full flex items-center justify-center bg-slate-100 px-6">
+                <div className="max-w-2xl bg-white border border-amber-200 rounded-xl p-6 shadow-sm">
+                  <h4 className="text-lg font-semibold text-amber-900 mb-2">
+                    当前页面为 HTTPS，浏览器会拦截 HTTP iframe
+                  </h4>
+                  <p className="text-sm text-amber-800 mb-4 break-all">
+                    地图地址：{selectedMapUrl || "未设置"}
+                  </p>
+                  {selectedMapUrl && (
+                    <a
+                      href={selectedMapUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center px-4 py-2 rounded-lg bg-amber-500 text-white hover:bg-amber-600 transition-colors"
+                    >
+                      新窗口打开地图
+                    </a>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <iframe
+                src={selectedMapEmbedUrl}
+                className="w-full h-full border-0"
+                title={selectedMap.name}
+                allowFullScreen
+              />
+            )}
             {/* Exit Fullscreen Button - visible in fullscreen mode */}
             <button
               onClick={toggleMapFullscreen}
@@ -460,12 +541,33 @@ export default function ServerInfo() {
                     {selectedMap.name}
                   </h3>
                   <div className="relative w-full" style={{ paddingBottom: "75%" }}>
-                    <iframe
-                      src={selectedMap.url}
-                      className="absolute top-0 left-0 w-full h-full rounded-lg border-0"
-                      title={selectedMap.name}
-                      allowFullScreen
-                    />
+                    {mapBlockedByMixedContent ? (
+                      <div className="absolute top-0 left-0 w-full h-full rounded-lg border border-amber-200 bg-amber-50 p-4 overflow-auto">
+                        <h4 className="text-sm font-semibold text-amber-900 mb-2">
+                          浏览器已拦截 HTTP 地图内嵌（HTTPS 页面限制）
+                        </h4>
+                        <p className="text-xs text-amber-800 mb-3 break-all">
+                          地图地址：{selectedMapUrl || "未设置"}
+                        </p>
+                        {selectedMapUrl && (
+                          <a
+                            href={selectedMapUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center px-3 py-2 rounded-lg bg-amber-500 text-white hover:bg-amber-600 transition-colors text-sm"
+                          >
+                            新窗口打开
+                          </a>
+                        )}
+                      </div>
+                    ) : (
+                      <iframe
+                        src={selectedMapEmbedUrl}
+                        className="absolute top-0 left-0 w-full h-full rounded-lg border-0"
+                        title={selectedMap.name}
+                        allowFullScreen
+                      />
+                    )}
                     {/* Enter Fullscreen Button - only visible in normal mode */}
                     {!isMapFullscreen && (
                       <button
