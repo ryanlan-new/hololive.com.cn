@@ -126,7 +126,7 @@ export default defineConfig([
       },
     },
     rules: {
-      'no-console': ['error', { allow: ['warn', 'error'] }],
+      'no-console': 'error',
       'no-undef': 'off',
       'no-unused-vars': 'off',
       'no-empty': 'off',

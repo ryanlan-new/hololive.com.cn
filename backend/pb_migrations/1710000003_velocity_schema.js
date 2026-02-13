@@ -149,7 +149,7 @@ migrate((app) => {
         });
         app.save(settingsRecord);
     } catch (err) {
-        console.warn("Failed to create default settings", err);
+        app.logger().warn("Failed to create default settings", err);
     }
 
 

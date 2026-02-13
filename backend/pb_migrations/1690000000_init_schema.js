@@ -929,7 +929,7 @@ migrate((app) => {
             const collection = new Collection(collectionData);
             app.save(collection);
         } catch (err) {
-            console.warn("Failed to create collection " + collectionData.name, err);
+            app.logger().warn("Failed to create collection " + collectionData.name, err);
         }
     }
 
@@ -943,7 +943,7 @@ migrate((app) => {
         users.deleteRule = "@request.auth.id != \"\"";
         app.save(users);
     } catch (err) {
-        console.warn("Failed to update users collection rules", err);
+        app.logger().warn("Failed to update users collection rules", err);
     }
 }, (app) => {
     const ids = [

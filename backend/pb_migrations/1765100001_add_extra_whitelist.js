@@ -9,7 +9,7 @@ migrate(
     (app) => {
         const whitelistsCollection = app.findCollectionByNameOrId("whitelists");
         if (!whitelistsCollection) {
-            console.warn("whitelists collection not found, skipping migration");
+            app.logger().warn("whitelists collection not found, skipping migration");
             return;
         }
 
@@ -28,7 +28,7 @@ migrate(
             const existingRow = qb.one();
             if (existingRow && existingRow.id) {
                 // 记录已存在，跳过
-                console.warn("Whitelist record already exists, skipping");
+                app.logger().warn("Whitelist record already exists, skipping");
                 return;
             }
         } catch (err) {
@@ -42,9 +42,9 @@ migrate(
                 description: description,
             });
             app.save(whitelistRecord);
-            console.warn("Created whitelist record");
+            app.logger().warn("Created whitelist record");
         } catch (err) {
-            console.error("Failed to create whitelist record:", err);
+            app.logger().error("Failed to create whitelist record:", err);
         }
     },
     (app) => {
@@ -68,7 +68,7 @@ migrate(
             if (row && row.id) {
                 const rec = app.findRecordById(whitelistsCollection.id, row.id);
                 app.delete(rec);
-                console.warn("Deleted whitelist record");
+                app.logger().warn("Deleted whitelist record");
             }
         } catch (err) {
             // 忽略错误
