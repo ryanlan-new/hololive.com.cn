@@ -9,6 +9,10 @@
  */
 migrate(
   (app) => {
+    const generatedAdminKey = `init-${Date.now().toString(36)}-${Math.random()
+      .toString(36)
+      .slice(2, 10)}`;
+
     // === 1. system_settings 单例记录（ID = "1"） ===
     try {
       // 如果已经存在 ID 为 "1" 的记录，则跳过创建
@@ -20,7 +24,7 @@ migrate(
         id: "1",
         microsoft_auth_config: {},
         analytics_config: {},
-        admin_entrance_key: "secret-admin-entrance",
+        admin_entrance_key: generatedAdminKey,
         enable_local_login: true,
       });
       app.save(settingsRecord);
@@ -111,4 +115,3 @@ migrate(
     }
   },
 );
-

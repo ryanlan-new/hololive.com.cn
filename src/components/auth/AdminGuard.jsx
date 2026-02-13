@@ -15,6 +15,10 @@ export default function AdminGuard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const devFallbackKey = import.meta.env.DEV
+      ? import.meta.env.VITE_ADMIN_KEY || ""
+      : "";
+
     const validateKey = async () => {
       try {
         setLoading(true);
@@ -23,14 +27,13 @@ export default function AdminGuard() {
         const dbKey = settings?.admin_entrance_key;
 
         // 比对 URL 中的 adminKey 与数据库中的密钥
-        // 如果数据库中没有设置，回退到环境变量（向后兼容）
-        const expectedKey = dbKey || import.meta.env.VITE_ADMIN_KEY || "";
+        // 仅在开发模式下允许环境变量回退
+        const expectedKey = dbKey || devFallbackKey;
         setIsValidKey(adminKey === expectedKey);
       } catch (error) {
         console.error("Failed to validate admin key:", error);
-        // 如果读取数据库失败，回退到环境变量验证
-        const fallbackKey = import.meta.env.VITE_ADMIN_KEY || "";
-        setIsValidKey(adminKey === fallbackKey);
+        // 生产环境读取失败时直接拒绝；开发模式可回退到环境变量
+        setIsValidKey(Boolean(devFallbackKey) && adminKey === devFallbackKey);
       } finally {
         setLoading(false);
       }
@@ -56,4 +59,3 @@ export default function AdminGuard() {
   // 密钥验证通过，渲染子路由
   return <Outlet />;
 }
-

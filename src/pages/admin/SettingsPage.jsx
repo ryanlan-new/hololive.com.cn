@@ -28,7 +28,7 @@ export default function SettingsPage() {
       google: "",
       baidu: "",
     },
-    admin_entrance_key: "secret-admin-entrance",
+    admin_entrance_key: "",
   });
   const [baiduExtractToast, setBaiduExtractToast] = useState(false);
 
@@ -41,7 +41,7 @@ export default function SettingsPage() {
       setFormData({
         microsoft_auth_config: settingsData.microsoft_auth_config || {},
         analytics_config: settingsData.analytics_config || { google: "", baidu: "" },
-        admin_entrance_key: settingsData.admin_entrance_key || "secret-admin-entrance",
+        admin_entrance_key: settingsData.admin_entrance_key || "",
       });
     } catch (error) {
       console.error("Failed to fetch settings:", error);
@@ -50,7 +50,7 @@ export default function SettingsPage() {
         setFormData({
           microsoft_auth_config: {},
           analytics_config: { google: "", baidu: "" },
-          admin_entrance_key: "secret-admin-entrance",
+          admin_entrance_key: "",
         });
       } else {
         setError(t("admin.settingsPage.error"));
@@ -133,13 +133,24 @@ export default function SettingsPage() {
   // 保存设置（含 Key 修改前置检查）
   const handleSave = async (e) => {
     e.preventDefault();
+    const normalizedKey = formData.admin_entrance_key.trim();
+
+    if (normalizedKey.length < 8) {
+      setError("后台入口 Key 长度至少 8 位");
+      return;
+    }
+
+    if (normalizedKey === "secret-admin-entrance") {
+      setError("请勿使用默认后台入口 Key，请设置新的安全值");
+      return;
+    }
 
     const updateData = {
       analytics_config: {
         google: formData.analytics_config.google?.trim() || "",
         baidu: formData.analytics_config.baidu?.trim() || "",
       },
-      admin_entrance_key: formData.admin_entrance_key.trim(),
+      admin_entrance_key: normalizedKey,
     };
 
     // 检查 admin_entrance_key 是否改变
@@ -414,7 +425,7 @@ export default function SettingsPage() {
                     })
                   }
                   className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-blue)]/40 focus:border-transparent font-mono"
-                  placeholder="secret-admin-entrance"
+                  placeholder="请输入新的后台入口 Key（至少 8 位）"
                   required
                 />
                 <p className="mt-1 text-xs text-slate-500">

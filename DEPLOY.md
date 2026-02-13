@@ -43,7 +43,8 @@
    脚本运行结束后，屏幕上会显示以下重要信息，**请务必保存**：
    - **PocketBase Superuser**: `ryan.lan_home@outlook.com`
    - **Superuser Password**: (脚本随机生成的强密码)
-   - **Web Admin**: `admin@local.dev` / `password123456`
+   - **Web Admin URL**: `https://<your-domain>/<your-admin-key>/webadmin`
+   - **重要**: 首次进入后台后请立即设置高强度 `admin_entrance_key`，不要使用默认示例值
 
 ---
 
@@ -95,7 +96,7 @@
 系统已预置以下管理员邮箱到白名单（`whitelists` 集合）：
 
 1. **`ryan.lan_home@outlook.com`** (您的 SSO 账号)
-2. **`admin@local.dev`** (默认本地管理员)
+2. **`admin@local.dev`** (开发环境预留邮箱，仅在显式开启本地回退时使用)
 3. **`hardy1035626987@hotmail.com`** (您要求新增的账号)
 
 部署后，这三个账号均可作为管理员访问后台。

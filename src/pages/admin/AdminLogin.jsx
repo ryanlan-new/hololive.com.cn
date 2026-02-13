@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import pb from "../../lib/pocketbase";
-// 注意：ALLOWED_ADMINS 硬编码白名单已迁移到数据库 whitelists 集合
-// 此导入保留用于向后兼容，但优先使用数据库白名单
+// 注意：ALLOWED_ADMINS 仅用于开发环境的显式回退白名单
 import { ALLOWED_ADMINS } from "../../config/auth_whitelist";
 import { logLogin } from "../../lib/logger";
 import { useTranslation } from "react-i18next";
@@ -37,6 +36,9 @@ export default function AdminLogin() {
   const [enableLocalLogin, setEnableLocalLogin] = useState(true); // 默认开启（安全回退）
   const [loadingSettings, setLoadingSettings] = useState(true);
   const navigate = useNavigate();
+  const allowLocalWhitelistFallback =
+    import.meta.env.DEV &&
+    import.meta.env.VITE_ALLOW_LOCAL_WHITELIST_FALLBACK === "true";
 
   // 从数据库读取本地登录开关状态
   useEffect(() => {
@@ -65,7 +67,7 @@ export default function AdminLogin() {
       return false;
     }
 
-    // 本地登录：优先检查数据库白名单，如果数据库查询失败则回退到硬编码白名单（向后兼容）
+    // 本地登录：优先检查数据库白名单，仅在开发模式显式开启时允许回退
     if (isLocalLogin) {
       try {
         // 优先从数据库 whitelists 集合查询
@@ -76,15 +78,18 @@ export default function AdminLogin() {
         navigate("../dashboard");
         return true;
       } catch (error) {
-        // 数据库查询失败，回退到硬编码白名单（向后兼容）
-        console.warn("Database whitelist check failed, falling back to hardcoded whitelist:", error);
-        if (!ALLOWED_ADMINS.includes(userEmail)) {
-          pb.authStore.clear();
-          navigate("/403");
-          return false;
+        if (allowLocalWhitelistFallback) {
+          console.warn(
+            "Whitelist DB check failed; using local fallback list in DEV mode."
+          );
+          if (ALLOWED_ADMINS.includes(userEmail)) {
+            navigate("../dashboard");
+            return true;
+          }
         }
-        navigate("../dashboard");
-        return true;
+
+        pb.authStore.clear();
+        throw new Error("Whitelist verification failed", { cause: error });
       }
     }
 
@@ -213,7 +218,10 @@ export default function AdminLogin() {
 
       // 显示错误提示
       let errorMessage = t("admin.login.alerts.failed");
-      if (error?.message === "Email not whitelisted") {
+      if (
+        error?.message === "Email not whitelisted" ||
+        error?.message === "Whitelist verification failed"
+      ) {
         errorMessage = t("admin.login.alerts.notWhitelisted");
       }
       alert(errorMessage);
@@ -334,7 +342,7 @@ export default function AdminLogin() {
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={isLoading}
                   className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
-                  placeholder="admin@local.dev"
+                  placeholder="your-admin@example.com"
                   required
                 />
               </div>
@@ -353,7 +361,7 @@ export default function AdminLogin() {
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={isLoading}
                   className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
-                  placeholder="password123456"
+                  placeholder="请输入密码"
                   required
                 />
               </div>
