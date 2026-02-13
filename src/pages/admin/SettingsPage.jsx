@@ -89,11 +89,6 @@ export default function SettingsPage() {
     setError(null);
 
     try {
-      console.log("Submitting system settings:", {
-        updateData,
-        keyChanged,
-      });
-
       // 先尝试更新，如果不存在再创建
       try {
         await pb.collection("system_settings").update(SETTINGS_ID, updateData);

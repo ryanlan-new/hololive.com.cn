@@ -7,6 +7,38 @@ import parse from "html-react-parser";
 import pb from "../lib/pocketbase";
 import { getLocalizedContent } from "../utils/postHelpers";
 
+const sanitizeRichText = (html) => {
+  if (!html || typeof window === "undefined") return "";
+
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, "text/html");
+
+  doc
+    .querySelectorAll("script, style, iframe, object, embed, link, meta")
+    .forEach((node) => node.remove());
+
+  doc.querySelectorAll("*").forEach((element) => {
+    Array.from(element.attributes).forEach((attribute) => {
+      const name = attribute.name.toLowerCase();
+      const value = attribute.value || "";
+
+      if (name.startsWith("on") || name === "style") {
+        element.removeAttribute(attribute.name);
+        return;
+      }
+
+      if (
+        (name === "href" || name === "src") &&
+        /^\s*javascript:/i.test(value)
+      ) {
+        element.removeAttribute(attribute.name);
+      }
+    });
+  });
+
+  return doc.body.innerHTML;
+};
+
 export default function ArticleDetail() {
   const { id } = useParams();
   const { i18n } = useTranslation();
@@ -136,7 +168,11 @@ export default function ArticleDetail() {
               {/* Article Body */}
               <div className="p-6 md:p-8">
                 <div className="prose prose-slate prose-lg max-w-none prose-headings:font-bold prose-headings:text-slate-900 prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline prose-img:rounded-xl prose-img:w-full prose-img:max-w-full prose-blockquote:border-l-slate-300 prose-blockquote:text-slate-700 prose-strong:text-slate-900">
-                  {parse(getLocalizedContent(post, "content", i18n.language) || "")}
+                  {parse(
+                    sanitizeRichText(
+                      getLocalizedContent(post, "content", i18n.language) || ""
+                    )
+                  )}
                 </div>
               </div>
             </motion.article>

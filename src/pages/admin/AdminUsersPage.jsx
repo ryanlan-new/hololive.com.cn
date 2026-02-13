@@ -124,8 +124,6 @@ export default function AdminUsersPage() {
         passwordConfirm: formData.passwordConfirm,
         emailVisibility: true,
       };
-      console.log("Creating admin user with payload:", payload);
-
       await pb.collection("users").create(payload);
       alert(t("admin.users.modal.success"));
       setShowForm(false);
@@ -146,7 +144,6 @@ export default function AdminUsersPage() {
   // 禁用账号（将 verified 设为 false）
   const handleDisable = async (userId) => {
     try {
-      console.log("Disabling admin user:", { userId });
       await pb.collection("users").update(userId, {
         verified: false,
       });
@@ -167,7 +164,6 @@ export default function AdminUsersPage() {
   // 删除账号
   const handleDelete = async (id) => {
     try {
-      console.log("Deleting admin user:", { id });
       setDeletingId(id);
       await pb.collection("users").delete(id);
       await fetchUsers();

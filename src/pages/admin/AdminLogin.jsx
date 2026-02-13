@@ -32,8 +32,8 @@ export default function AdminLogin() {
   const { t } = useTranslation();
   const [microsoftLoading, setMicrosoftLoading] = useState(false);
   const [localLoading, setLocalLoading] = useState(false);
-  const [email, setEmail] = useState("admin@local.dev");
-  const [password, setPassword] = useState("password123456");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [enableLocalLogin, setEnableLocalLogin] = useState(true); // 默认开启（安全回退）
   const [loadingSettings, setLoadingSettings] = useState(true);
   const navigate = useNavigate();
@@ -109,9 +109,6 @@ export default function AdminLogin() {
     setMicrosoftLoading(true);
 
     try {
-      console.log("Starting Microsoft OAuth2 login...");
-      console.log("PocketBase URL:", pb.baseUrl);
-
       // 首先检查 OAuth2 提供者是否可用（仅用于诊断，不阻止登录尝试）
       try {
         const authMethods = await pb.collection("users").listAuthMethods();
@@ -119,9 +116,7 @@ export default function AdminLogin() {
           (p) => p.name === "microsoft"
         );
 
-        if (microsoftProvider) {
-          console.log("Microsoft OAuth2 provider found:", microsoftProvider);
-        } else {
+        if (!microsoftProvider) {
           console.warn("Microsoft OAuth2 provider not found in listAuthMethods()");
         }
       } catch (checkError) {
@@ -133,11 +128,8 @@ export default function AdminLogin() {
         provider: "microsoft",
       });
 
-      console.log("OAuth2 auth data received:", authData);
-
       // 获取登录后的用户邮箱（从 authData.record.email）
       const userEmail = authData?.record?.email;
-      console.log("User email from OAuth:", userEmail);
 
       if (!userEmail) {
         throw new Error("无法获取用户邮箱信息");

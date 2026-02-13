@@ -10,9 +10,8 @@ ExecStart=/usr/bin/node sync_velocity.js
 Restart=always
 RestartSec=10
 Environment=PB_URL=http://127.0.0.1:8090
-Environment=PB_EMAIL=admin@local.dev
-Environment=PB_PASS=password123456
 Environment=VELOCITY_DIR=/opt/velocity
+EnvironmentFile=-/etc/default/velocity-sync
 
 [Install]
 WantedBy=multi-user.target

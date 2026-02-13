@@ -10,8 +10,8 @@ const execAsync = promisify(exec);
 
 // Configuration
 const PB_URL = process.env.PB_URL || "http://127.0.0.1:8090";
-const PB_ADMIN_EMAIL = process.env.PB_EMAIL || "admin@local.dev";
-const PB_ADMIN_PASS = process.env.PB_PASS || "password123456";
+const PB_ADMIN_EMAIL = process.env.PB_EMAIL?.trim();
+const PB_ADMIN_PASS = process.env.PB_PASS?.trim();
 const VELOCITY_DIR = process.env.VELOCITY_DIR || "/opt/velocity";
 const VELOCITY_SERVICE = "velocity";
 const VELOCITY_OWNER = process.env.VELOCITY_OWNER || "ubuntu:ubuntu";
@@ -33,6 +33,11 @@ let lastReportedProxyStatus = null;
 async function main() {
     console.log(`[Sync] Starting Velocity Sync Daemon...`);
     console.log(`[Sync] Connecting to ${PB_URL}...`);
+
+    if (!PB_ADMIN_EMAIL || !PB_ADMIN_PASS) {
+        console.error("[Sync] Missing required env: PB_EMAIL and PB_PASS must be provided.");
+        process.exit(1);
+    }
 
     try {
         await pb.admins.authWithPassword(PB_ADMIN_EMAIL, PB_ADMIN_PASS);
