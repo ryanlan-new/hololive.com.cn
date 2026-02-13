@@ -582,4 +582,7 @@ show-plugins = ${asBool(settings.query_show_plugins, false)}
 }
 
 
-main().catch(console.error);
+main().catch((err) => {
+    logError("[Sync] Fatal error:", err?.stack || err?.message || err);
+    process.exit(1);
+});

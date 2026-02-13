@@ -61,6 +61,7 @@ export default defineConfig([
       },
     },
     rules: {
+      'no-console': 'error',
       'no-unused-vars': [
         'error',
         {
@@ -69,6 +70,12 @@ export default defineConfig([
           caughtErrors: 'none',
         },
       ],
+    },
+  },
+  {
+    files: ['backend/scripts/logger.js'],
+    rules: {
+      'no-console': 'off',
     },
   },
   {
