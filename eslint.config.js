@@ -22,6 +22,7 @@ export default defineConfig([
     },
     rules: {
       'no-unused-vars': ['error', { varsIgnorePattern: '^(?:[A-Z_]|motion)$' }],
+      'no-console': ['error', { allow: ['warn', 'error'] }],
       'no-restricted-globals': [
         'error',
         {

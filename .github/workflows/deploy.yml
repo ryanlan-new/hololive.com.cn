@@ -17,16 +17,60 @@ jobs:
       - name: Check Node.js Version
         run: node -v && npm -v
 
-      - name: Install Dependencies
+      - name: Install Dependencies (with retry)
         run: |
+          set -e
           npm config set registry https://registry.npmmirror.com
-          npm ci
+          npm config set fetch-retries 5
+          npm config set fetch-retry-mintimeout 10000
+          npm config set fetch-retry-maxtimeout 120000
+
+          for i in 1 2 3; do
+            echo "npm ci attempt ${i}/3"
+            if npm ci; then
+              exit 0
+            fi
+
+            if [ "$i" -lt 3 ]; then
+              echo "npm ci failed, retrying in 10s..."
+              sleep 10
+            fi
+          done
+
+          echo "npm ci failed after 3 attempts"
+          exit 1
 
       - name: Lint (Zero Warning)
         run: npm run lint
 
-      - name: Security Audit (Prod Deps)
-        run: npm run audit:prod
+      - name: Security Audit (Prod Deps, network-resilient)
+        run: |
+          set +e
+
+          for i in 1 2 3; do
+            echo "npm audit attempt ${i}/3"
+            output="$(npm run audit:prod 2>&1)"
+            status=$?
+            echo "$output"
+
+            if [ "$status" -eq 0 ]; then
+              exit 0
+            fi
+
+            if echo "$output" | grep -Eqi "ENOTFOUND|EAI_AGAIN|ECONNRESET|ETIMEDOUT|ECONNREFUSED|TLS|socket hang up|audit endpoint returned an error|getaddrinfo|Failed to connect"; then
+              if [ "$i" -lt 3 ]; then
+                echo "Network-related audit failure, retrying in 10s..."
+                sleep 10
+                continue
+              fi
+
+              echo "::warning::Security audit skipped due repeated network errors after 3 attempts."
+              exit 0
+            fi
+
+            echo "::error::Security audit failed due non-network issue."
+            exit "$status"
+          done
 
       - name: Build Frontend
         run: npm run build
