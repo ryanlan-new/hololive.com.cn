@@ -22,6 +22,30 @@ export default defineConfig([
     },
     rules: {
       'no-unused-vars': ['error', { varsIgnorePattern: '^(?:[A-Z_]|motion)$' }],
+      'no-restricted-globals': [
+        'error',
+        {
+          name: 'alert',
+          message: 'Use useUIFeedback().notify() instead of native alert().',
+        },
+        {
+          name: 'confirm',
+          message: 'Use useUIFeedback().confirm() instead of native confirm().',
+        },
+      ],
+      'no-restricted-properties': [
+        'error',
+        {
+          object: 'window',
+          property: 'alert',
+          message: 'Use useUIFeedback().notify() instead of window.alert().',
+        },
+        {
+          object: 'window',
+          property: 'confirm',
+          message: 'Use useUIFeedback().confirm() instead of window.confirm().',
+        },
+      ],
     },
   },
   {
