@@ -4,6 +4,9 @@ import pb from "../../lib/pocketbase";
 import MediaLibraryModal from "./MediaLibraryModal";
 import { useTranslation } from "react-i18next";
 import { useUIFeedback } from "../../hooks/useUIFeedback";
+import { createAppLogger } from "../../lib/appLogger";
+
+const logger = createAppLogger("ImagePicker");
 
 /**
  * ImagePicker Component
@@ -36,7 +39,7 @@ export default function ImagePicker({ value, onChange, previewUrl, label }) {
             setPreview({ url, filename: mediaRecord.file });
           }
         } catch (error) {
-          console.error("Failed to load media preview:", error);
+          logger.error("Failed to load media preview:", error);
           // Fallback to legacy URL if available
           if (previewUrl) {
             setPreview({ url: previewUrl, filename: null });
@@ -72,7 +75,7 @@ export default function ImagePicker({ value, onChange, previewUrl, label }) {
         onChange(record.id);
       }
     } catch (error) {
-      console.error("上传失败:", error);
+      logger.error("上传失败:", error);
       notify(`${t("admin.imagePicker.uploadError")}, ${t("admin.imagePicker.retry")}`, "error");
     } finally {
       setUploading(false);

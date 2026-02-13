@@ -11,6 +11,9 @@ import {
 } from "lucide-react";
 import pb from "../../../lib/pocketbase";
 import { useUIFeedback } from "../../../hooks/useUIFeedback";
+import { createAppLogger } from "../../../lib/appLogger";
+
+const logger = createAppLogger("MediaManager");
 
 /**
  * 通用资源管理组件
@@ -39,7 +42,7 @@ export default function MediaManager({ onSelect, closeModal }) {
       });
       setMediaList(result.items);
     } catch (error) {
-      console.error("获取媒体列表失败:", error);
+      logger.error("获取媒体列表失败:", error);
       notify("获取媒体列表失败，请重试", "error");
     } finally {
       setLoading(false);
@@ -62,7 +65,7 @@ export default function MediaManager({ onSelect, closeModal }) {
       await pb.collection("media").create(formData);
       await fetchMedia(); // 刷新列表
     } catch (error) {
-      console.error("上传失败:", error);
+      logger.error("上传失败:", error);
       notify("上传失败，请重试", "error");
     } finally {
       setUploading(false);
@@ -90,7 +93,7 @@ export default function MediaManager({ onSelect, closeModal }) {
       await fetchMedia(); // 刷新列表
       setSelectedMedia(null);
     } catch (error) {
-      console.error("删除失败:", error);
+      logger.error("删除失败:", error);
       notify("删除失败，请重试", "error");
     }
   };
@@ -381,7 +384,7 @@ export default function MediaManager({ onSelect, closeModal }) {
                       await navigator.clipboard.writeText(getFileUrl(selectedMedia));
                       notify("URL 已复制到剪贴板", "success");
                     } catch (error) {
-                      console.error("复制 URL 失败:", error);
+                      logger.error("复制 URL 失败:", error);
                       notify("复制失败，请手动复制", "error");
                     }
                   }}

@@ -2,6 +2,9 @@ import { useState, useEffect } from "react";
 import { Search, X, Loader2, Image as ImageIcon } from "lucide-react";
 import pb from "../../lib/pocketbase";
 import { useTranslation } from "react-i18next";
+import { createAppLogger } from "../../lib/appLogger";
+
+const logger = createAppLogger("MediaLibraryModal");
 
 /**
  * Media Library Modal Component
@@ -27,7 +30,7 @@ export default function MediaLibraryModal({ isOpen, onClose, onSelect }) {
       });
       setMediaList(result.items);
     } catch (error) {
-      console.error("获取媒体列表失败:", error);
+      logger.error("获取媒体列表失败:", error);
     } finally {
       setLoading(false);
     }

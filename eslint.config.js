@@ -91,6 +91,18 @@ export default defineConfig([
     },
   },
   {
+    files: ['src/components/admin/**/*.jsx'],
+    rules: {
+      'no-console': 'error',
+    },
+  },
+  {
+    files: ['src/hooks/**/*.js'],
+    rules: {
+      'no-console': 'error',
+    },
+  },
+  {
     files: ['src/router.jsx'],
     rules: {
       'react-refresh/only-export-components': 'off',

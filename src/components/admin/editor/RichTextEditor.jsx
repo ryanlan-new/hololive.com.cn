@@ -9,6 +9,9 @@ import MenuBar from "./MenuBar";
 import Modal from "../ui/Modal";
 import MediaManager from "../media/MediaManager";
 import { useUIFeedback } from "../../../hooks/useUIFeedback";
+import { createAppLogger } from "../../../lib/appLogger";
+
+const logger = createAppLogger("RichTextEditor");
 
 /**
  * 富文本编辑器组件
@@ -101,7 +104,7 @@ export default function RichTextEditor({ content, onChange, placeholder = "在�
         // 插入图片到编辑器
         editor.chain().focus().setImage({ src: fileUrl }).run();
       } catch (error) {
-        console.error("图片上传失败:", error);
+        logger.error("图片上传失败:", error);
         notify("图片上传失败，请重试", "error");
       }
     },

@@ -2,6 +2,9 @@ import { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import pb from "../lib/pocketbase";
 import { useUIFeedback } from "./useUIFeedback";
+import { createAppLogger } from "../lib/appLogger";
+
+const logger = createAppLogger("useVelocityData");
 
 export default function useVelocityData() {
     const { t } = useTranslation();
@@ -42,14 +45,14 @@ export default function useVelocityData() {
                 setForcedHosts(forcedHostsList || []);
             } catch (err) {
                 if (isMissingCollectionError(err, "velocity_forced_hosts")) {
-                    console.warn("Collection velocity_forced_hosts is missing. Falling back to empty list.");
+                    logger.warn("Collection velocity_forced_hosts is missing. Falling back to empty list.");
                     setForcedHosts([]);
                 } else {
                     throw err;
                 }
             }
         } catch (err) {
-            console.error("Failed to fetch Velocity data:", err);
+            logger.error("Failed to fetch Velocity data:", err);
             notify(t("admin.dashboard.error.loadFailed"), "error");
         } finally {
             setLoading(false);
@@ -105,7 +108,7 @@ export default function useVelocityData() {
                     };
                 });
             } catch (err) {
-                console.warn("Failed to refresh runtime status:", err?.message || err);
+                logger.warn("Failed to refresh runtime status:", err?.message || err);
             }
         };
 
@@ -136,7 +139,7 @@ export default function useVelocityData() {
         try {
             await pb.collection('velocity_servers').delete(id);
         } catch (err) {
-            console.error(err);
+            logger.error(err);
             notify(t("admin.velocity.actions.deleteServerError"), "error");
         }
     };
@@ -154,7 +157,7 @@ export default function useVelocityData() {
             setEditingServer(null);
             setNewServer({ name: "", address: "", try_order: 0, is_try_server: false });
         } catch (err) {
-            console.error(err);
+            logger.error(err);
             notify(t("admin.velocity.actions.addServerError"), "error");
         } finally {
             setSaving(false);
@@ -168,7 +171,7 @@ export default function useVelocityData() {
             await pb.collection("velocity_settings").update(settingsId, settings);
             notify(t("admin.velocity.settings.success"), "success");
         } catch (err) {
-            console.error("Failed to save settings:", err);
+            logger.error("Failed to save settings:", err);
             notify(t("admin.velocity.settings.error"), "error");
         } finally {
             setSaving(false);
@@ -184,7 +187,7 @@ export default function useVelocityData() {
                 restart_trigger: new Date().toISOString(),
             });
         } catch (err) {
-            console.error("Failed to restart:", err);
+            logger.error("Failed to restart:", err);
             setRestarting(false);
             notify(t("admin.velocity.actions.restartError"), "error");
         }
@@ -195,7 +198,7 @@ export default function useVelocityData() {
         try {
             await pb.collection("velocity_servers").update(serverId, { status: "pending" });
         } catch (err) {
-            console.error("Failed to trigger test:", err);
+            logger.error("Failed to trigger test:", err);
             setTestingMap(prev => ({ ...prev, [serverId]: false }));
         }
     };
@@ -212,7 +215,7 @@ export default function useVelocityData() {
             const list = await pb.collection("velocity_forced_hosts").getFullList({ sort: "hostname" });
             setForcedHosts(list);
         } catch (err) {
-            console.error(err);
+            logger.error(err);
             notify(t("admin.velocity.actions.addError"), "error");
         }
     };
@@ -223,7 +226,7 @@ export default function useVelocityData() {
             await pb.collection("velocity_forced_hosts").delete(id);
             setForcedHosts(prev => prev.filter(h => h.id !== id));
         } catch (err) {
-            console.error(err);
+            logger.error(err);
             notify(t("admin.velocity.actions.deleteError"), "error");
         }
     };
@@ -240,7 +243,7 @@ export default function useVelocityData() {
             notify(t("admin.velocity.update.success"), "success");
             fetchData();
         } catch (err) {
-            console.error("Upload failed:", err);
+            logger.error("Upload failed:", err);
             notify(t("admin.velocity.update.error"), "error");
         } finally {
             setUploading(false);

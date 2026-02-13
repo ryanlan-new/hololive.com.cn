@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import pb from '../lib/pocketbase';
+import { createAppLogger } from '../lib/appLogger';
+
+const logger = createAppLogger("useCmsData");
 
 /**
  * 获取首页分段数据
@@ -51,7 +54,7 @@ export function useCmsSections() {
         
         setSections(processedSections);
       } catch (err) {
-        console.error('Failed to fetch CMS sections:', err);
+        logger.error('Failed to fetch CMS sections:', err);
         setError(err);
       } finally {
         setLoading(false);
