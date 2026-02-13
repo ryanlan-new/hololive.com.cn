@@ -10,8 +10,8 @@ import {
   Save,
 } from "lucide-react";
 import pb from "../../lib/pocketbase";
-import * as LucideIcons from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { getServerInfoIcon, SERVER_INFO_ICON_NAMES } from "../../lib/serverInfoIcons";
 
 /**
  * Server Info Fields Management Page
@@ -179,23 +179,8 @@ export default function ServerInfoFields() {
 
   // Get icon component by name
   const getIconComponent = (iconName) => {
-    const IconComponent = LucideIcons[iconName] || LucideIcons.Server;
-    return IconComponent;
+    return getServerInfoIcon(iconName);
   };
-
-  // Common Lucide icons for selection
-  const commonIcons = [
-    "Server",
-    "Gamepad2",
-    "ShieldCheck",
-    "Globe",
-    "Users",
-    "Clock",
-    "Info",
-    "Link",
-    "Map",
-    "Settings",
-  ];
 
   return (
     <div className="space-y-6">
@@ -260,7 +245,7 @@ export default function ServerInfoFields() {
                 }
                 className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-blue)]"
               >
-                {commonIcons.map((iconName) => {
+                {SERVER_INFO_ICON_NAMES.map((iconName) => {
                   return (
                     <option key={iconName} value={iconName}>
                       {iconName}

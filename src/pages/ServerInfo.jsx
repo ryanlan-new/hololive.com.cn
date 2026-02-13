@@ -2,9 +2,9 @@ import { useEffect, useState, useCallback } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Server, ArrowLeft, Loader2, Map, Maximize, Minimize, X, Activity, Users, Zap, Info } from "lucide-react";
-import * as LucideIcons from "lucide-react";
 import { useTranslation } from "react-i18next";
 import pb from "../lib/pocketbase";
+import { getServerInfoIcon } from "../lib/serverInfoIcons";
 
 export default function ServerInfo() {
   const { i18n, t } = useTranslation("docs");
@@ -149,8 +149,7 @@ export default function ServerInfo() {
 
   // Get icon component by name
   const getIconComponent = (iconName) => {
-    const IconComponent = LucideIcons[iconName] || LucideIcons.Server;
-    return IconComponent;
+    return getServerInfoIcon(iconName);
   };
 
   const handleMapSelect = (map) => {

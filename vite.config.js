@@ -27,7 +27,7 @@ export default defineConfig({
             '@tiptap/extension-placeholder',
           ],
           'vendor-motion': ['framer-motion'],
-          'vendor-icons': ['lucide-react', 'react-icons'],
+          'vendor-icons': ['lucide-react'],
           'vendor-i18n': ['i18next', 'react-i18next'],
         },
       },
