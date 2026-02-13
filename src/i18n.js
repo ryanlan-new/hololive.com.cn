@@ -1017,7 +1017,7 @@ const resources = {
         usadaKensetsu: 'Usada Kensetsu',
         thanksStaff: 'Usada_kidd and all former sub-members who helped',
         personalSpace: "TPMOONCHEFRYAN's Bilibili Space",
-        oldFansub: 'Former Phantom Night Fansub',
+        oldFansub: 'Former 幻夜字幕组',
         oldTalents: 'Former hololive China Talents',
         copyrightOwner: 'Copyright © 2025 TPMOONCHEFRYAN',
       },
