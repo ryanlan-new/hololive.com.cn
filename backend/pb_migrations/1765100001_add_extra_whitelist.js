@@ -28,7 +28,7 @@ migrate(
             const existingRow = qb.one();
             if (existingRow && existingRow.id) {
                 // 记录已存在，跳过
-                console.log(`Whitelist record for ${email} already exists, skipping`);
+                console.warn("Whitelist record already exists, skipping");
                 return;
             }
         } catch (err) {
@@ -42,9 +42,9 @@ migrate(
                 description: description,
             });
             app.save(whitelistRecord);
-            console.log(`Created whitelist record for ${email}`);
+            console.warn("Created whitelist record");
         } catch (err) {
-            console.error(`Failed to create whitelist record for ${email}:`, err);
+            console.error("Failed to create whitelist record:", err);
         }
     },
     (app) => {
@@ -68,7 +68,7 @@ migrate(
             if (row && row.id) {
                 const rec = app.findRecordById(whitelistsCollection.id, row.id);
                 app.delete(rec);
-                console.log(`Deleted whitelist record for ${email}`);
+                console.warn("Deleted whitelist record");
             }
         } catch (err) {
             // 忽略错误
