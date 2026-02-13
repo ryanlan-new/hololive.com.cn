@@ -1,85 +1,99 @@
+import { Suspense, lazy } from "react";
 import { createBrowserRouter, Navigate } from "react-router-dom";
-import Home from "./pages/Home";
-import Docs from "./pages/Docs";
-import WebsiteAnnouncements from "./pages/WebsiteAnnouncements";
-import ServerInfo from "./pages/ServerInfo";
-import OtherDocuments from "./pages/OtherDocuments";
-import MainLayout from "./components/layout/MainLayout";
-import ErrorPage from "./pages/ErrorPage";
-import AdminGuard from "./components/auth/AdminGuard";
-import RequireAdminAuth from "./components/auth/RequireAdminAuth";
-import AdminLayout from "./components/admin/AdminLayout";
-import AdminLogin from "./pages/admin/AdminLogin";
-import AdminDashboard from "./pages/admin/Dashboard";
-import Posts from "./pages/admin/Posts";
-import PostEditor from "./pages/admin/PostEditor";
-import WhitelistPage from "./pages/admin/WhitelistPage";
-import AdminUsersPage from "./pages/admin/AdminUsersPage";
-import SettingsPage from "./pages/admin/SettingsPage";
-import AnnouncementPage from "./pages/admin/AnnouncementPage";
-import MediaPage from "./pages/admin/MediaPage";
-import HomeManager from "./pages/admin/HomeManager";
-import SectionEditor from "./pages/admin/SectionEditor";
-import ServerMapManager from "./pages/admin/ServerMapManager";
-import ServerInfoFields from "./pages/admin/ServerInfoFields";
-import AuditLogs from "./pages/admin/AuditLogs";
-import ArticleDetail from "./pages/ArticleDetail";
-import VelocityManager from "./pages/admin/VelocityManager";
+
+const Home = lazy(() => import("./pages/Home"));
+const Docs = lazy(() => import("./pages/Docs"));
+const WebsiteAnnouncements = lazy(() => import("./pages/WebsiteAnnouncements"));
+const ServerInfo = lazy(() => import("./pages/ServerInfo"));
+const OtherDocuments = lazy(() => import("./pages/OtherDocuments"));
+const MainLayout = lazy(() => import("./components/layout/MainLayout"));
+const ErrorPage = lazy(() => import("./pages/ErrorPage"));
+const AdminGuard = lazy(() => import("./components/auth/AdminGuard"));
+const RequireAdminAuth = lazy(() => import("./components/auth/RequireAdminAuth"));
+const AdminLayout = lazy(() => import("./components/admin/AdminLayout"));
+const AdminLogin = lazy(() => import("./pages/admin/AdminLogin"));
+const AdminDashboard = lazy(() => import("./pages/admin/Dashboard"));
+const Posts = lazy(() => import("./pages/admin/Posts"));
+const PostEditor = lazy(() => import("./pages/admin/PostEditor"));
+const WhitelistPage = lazy(() => import("./pages/admin/WhitelistPage"));
+const AdminUsersPage = lazy(() => import("./pages/admin/AdminUsersPage"));
+const SettingsPage = lazy(() => import("./pages/admin/SettingsPage"));
+const AnnouncementPage = lazy(() => import("./pages/admin/AnnouncementPage"));
+const MediaPage = lazy(() => import("./pages/admin/MediaPage"));
+const HomeManager = lazy(() => import("./pages/admin/HomeManager"));
+const SectionEditor = lazy(() => import("./pages/admin/SectionEditor"));
+const ServerMapManager = lazy(() => import("./pages/admin/ServerMapManager"));
+const ServerInfoFields = lazy(() => import("./pages/admin/ServerInfoFields"));
+const AuditLogs = lazy(() => import("./pages/admin/AuditLogs"));
+const ArticleDetail = lazy(() => import("./pages/ArticleDetail"));
+const VelocityManager = lazy(() => import("./pages/admin/VelocityManager"));
+
+function RouteFallback() {
+  return (
+    <div className="min-h-screen w-full flex items-center justify-center bg-slate-50 text-slate-500">
+      Loading...
+    </div>
+  );
+}
+
+function withSuspense(element) {
+  return <Suspense fallback={<RouteFallback />}>{element}</Suspense>;
+}
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <MainLayout />,
+    element: withSuspense(<MainLayout />),
     children: [
       {
         index: true,
-        element: <Home />,
+        element: withSuspense(<Home />),
       },
       {
         path: "docs",
-        element: <Docs />,
+        element: withSuspense(<Docs />),
       },
       {
         path: "docs/announcements",
-        element: <WebsiteAnnouncements />,
+        element: withSuspense(<WebsiteAnnouncements />),
       },
       {
         path: "docs/server-info",
-        element: <ServerInfo />,
+        element: withSuspense(<ServerInfo />),
       },
       {
         path: "docs/documents",
-        element: <OtherDocuments />,
+        element: withSuspense(<OtherDocuments />),
       },
       {
         path: "docs/article/:id",
-        element: <ArticleDetail />,
+        element: withSuspense(<ArticleDetail />),
       },
     ],
   },
   {
     path: "/403",
-    element: <ErrorPage code="E403" />,
+    element: withSuspense(<ErrorPage code="E403" />),
   },
   {
     path: "/404",
-    element: <ErrorPage code="E404" />,
+    element: withSuspense(<ErrorPage code="E404" />),
   },
   {
     path: "/418",
-    element: <ErrorPage code="E418" />,
+    element: withSuspense(<ErrorPage code="E418" />),
   },
   {
     path: "/500",
-    element: <ErrorPage code="E500" />,
+    element: withSuspense(<ErrorPage code="E500" />),
   },
   {
     path: "/503",
-    element: <ErrorPage code="E503" />,
+    element: withSuspense(<ErrorPage code="E503" />),
   },
   {
     path: "/:adminKey/webadmin",
-    element: <AdminGuard />, // 第一道防线：隐蔽路径验证
+    element: withSuspense(<AdminGuard />), // 第一道防线：隐蔽路径验证
     children: [
       {
         index: true, // 访问根路径时默认跳转到 login
@@ -87,15 +101,15 @@ const router = createBrowserRouter([
       },
       {
         path: "login",
-        element: <AdminLogin />,
+        element: withSuspense(<AdminLogin />),
       },
       {
         // 受保护的区域：需要登录验证
-        element: <RequireAdminAuth />, // 第二道防线：身份验证
+        element: withSuspense(<RequireAdminAuth />), // 第二道防线：身份验证
         children: [
           {
             // 使用 AdminLayout 包裹所有后台管理页面
-            element: <AdminLayout />,
+            element: withSuspense(<AdminLayout />),
             children: [
               {
                 index: true, // 默认跳转到 dashboard
@@ -103,67 +117,67 @@ const router = createBrowserRouter([
               },
               {
                 path: "dashboard",
-                element: <AdminDashboard />,
+                element: withSuspense(<AdminDashboard />),
               },
               {
                 path: "posts",
-                element: <Posts />,
+                element: withSuspense(<Posts />),
               },
               {
                 path: "posts/new",
-                element: <PostEditor />,
+                element: withSuspense(<PostEditor />),
               },
               {
                 path: "posts/:id",
-                element: <PostEditor />,
+                element: withSuspense(<PostEditor />),
               },
               {
                 path: "accounts/whitelist",
-                element: <WhitelistPage />,
+                element: withSuspense(<WhitelistPage />),
               },
               {
                 path: "accounts/local",
-                element: <AdminUsersPage />,
+                element: withSuspense(<AdminUsersPage />),
               },
               {
                 path: "settings",
-                element: <SettingsPage />,
+                element: withSuspense(<SettingsPage />),
               },
               {
                 path: "announcements",
-                element: <AnnouncementPage />,
+                element: withSuspense(<AnnouncementPage />),
               },
               {
                 path: "media",
-                element: <MediaPage />,
+                element: withSuspense(<MediaPage />),
               },
               {
                 path: "home",
-                element: <HomeManager />,
+                element: withSuspense(<HomeManager />),
               },
               {
                 path: "home/new",
-                element: <SectionEditor />,
+                element: withSuspense(<SectionEditor />),
               },
               {
                 path: "home/:id",
-                element: <SectionEditor />,
+                element: withSuspense(<SectionEditor />),
               },
               {
                 path: "server-maps",
-                element: <ServerMapManager />,
+                element: withSuspense(<ServerMapManager />),
               },
               {
                 path: "server-info-fields",
-                element: <ServerInfoFields />,
+                element: withSuspense(<ServerInfoFields />),
               },
               {
                 path: "logs",
-                element: <AuditLogs />,
+                element: withSuspense(<AuditLogs />),
               },
               {
                 path: "velocity",
-                element: <VelocityManager />,
+                element: withSuspense(<VelocityManager />),
               },
             ],
           },
@@ -173,7 +187,7 @@ const router = createBrowserRouter([
   },
   {
     path: "*",
-    element: <ErrorPage code="E404" />,
+    element: withSuspense(<ErrorPage code="E404" />),
   },
 ]);
 

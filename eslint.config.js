@@ -47,6 +47,12 @@ export default defineConfig([
     },
   },
   {
+    files: ['src/router.jsx'],
+    rules: {
+      'react-refresh/only-export-components': 'off',
+    },
+  },
+  {
     files: ['backend/pb_migrations/**/*.js'],
     extends: [js.configs.recommended],
     languageOptions: {
