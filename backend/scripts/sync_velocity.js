@@ -5,6 +5,7 @@ import { exec } from 'child_process';
 import { promisify } from 'util';
 import net from 'net';
 import { createHash } from 'crypto';
+import { createLogger, maskEmail } from './logger.js';
 
 const execAsync = promisify(exec);
 
@@ -25,25 +26,31 @@ global.EventSource = EventSource;
 const pb = new PocketBase(PB_URL);
 pb.autoCancellation(false); // Disable auto-cancellation for long running process
 
+const logger = createLogger("VelocitySync", { levelEnv: "VELOCITY_SYNC_LOG_LEVEL" });
+const logInfo = (...args) => logger.info(...args);
+const logWarn = (...args) => logger.warn(...args);
+const logError = (...args) => logger.error(...args);
+
 // State
 let currentSettings = null;
 let syncQueue = Promise.resolve({ configChanged: false, jarChanged: false, appliedHash: "" });
 let lastReportedProxyStatus = null;
 
 async function main() {
-    console.log(`[Sync] Starting Velocity Sync Daemon...`);
-    console.log(`[Sync] Connecting to ${PB_URL}...`);
+    logInfo(`[Sync] Starting Velocity Sync Daemon...`);
+    logInfo(`[Sync] Connecting to ${PB_URL}...`);
+    logInfo(`[Sync] Log level: ${logger.level}`);
 
     if (!PB_ADMIN_EMAIL || !PB_ADMIN_PASS) {
-        console.error("[Sync] Missing required env: PB_EMAIL and PB_PASS must be provided.");
+        logError("[Sync] Missing required env: PB_EMAIL and PB_PASS must be provided.");
         process.exit(1);
     }
 
     try {
         await pb.admins.authWithPassword(PB_ADMIN_EMAIL, PB_ADMIN_PASS);
-        console.log(`[Sync] Authenticated as ${PB_ADMIN_EMAIL}`);
+        logInfo(`[Sync] Authenticated as ${maskEmail(PB_ADMIN_EMAIL)}`);
     } catch (err) {
-        console.error("Failed to authenticate:", err.message);
+        logError("Failed to authenticate:", err.message);
         process.exit(1);
     }
 
@@ -52,7 +59,7 @@ async function main() {
 
     // Subscribe to Settings Changes (Restart Trigger & Config Updates)
     pb.collection('velocity_settings').subscribe('*', async (e) => {
-        // console.log(`[Realtime] Settings update detected (${e.action})`);
+        // logInfo(`[Realtime] Settings update detected (${e.action})`);
 
         if (e.action === 'update') {
             const oldSettings = currentSettings || {};
@@ -82,7 +89,7 @@ async function main() {
             // Only sync if config actually changed or restart requested
             // This prevents infinite loop caused by monitorProxyStatus updating 'proxy_status'
             if (hasConfigChanged || restartTriggered) {
-                console.log(`[Realtime] Config change detected. Syncing...`);
+                logInfo(`[Realtime] Config change detected. Syncing...`);
                 await queueSync({
                     reason: "settings update",
                     restartIfChanged: true,
@@ -100,7 +107,7 @@ async function main() {
         if (e.action === 'update' || e.action === 'create') {
             const server = e.record;
             if (server.status === 'pending') {
-                console.log(`[Ping] Check requested for ${server.name} (${server.address})...`);
+                logInfo(`[Ping] Check requested for ${server.name} (${server.address})...`);
                 await checkServerStatus(server);
             }
         }
@@ -112,7 +119,7 @@ async function main() {
     // Subscribe to Forced Hosts Changes
     pb.collection('velocity_forced_hosts').subscribe('*', async (e) => {
         if (e.action === 'create' || e.action === 'update' || e.action === 'delete') {
-            console.log(`[Realtime] Forced Host change detected (${e.action}). Syncing...`);
+            logInfo(`[Realtime] Forced Host change detected (${e.action}). Syncing...`);
             await queueSync({ reason: `forced-host ${e.action}`, restartIfChanged: true });
         }
     });
@@ -120,7 +127,7 @@ async function main() {
     // Start Monitoring
     monitorProxyStatus();
 
-    console.log("[Sync] Watching for changes...");
+    logInfo("[Sync] Watching for changes...");
 
     // Keep process alive
     process.stdin.resume();
@@ -135,17 +142,17 @@ async function queueSync({ reason = "manual", restartIfChanged = false, forceRes
                 await updateJarVersion();
 
                 if (forceRestart) {
-                    console.log(`[Sync] Restart requested (${reason}).`);
+                    logInfo(`[Sync] Restart requested (${reason}).`);
                     await restartService();
                 } else if (restartIfChanged && (result.configChanged || result.jarChanged)) {
-                    console.log(`[Sync] Restart required because config changed (${reason}).`);
+                    logInfo(`[Sync] Restart required because config changed (${reason}).`);
                     await restartService();
                 }
 
                 await updateSyncMeta("ok", "", result.appliedHash);
                 return result;
             } catch (err) {
-                console.error(`[Sync] queueSync failed (${reason}):`, err.message);
+                logError(`[Sync] queueSync failed (${reason}):`, err.message);
                 await updateSyncMeta("error", err.message || String(err), "");
                 return { configChanged: false, jarChanged: false, appliedHash: "" };
             }
@@ -155,7 +162,7 @@ async function queueSync({ reason = "manual", restartIfChanged = false, forceRes
 }
 
 async function monitorProxyStatus() {
-    console.log("[Monitor] Starting proxy status monitoring...");
+    logInfo("[Monitor] Starting proxy status monitoring...");
     await updateProxyStatusOnce();
 
     // Check status every 15 seconds
@@ -166,7 +173,7 @@ async function monitorProxyStatus() {
 
 async function updateProxyStatusOnce() {
     if (!currentSettings) {
-        console.log("[Monitor] Waiting for settings to be loaded...");
+        logInfo("[Monitor] Waiting for settings to be loaded...");
         return;
     }
 
@@ -187,11 +194,11 @@ async function updateProxyStatusOnce() {
         await pb.collection('velocity_settings').update(currentSettings.id, payload);
         currentSettings = { ...currentSettings, ...payload };
         if (status !== lastReportedProxyStatus) {
-            console.log(`[Monitor] Proxy status => ${status}`);
+            logInfo(`[Monitor] Proxy status => ${status}`);
             lastReportedProxyStatus = status;
         }
     } catch (e) {
-        console.error("[Monitor] Failed to update status:", e.message);
+        logError("[Monitor] Failed to update status:", e.message);
     }
 }
 
@@ -202,12 +209,12 @@ async function syncConfig() {
     try {
         const list = await pb.collection('velocity_settings').getList(1, 1);
         if (list.items.length === 0) {
-            console.error("No velocity settings found.");
+            logError("No velocity settings found.");
             return noChange;
         }
         currentSettings = list.items[0];
     } catch (err) {
-        console.error("Error fetching settings:", err.message);
+        logError("Error fetching settings:", err.message);
         return noChange;
     }
 
@@ -216,7 +223,7 @@ async function syncConfig() {
     try {
         servers = await pb.collection('velocity_servers').getFullList({ sort: 'try_order' });
     } catch (err) {
-        console.error("Error fetching servers:", err.message);
+        logError("Error fetching servers:", err.message);
         return noChange;
     }
 
@@ -232,13 +239,13 @@ async function syncConfig() {
     try {
         jarChanged = await syncJarIfNeeded(currentSettings);
     } catch (err) {
-        console.error("[Sync] Failed to sync velocity.jar:", err.message);
+        logError("[Sync] Failed to sync velocity.jar:", err.message);
     }
 
     try {
         await ensureForwardingSecretFile(currentSettings.forwarding_secret);
     } catch (err) {
-        console.error("[Sync] Failed to sync forwarding secret file:", err.message);
+        logError("[Sync] Failed to sync forwarding secret file:", err.message);
     }
 
     // Generate velocity.toml
@@ -259,7 +266,7 @@ async function syncConfig() {
     }
 
     if (configChanged) {
-        console.log("[Sync] Configuration changed. Updating velocity.toml...");
+        logInfo("[Sync] Configuration changed. Updating velocity.toml...");
         await fs.writeFile(tomlPath, tomlContent);
         await ensureOwnership(tomlPath);
     }
@@ -282,7 +289,7 @@ async function updateJarVersion() {
         const versionLine = stdout.split(':')[1]?.trim();
 
         if (versionLine && currentSettings && currentSettings.jar_version !== versionLine) {
-            console.log(`[Version] Detected new version: ${versionLine}`);
+            logInfo(`[Version] Detected new version: ${versionLine}`);
             await pb.collection('velocity_settings').update(currentSettings.id, {
                 jar_version: versionLine
             });
@@ -291,17 +298,17 @@ async function updateJarVersion() {
         }
     } catch (err) {
         // Suppress error if just unzip check fails, but log if needed
-        // console.warn("[Version] Failed to detect version:", err.message);
+        // logWarn("[Version] Failed to detect version:", err.message);
     }
 }
 
 async function restartService() {
-    console.log("[Sync] Restarting Velocity service...");
+    logInfo("[Sync] Restarting Velocity service...");
     try {
         await execAsync(`systemctl restart ${VELOCITY_SERVICE}`);
-        console.log("[Sync] Service restarted successfully.");
+        logInfo("[Sync] Service restarted successfully.");
     } catch (err) {
-        console.error("Failed to restart service:", err.message);
+        logError("Failed to restart service:", err.message);
     }
 }
 
@@ -369,7 +376,7 @@ async function syncJarIfNeeded(settings) {
     await fs.writeFile(markerPath, `${jarRef}\n`);
     await ensureOwnership(markerPath);
 
-    console.log("[Sync] velocity.jar updated from PocketBase file.");
+    logInfo("[Sync] velocity.jar updated from PocketBase file.");
     return true;
 }
 
@@ -397,7 +404,7 @@ async function ensureOwnership(filePath) {
     try {
         await execAsync(`chown ${VELOCITY_OWNER} "${filePath}"`);
     } catch (e) {
-        console.warn(`[Sync] Failed to chown ${filePath}:`, e.message);
+        logWarn(`[Sync] Failed to chown ${filePath}:`, e.message);
     }
 }
 
@@ -415,7 +422,7 @@ async function updateSyncMeta(status, errorMessage = "", appliedHash = "") {
         await pb.collection('velocity_settings').update(currentSettings.id, payload);
         currentSettings = { ...currentSettings, ...payload };
     } catch (e) {
-        console.warn("[Sync] Failed to update sync metadata:", e.message);
+        logWarn("[Sync] Failed to update sync metadata:", e.message);
     }
 }
 
@@ -442,14 +449,14 @@ async function checkServerStatus(server) {
             ping: latency,
             last_check: new Date().toISOString()
         });
-        console.log(`[Ping] ${server.name} is ONLINE (${latency}ms)`);
+        logInfo(`[Ping] ${server.name} is ONLINE (${latency}ms)`);
     } catch (err) {
         await pb.collection('velocity_servers').update(server.id, {
             status: 'offline',
             ping: 0,
             last_check: new Date().toISOString()
         });
-        console.log(`[Ping] ${server.name} is OFFLINE (${err.message})`);
+        logInfo(`[Ping] ${server.name} is OFFLINE (${err.message})`);
     }
 }
 

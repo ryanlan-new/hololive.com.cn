@@ -1,5 +1,6 @@
 import http from "http";
 import { Readable } from "stream";
+import { createLogger } from "./logger.js";
 
 const PORT = Number.parseInt(process.env.MAP_PROXY_PORT || "18090", 10);
 const PB_URL = `${process.env.PB_URL || "http://127.0.0.1:8090"}`.replace(
@@ -17,6 +18,7 @@ const REQUEST_TIMEOUT_MS = Number.parseInt(
 
 let cachedAllowedOrigins = new Set();
 let cacheExpiresAt = 0;
+const logger = createLogger("MapProxy", { levelEnv: "MAP_PROXY_LOG_LEVEL" });
 
 const normalizeMapUrl = (rawUrl) => {
   const trimmed = `${rawUrl || ""}`.trim();
@@ -229,6 +231,9 @@ const server = http.createServer(async (req, res) => {
 
     Readable.fromWeb(upstream.body).pipe(res);
   } catch (error) {
+    logger.warn(
+      `[Proxy] ${req.method || "UNKNOWN"} ${req.url || ""} failed: ${error?.message || "unknown error"}`
+    );
     const isAbort = error?.name === "AbortError";
     res.writeHead(isAbort ? 504 : 502, {
       "Content-Type": "application/json; charset=utf-8",
@@ -242,5 +247,5 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(PORT, "127.0.0.1", () => {
-  console.log(`[MapProxy] listening on 127.0.0.1:${PORT}`);
+  logger.info(`listening on 127.0.0.1:${PORT} (level=${logger.level})`);
 });

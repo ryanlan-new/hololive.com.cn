@@ -77,6 +77,9 @@ jobs:
         env:
           VITE_POCKETBASE_URL: "https://hololive.com.cn"
 
+      - name: Check Bundle Budget
+        run: npm run check:bundle
+
       - name: Deploy to Web Root
         run: |
           # The runner is already ON the server.

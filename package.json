@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "check:bundle": "node scripts/check_bundle_budget.mjs",
     "lint": "eslint src backend --max-warnings 0",
     "lint:fix": "eslint src backend --fix",
     "audit:prod": "npm audit --omit=dev --registry=https://registry.npmjs.org",
