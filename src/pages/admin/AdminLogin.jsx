@@ -96,7 +96,7 @@ export default function AdminLogin() {
       // 找到白名单记录，允许登录
       navigate("../dashboard");
       return true;
-    } catch (error) {
+    } catch {
       // 未找到白名单记录，强制登出
       console.error("Email not whitelisted:", userEmail);
       pb.authStore.clear();
@@ -159,7 +159,6 @@ export default function AdminLogin() {
 
       // 提取详细错误信息
       let errorMessage = "未知错误";
-      let errorStatus = null;
 
       // ... (Error extraction logic maintained but abbreviated for clarity)
       if (error?.message) {
@@ -412,4 +411,3 @@ export default function AdminLogin() {
     </div>
   );
 }
-

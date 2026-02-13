@@ -1,5 +1,4 @@
-import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useState, useEffect, useCallback } from "react";
 import { Loader2, Filter, ClipboardList } from "lucide-react";
 import pb from "../../lib/pocketbase";
 import { useTranslation } from "react-i18next";
@@ -9,7 +8,6 @@ import { useTranslation } from "react-i18next";
  * 显示管理员和 SSO 用户的操作记录
  */
 export default function AuditLogs() {
-  const { adminKey } = useParams();
   const { t } = useTranslation("admin");
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -33,7 +31,7 @@ export default function AuditLogs() {
   ];
 
   // 获取日志列表
-  const fetchLogs = async () => {
+  const fetchLogs = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -59,11 +57,11 @@ export default function AuditLogs() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filterActionType, page, pageSize, t]);
 
   useEffect(() => {
     fetchLogs();
-  }, [page, filterActionType]);
+  }, [fetchLogs]);
 
   // 格式化日期时间（中文习惯）
   const formatDateTime = (dateString) => {

@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useEffect, useState, useCallback } from "react";
+import { useParams, Link } from "react-router-dom";
 import { Plus, Edit, Trash2, Loader2, ArrowUp, ArrowDown } from "lucide-react";
 import pb from "../../lib/pocketbase";
 import { useTranslation } from "react-i18next";
@@ -11,7 +11,6 @@ import { useTranslation } from "react-i18next";
 export default function HomeManager() {
   const { t, i18n } = useTranslation();
   const { adminKey } = useParams();
-  const navigate = useNavigate();
   const [sections, setSections] = useState([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState(null);
@@ -20,7 +19,7 @@ export default function HomeManager() {
   const [updatingOrder, setUpdatingOrder] = useState({});
 
   // 获取分段列表
-  const fetchSections = async () => {
+  const fetchSections = useCallback(async () => {
     try {
       setLoading(true);
       const result = await pb.collection("cms_sections").getList(1, 100, {
@@ -36,11 +35,11 @@ export default function HomeManager() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
 
   useEffect(() => {
     fetchSections();
-  }, []);
+  }, [fetchSections]);
 
   // 删除分段
   const handleDelete = async (sectionId) => {
@@ -265,4 +264,3 @@ export default function HomeManager() {
     </div>
   );
 }
-

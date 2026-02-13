@@ -316,11 +316,10 @@ export default function SectionEditor() {
       // 直接使用对象（PocketBase 会自动序列化 JSON 字段和 Relation）
       const finalData = saveData;
 
-      let saved;
       if (isEditMode) {
-        saved = await pb.collection("cms_sections").update(id, finalData);
+        await pb.collection("cms_sections").update(id, finalData);
       } else {
-        saved = await pb.collection("cms_sections").create(finalData);
+        await pb.collection("cms_sections").create(finalData);
       }
 
       setToast({

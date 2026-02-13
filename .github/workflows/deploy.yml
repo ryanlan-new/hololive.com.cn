@@ -22,6 +22,12 @@ jobs:
           npm config set registry https://registry.npmmirror.com
           npm ci
 
+      - name: Lint (Zero Warning)
+        run: npm run lint
+
+      - name: Security Audit (Prod Deps)
+        run: npm run audit:prod
+
       - name: Build Frontend
         run: npm run build
         env:

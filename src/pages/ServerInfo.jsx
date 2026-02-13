@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Server, ArrowLeft, Loader2, Map, Maximize, Minimize, X, Activity, Users, Zap, Info } from "lucide-react";
@@ -24,14 +24,14 @@ export default function ServerInfo() {
   const [serverHostname, setServerHostname] = useState(null);
 
   // 获取当前语言的文本（带 fallback）
-  const getText = (content) => {
+  const getText = useCallback((content) => {
     if (!content) return "";
     if (typeof content === "string") return content; // 向后兼容旧数据
     
     const currentLang = i18n.language || "zh";
     // Fallback 顺序：当前语言 -> 英文 -> 中文
     return content[currentLang] || content.en || content.zh || Object.values(content)[0] || "";
-  };
+  }, [i18n.language]);
 
   // Fetch server info fields
   useEffect(() => {
@@ -68,7 +68,7 @@ export default function ServerInfo() {
     };
 
     fetchServerInfoFields();
-  }, []);
+  }, [getText]);
 
   // 获取服务器实时状态
   useEffect(() => {
@@ -493,4 +493,3 @@ export default function ServerInfo() {
     </>
   );
 }
-

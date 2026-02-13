@@ -15,7 +15,7 @@ import { useTranslation } from "react-i18next";
 export default function PostEditor() {
   const { adminKey, id } = useParams();
   const navigate = useNavigate();
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const isEditMode = !!id;
 
   // 语言选项
@@ -122,7 +122,7 @@ export default function PostEditor() {
     };
 
     fetchPost();
-  }, [id, isEditMode]);
+  }, [id, isEditMode, t]);
 
   // 一键智能翻译
   const handleAutoTranslate = async () => {
@@ -204,16 +204,15 @@ export default function PostEditor() {
         is_pinned: formData.is_pinned || false,
       };
 
-      let saved;
       if (isEditMode) {
-        saved = await pb.collection("posts").update(id, saveData);
+        await pb.collection("posts").update(id, saveData);
         // 记录更新日志
         const title = typeof formData.title === "object"
           ? (formData.title.zh || formData.title.en || formData.title.ja || "Unknown Title")
           : formData.title || "Unknown Title";
         await logUpdate("Post Editor", `Updated post: ${title}`);
       } else {
-        saved = await pb.collection("posts").create(saveData);
+        await pb.collection("posts").create(saveData);
         // 记录创建日志
         const title = typeof formData.title === "object"
           ? (formData.title.zh || formData.title.en || formData.title.ja || "Unknown Title")

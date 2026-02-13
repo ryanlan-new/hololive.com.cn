@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useCallback, useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import { Save, Loader2, Settings, AlertTriangle } from "lucide-react";
 import pb from "../../lib/pocketbase";
 import { logSystemSettings } from "../../lib/logger";
@@ -14,7 +14,6 @@ const SETTINGS_ID = "1"; // 单例模式，固定 ID
 export default function SettingsPage() {
   const { t } = useTranslation();
   const { adminKey } = useParams();
-  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
@@ -34,7 +33,7 @@ export default function SettingsPage() {
   const [baiduExtractToast, setBaiduExtractToast] = useState(false);
 
   // 获取系统设置
-  const fetchSettings = async () => {
+  const fetchSettings = useCallback(async () => {
     try {
       setLoading(true);
       const settingsData = await pb.collection("system_settings").getOne(SETTINGS_ID);
@@ -60,11 +59,11 @@ export default function SettingsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
 
   useEffect(() => {
     fetchSettings();
-  }, []);
+  }, [fetchSettings]);
 
   // 检查当前 URL 中的 Key 是否与数据库中的 Key 一致
   useEffect(() => {
@@ -83,7 +82,7 @@ export default function SettingsPage() {
         }
       }
     }
-  }, [settings, adminKey]);
+  }, [settings, adminKey, t]);
 
   const saveSettings = async (updateData, keyChanged) => {
     setSaving(true);
@@ -458,4 +457,3 @@ export default function SettingsPage() {
     </div>
   );
 }
-

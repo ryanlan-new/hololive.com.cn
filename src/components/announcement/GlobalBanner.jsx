@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { X, ExternalLink, Bell } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import pb from "../../lib/pocketbase";
@@ -18,7 +18,7 @@ export default function GlobalBanner({ overrideAnnouncement = null }) {
   const [displayText, setDisplayText] = useState("");
 
   // 获取当前语言的文本（带 fallback）
-  const getText = (content) => {
+  const getText = useCallback((content) => {
     if (!content) return null;
 
     const currentLang = i18n.language || "zh";
@@ -26,7 +26,7 @@ export default function GlobalBanner({ overrideAnnouncement = null }) {
     return (
       content[currentLang] || content.en || content.zh || Object.values(content)[0]
     );
-  };
+  }, [i18n.language]);
 
   // 获取详情链接文本
   const getLinkText = (lang) => {
@@ -109,7 +109,7 @@ export default function GlobalBanner({ overrideAnnouncement = null }) {
     return () => {
       cancelled = true;
     };
-  }, [overrideAnnouncement]);
+  }, [overrideAnnouncement, getText]);
 
   // 监听语言变化，更新显示文本
   useEffect(() => {
@@ -130,7 +130,7 @@ export default function GlobalBanner({ overrideAnnouncement = null }) {
     return () => {
       i18n.off("languageChanged", updateDisplayText);
     };
-  }, [announcement, i18n]);
+  }, [announcement, i18n, getText]);
 
   // 如果正在加载、没有公告或已关闭，不显示（完全移除，不占据空间）
   if (loading || !announcement || dismissed) {
@@ -181,4 +181,3 @@ export default function GlobalBanner({ overrideAnnouncement = null }) {
     </div>
   );
 }
-

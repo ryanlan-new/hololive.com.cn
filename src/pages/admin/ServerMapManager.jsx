@@ -1,5 +1,4 @@
-import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useCallback, useEffect, useState } from "react";
 import { Plus, Edit, Trash2, Loader2, Map, GripVertical, X, Save } from "lucide-react";
 import pb from "../../lib/pocketbase";
 import { useTranslation } from "react-i18next";
@@ -9,7 +8,6 @@ import { useTranslation } from "react-i18next";
  * Manage external links for server maps
  */
 export default function ServerMapManager() {
-  const { adminKey } = useParams();
   const { t } = useTranslation();
   const [maps, setMaps] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -28,7 +26,7 @@ export default function ServerMapManager() {
   });
 
   // Fetch maps
-  const fetchMaps = async () => {
+  const fetchMaps = useCallback(async () => {
     try {
       setLoading(true);
       const result = await pb.collection("server_maps").getList(1, 100, {
@@ -41,11 +39,11 @@ export default function ServerMapManager() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
 
   useEffect(() => {
     fetchMaps();
-  }, []);
+  }, [fetchMaps]);
 
   const showToast = (type, message) => {
     setToast({ type, message });

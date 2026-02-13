@@ -1,5 +1,4 @@
-import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useCallback, useEffect, useState } from "react";
 import {
   Plus,
   Edit,
@@ -19,7 +18,6 @@ import { useTranslation } from "react-i18next";
  * Support CRUD and Drag-and-Drop Sort
  */
 export default function ServerInfoFields() {
-  const { adminKey } = useParams();
   const { t } = useTranslation();
   const [fields, setFields] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -39,7 +37,7 @@ export default function ServerInfoFields() {
   });
 
   // Fetch fields
-  const fetchFields = async () => {
+  const fetchFields = useCallback(async () => {
     try {
       setLoading(true);
       const result = await pb.collection("server_info_details").getList(1, 100, {
@@ -52,11 +50,11 @@ export default function ServerInfoFields() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
 
   useEffect(() => {
     fetchFields();
-  }, []);
+  }, [fetchFields]);
 
   const showToast = (type, message) => {
     setToast({ type, message });
@@ -263,7 +261,6 @@ export default function ServerInfoFields() {
                 className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-blue)]"
               >
                 {commonIcons.map((iconName) => {
-                  const IconComponent = getIconComponent(iconName);
                   return (
                     <option key={iconName} value={iconName}>
                       {iconName}

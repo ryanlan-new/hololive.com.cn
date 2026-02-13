@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
-import { Plus, Trash2, Loader2, User, UserX, Mail, X, Save, AlertTriangle } from "lucide-react";
+import { Plus, Trash2, Loader2, User, UserX, X, Save, AlertTriangle } from "lucide-react";
 import pb from "../../lib/pocketbase";
 import { useTranslation } from "react-i18next";
 
@@ -10,7 +9,6 @@ import { useTranslation } from "react-i18next";
  */
 export default function AdminUsersPage() {
   const { t } = useTranslation();
-  const { adminKey } = useParams();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState(null);
@@ -475,4 +473,3 @@ export default function AdminUsersPage() {
     </div>
   );
 }
-

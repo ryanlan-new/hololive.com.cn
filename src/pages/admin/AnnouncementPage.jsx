@@ -1,5 +1,4 @@
-import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useState, useEffect, useCallback } from "react";
 import {
   Plus,
   Edit,
@@ -20,7 +19,6 @@ import { useTranslation } from "react-i18next";
  * Manage site-wide banner announcements
  */
 export default function AnnouncementPage() {
-  const { adminKey } = useParams();
   const { t, i18n } = useTranslation();
   const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -39,7 +37,7 @@ export default function AnnouncementPage() {
   const [toast, setToast] = useState(null);
 
   // Fetch announcements
-  const fetchAnnouncements = async () => {
+  const fetchAnnouncements = useCallback(async () => {
     try {
       setLoading(true);
       const result = await pb.collection("announcements").getList(1, 100, {
@@ -48,13 +46,6 @@ export default function AnnouncementPage() {
       setAnnouncements(result.items);
     } catch (error) {
       console.error("Failed to fetch announcements:", error);
-      const detail =
-        error?.response?.data ||
-        error?.data ||
-        error?.response ||
-        error?.message ||
-        error;
-      // alert("Error fetching announcements: " + JSON.stringify(detail));
       setToast({
         type: "error",
         message: t("admin.announcements.toast.deleteError"), // Reuse error message or add generic fetch error later
@@ -62,11 +53,11 @@ export default function AnnouncementPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
 
   useEffect(() => {
     fetchAnnouncements();
-  }, []);
+  }, [fetchAnnouncements]);
 
   // Format date time
   const formatDateTime = (dateString) => {

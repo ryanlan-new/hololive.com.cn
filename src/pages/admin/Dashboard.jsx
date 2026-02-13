@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Calendar, Clock, FileText, Bell, Activity } from "lucide-react";
 import pb from "../../lib/pocketbase";
 import { useTranslation } from "react-i18next";
@@ -46,7 +46,7 @@ export default function Dashboard() {
   );
 
   // 拉取统计数据
-  const fetchStats = async () => {
+  const fetchStats = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -87,12 +87,12 @@ export default function Dashboard() {
       );
     } finally {
       setLoading(false);
-    };
-  };
+    }
+  }, [t]);
 
   useEffect(() => {
     fetchStats();
-  }, []);
+  }, [fetchStats]);
 
   const skeletonClass =
     "animate-pulse bg-slate-100 rounded-lg h-8 w-20 inline-block";
@@ -251,4 +251,3 @@ export default function Dashboard() {
     </div>
   );
 }
-

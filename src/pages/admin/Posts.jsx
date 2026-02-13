@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { Plus, Edit, Trash2, Loader2, FileText, Search } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -22,7 +22,7 @@ export default function Posts() {
   const [toast, setToast] = useState(null);
 
   // 获取文章列表
-  const fetchPosts = async () => {
+  const fetchPosts = useCallback(async () => {
     try {
       setLoading(true);
       const result = await pb.collection("posts").getList(1, 100, {
@@ -38,11 +38,11 @@ export default function Posts() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
 
   useEffect(() => {
     fetchPosts();
-  }, []);
+  }, [fetchPosts]);
 
   const filteredPosts = useMemo(() => {
     if (!search.trim()) return posts;
@@ -103,7 +103,7 @@ export default function Posts() {
             postTitle = post.title;
           }
         }
-      } catch (err) {
+      } catch {
         console.warn("Failed to fetch post info for logging");
       }
 

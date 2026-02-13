@@ -3,7 +3,6 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { Link } from "react-router-dom";
 import { ExternalLink } from "lucide-react";
 import { ASSETS } from "../config/assets";
-import Button from "../components/ui/Button";
 import { useCmsSections } from "../hooks/useCmsData";
 
 // 背景图片组件，使用 useScroll
@@ -40,9 +39,11 @@ function HomeContent({ sections }) {
   
   // 确保 DOM 已挂载
   useEffect(() => {
-    if (contentRef.current) {
+    const timer = setTimeout(() => {
       setIsMounted(true);
-    }
+    }, 0);
+
+    return () => clearTimeout(timer);
   }, []);
   
   // 背景图片：第一张作为渐变背景，最后一张作为固定背景

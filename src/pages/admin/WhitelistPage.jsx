@@ -1,5 +1,4 @@
-import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useCallback, useState, useEffect } from "react";
 import { Plus, Edit, Trash2, Loader2, Mail, X, Save } from "lucide-react";
 import pb from "../../lib/pocketbase";
 import { logCreate, logUpdate, logDelete } from "../../lib/logger";
@@ -10,7 +9,6 @@ import { useTranslation } from "react-i18next";
  * 管理允许通过 SSO 登录的邮箱地址
  */
 export default function WhitelistPage() {
-  const { adminKey } = useParams();
   const { t } = useTranslation("admin");
   const [whitelists, setWhitelists] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -26,7 +24,7 @@ export default function WhitelistPage() {
   const [toast, setToast] = useState(null);
 
   // 获取白名单列表
-  const fetchWhitelists = async () => {
+  const fetchWhitelists = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -71,11 +69,11 @@ export default function WhitelistPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
 
   useEffect(() => {
     fetchWhitelists();
-  }, []);
+  }, [fetchWhitelists]);
 
   // 格式化日期
   const formatDate = (dateString) => {
@@ -144,7 +142,7 @@ export default function WhitelistPage() {
       try {
         const item = await pb.collection("whitelists").getOne(id);
         email = item.email || "Unknown";
-      } catch (err) {
+      } catch {
         console.warn("Failed to fetch whitelist info for log");
       }
 

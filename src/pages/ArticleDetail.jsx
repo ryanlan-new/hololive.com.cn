@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowLeft, Loader2, Calendar } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -9,7 +9,6 @@ import { getLocalizedContent } from "../utils/postHelpers";
 
 export default function ArticleDetail() {
   const { id } = useParams();
-  const navigate = useNavigate();
   const { i18n } = useTranslation();
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -147,4 +146,3 @@ export default function ArticleDetail() {
     </div>
   );
 }
-

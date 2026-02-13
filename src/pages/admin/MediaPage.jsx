@@ -1,4 +1,3 @@
-import AdminLayout from "../../components/admin/AdminLayout";
 import MediaManager from "../../components/admin/media/MediaManager";
 import { useTranslation } from "react-i18next";
 

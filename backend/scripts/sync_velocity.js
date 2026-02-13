@@ -165,7 +165,7 @@ async function updateProxyStatusOnce() {
         return;
     }
 
-    let status = "unknown";
+    let status;
     try {
         const { stdout } = await execAsync(`systemctl is-active ${VELOCITY_SERVICE}`);
         status = stdout.trim();
@@ -207,7 +207,7 @@ async function syncConfig() {
     }
 
     // Fetch Servers
-    let servers = [];
+    let servers;
     try {
         servers = await pb.collection('velocity_servers').getFullList({ sort: 'try_order' });
     } catch (err) {
@@ -308,7 +308,7 @@ async function syncJarIfNeeded(settings) {
     const markerPath = path.join(VELOCITY_DIR, JAR_REF_MARKER);
     const jarRef = `${settings.id}:${jarField}:${settings.updated || ""}`;
 
-    let markerRef = "";
+    let markerRef;
     try {
         markerRef = (await fs.readFile(markerPath, "utf8")).trim();
     } catch (e) {
@@ -375,7 +375,7 @@ async function ensureForwardingSecretFile(secretValue) {
     }
 
     const secretPath = path.join(VELOCITY_DIR, FORWARDING_SECRET_FILENAME);
-    let existingSecret = "";
+    let existingSecret;
     try {
         existingSecret = (await fs.readFile(secretPath, "utf8")).trim();
     } catch (e) {
