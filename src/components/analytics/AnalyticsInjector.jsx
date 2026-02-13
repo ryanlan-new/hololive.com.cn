@@ -1,7 +1,9 @@
 import { useEffect } from "react";
 import pb from "../../lib/pocketbase";
+import { createAppLogger } from "../../lib/appLogger";
 
 const SETTINGS_ID = "1"; // 单例模式，固定 ID
+const logger = createAppLogger("AnalyticsInjector");
 
 /**
  * Analytics 脚本注入组件
@@ -74,7 +76,7 @@ export default function AnalyticsInjector() {
         }
       } catch (error) {
         // 静默失败，不影响页面正常显示
-        console.warn("Failed to load analytics config:", error);
+        logger.warn("Failed to load analytics config:", error);
       }
     };
 

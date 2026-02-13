@@ -6,6 +6,9 @@ import { useTranslation } from "react-i18next";
 import parse from "html-react-parser";
 import pb from "../lib/pocketbase";
 import { getLocalizedContent } from "../utils/postHelpers";
+import { createAppLogger } from "../lib/appLogger";
+
+const logger = createAppLogger("ArticleDetail");
 
 const sanitizeRichText = (html) => {
   if (!html || typeof window === "undefined") return "";
@@ -57,7 +60,7 @@ export default function ArticleDetail() {
         setPost(result);
         setError(null);
       } catch (err) {
-        console.error("Failed to fetch article:", err);
+        logger.error("Failed to fetch article:", err);
         setError("加载文章失败，请稍后重试");
       } finally {
         setLoading(false);

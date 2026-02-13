@@ -5,6 +5,9 @@ import { Megaphone, ArrowLeft, Loader2, Calendar, Image as ImageIcon, Pin } from
 import { useTranslation } from "react-i18next";
 import pb from "../lib/pocketbase";
 import { getLocalizedContent } from "../utils/postHelpers";
+import { createAppLogger } from "../lib/appLogger";
+
+const logger = createAppLogger("WebsiteAnnouncements");
 
 export default function WebsiteAnnouncements() {
   const navigate = useNavigate();
@@ -28,7 +31,7 @@ export default function WebsiteAnnouncements() {
         setPosts(result.items);
         setError(null);
       } catch (err) {
-        console.error("Failed to fetch announcements:", err);
+        logger.error("Failed to fetch announcements:", err);
         setError("加载公告失败，请稍后重试");
       } finally {
         setLoading(false);
@@ -165,4 +168,3 @@ export default function WebsiteAnnouncements() {
     </div>
   );
 }
-

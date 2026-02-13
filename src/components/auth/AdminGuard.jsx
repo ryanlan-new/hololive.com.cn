@@ -2,6 +2,9 @@ import { useState, useEffect } from "react";
 import { useParams, Outlet } from "react-router-dom";
 import ErrorPage from "../../pages/ErrorPage";
 import pb from "../../lib/pocketbase";
+import { createAppLogger } from "../../lib/appLogger";
+
+const logger = createAppLogger("AdminGuard");
 
 /**
  * 后台管理路由守卫组件
@@ -31,7 +34,7 @@ export default function AdminGuard() {
         const expectedKey = dbKey || devFallbackKey;
         setIsValidKey(adminKey === expectedKey);
       } catch (error) {
-        console.error("Failed to validate admin key:", error);
+        logger.error("Failed to validate admin key:", error);
         // 生产环境读取失败时直接拒绝；开发模式可回退到环境变量
         setIsValidKey(Boolean(devFallbackKey) && adminKey === devFallbackKey);
       } finally {

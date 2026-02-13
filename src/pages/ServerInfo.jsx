@@ -5,6 +5,9 @@ import { Server, ArrowLeft, Loader2, Map, Maximize, Minimize, X, Activity, Users
 import { useTranslation } from "react-i18next";
 import pb from "../lib/pocketbase";
 import { getServerInfoIcon } from "../lib/serverInfoIcons";
+import { createAppLogger } from "../lib/appLogger";
+
+const logger = createAppLogger("ServerInfo");
 
 export default function ServerInfo() {
   const { i18n, t } = useTranslation("docs");
@@ -71,7 +74,7 @@ export default function ServerInfo() {
           }
         }
       } catch (err) {
-        console.error("Failed to fetch server info fields:", err);
+        logger.error("Failed to fetch server info fields:", err);
       } finally {
         setFieldsLoading(false);
       }
@@ -104,7 +107,7 @@ export default function ServerInfo() {
           error: data.online ? null : "服务器离线",
         });
       } catch (err) {
-        console.error("Failed to fetch server status:", err);
+        logger.error("Failed to fetch server status:", err);
         setServerStatus({
           data: null,
           loading: false,
@@ -147,7 +150,7 @@ export default function ServerInfo() {
           setSelectedMap(sorted[0]);
         }
       } catch (err) {
-        console.error("Failed to fetch maps:", err);
+        logger.error("Failed to fetch maps:", err);
         setError("加载地图列表失败，请稍后重试");
       } finally {
         setLoading(false);

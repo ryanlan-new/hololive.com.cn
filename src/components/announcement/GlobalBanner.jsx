@@ -2,6 +2,9 @@ import { useState, useEffect, useCallback } from "react";
 import { X, ExternalLink, Bell } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import pb from "../../lib/pocketbase";
+import { createAppLogger } from "../../lib/appLogger";
+
+const logger = createAppLogger("GlobalBanner");
 
 /**
  * 全局横幅公告组件
@@ -95,7 +98,7 @@ export default function GlobalBanner({ overrideAnnouncement = null }) {
         setAnnouncement(null);
       } catch (error) {
         // 静默失败，不影响页面显示
-        console.warn("Failed to fetch announcement:", error);
+        logger.warn("Failed to fetch announcement:", error);
         setAnnouncement(null);
       } finally {
         if (!cancelled) {

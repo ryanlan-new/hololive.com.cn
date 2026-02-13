@@ -1,4 +1,7 @@
 import pb from "./pocketbase";
+import { createAppLogger } from "./appLogger";
+
+const appLogger = createAppLogger("AuditLogger");
 
 /**
  * 审计日志服务
@@ -28,13 +31,13 @@ export const logAction = async (actionType, targetModule, details = "", ipAddres
   try {
     // 检查用户是否已登录
     if (!pb.authStore.isValid || !pb.authStore.model) {
-      console.warn("无法记录日志：用户未登录");
+      appLogger.warn("无法记录日志：用户未登录");
       return;
     }
 
     const userId = pb.authStore.model.id;
     if (!userId) {
-      console.warn("无法记录日志：无法获取用户 ID");
+      appLogger.warn("无法记录日志：无法获取用户 ID");
       return;
     }
 
@@ -52,11 +55,11 @@ export const logAction = async (actionType, targetModule, details = "", ipAddres
       .create(logData)
       .catch((error) => {
         // 日志写入失败不应影响主业务流程
-        console.error("审计日志写入失败:", error);
+        appLogger.error("审计日志写入失败:", error);
       });
   } catch (error) {
     // 捕获所有异常，确保不影响主业务流程
-    console.error("记录审计日志时发生错误:", error);
+    appLogger.error("记录审计日志时发生错误:", error);
   }
 };
 
@@ -94,4 +97,3 @@ export const logDelete = async (module, details, ipAddress = null) => {
 export const logSystemSettings = async (details, ipAddress = null) => {
   await logAction("系统设置", "系统设置", details, ipAddress);
 };
-

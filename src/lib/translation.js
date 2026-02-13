@@ -6,6 +6,9 @@
  * Request format: GET ?q={text}&langpair={source}|{target}
  * Response: response.data.responseData.translatedText
  */
+import { createAppLogger } from "./appLogger";
+
+const logger = createAppLogger("Translation");
 
 /**
  * Language code mapping for MyMemory API
@@ -67,7 +70,7 @@ export async function translateText(text, sourceLang, targetLang) {
     // Check for API errors
     if (data.responseStatus !== 200) {
       // If rate limit or other error, return original text with warning
-      console.warn('Translation API error:', data.responseStatus, data.responseDetails);
+      logger.warn('Translation API error:', data.responseStatus, data.responseDetails);
       return text; // Return original text instead of throwing error
     }
     
@@ -76,10 +79,10 @@ export async function translateText(text, sourceLang, targetLang) {
     }
     
     // If no translation found, return original text
-    console.warn('No translation found, returning original text');
+    logger.warn('No translation found, returning original text');
     return text;
   } catch (error) {
-    console.error('Translation error:', error);
+    logger.error('Translation error:', error);
     // Return original text on error instead of throwing
     // This ensures the UI doesn't break if API is unavailable
     return text;
@@ -140,7 +143,7 @@ export async function translateFields(fields, sourceLang, targetLangs, onProgres
       const translated = await translateText(sourceText, sourceLang, targetLang);
       translatedFields[targetLang] = translated;
     } catch (error) {
-      console.error(`Failed to translate to ${targetLang}:`, error);
+      logger.error(`Failed to translate to ${targetLang}:`, error);
       // Keep original value if translation fails
       if (!translatedFields[targetLang]) {
         translatedFields[targetLang] = '';

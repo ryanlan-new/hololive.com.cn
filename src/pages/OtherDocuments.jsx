@@ -5,6 +5,9 @@ import { FileText, ArrowLeft, Loader2, Calendar, Image as ImageIcon, Pin } from 
 import { useTranslation } from "react-i18next";
 import pb from "../lib/pocketbase";
 import { getLocalizedContent } from "../utils/postHelpers";
+import { createAppLogger } from "../lib/appLogger";
+
+const logger = createAppLogger("OtherDocuments");
 
 export default function OtherDocuments() {
   const navigate = useNavigate();
@@ -28,7 +31,7 @@ export default function OtherDocuments() {
         setPosts(result.items);
         setError(null);
       } catch (err) {
-        console.error("Failed to fetch documents:", err);
+        logger.error("Failed to fetch documents:", err);
         setError("加载文档失败，请稍后重试");
       } finally {
         setLoading(false);
@@ -165,4 +168,3 @@ export default function OtherDocuments() {
     </div>
   );
 }
-
